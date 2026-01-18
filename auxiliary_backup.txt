@@ -1,0 +1,2013 @@
+# **Updated Comprehensive Plan: Retro Vibecoder UPG**
+## **Complete Project Structure, Testing Framework, Templates & Governance**
+
+***
+
+## **PART 1: EXECUTIVE SUMMARY & STRATEGIC CONTEXT**
+
+### **Project Vision**
+Transform the Retro Vibecoder from a monolithic, imperative scaffolding tool into a **Universal Project Generator (UPG)**—a declarative, data-driven platform that generates projects while maintaining them throughout their lifecycle via Smart Updates and a Git-backed Marketplace Registry.
+
+### **Core Architecture**
+- **Phase 1:** Universal Spec & Template Manifest (YAML-based, JSON Schema validated)
+- **Phase 2:** Generic Engine & Dynamic Forms (Tauri v2 + React + RJSF)
+- **Phase 3:** Marketplace & Ecosystem (Git Registry + Smart Update + versioning)
+
+### **Key Differentiators**
+1. ✅ **Data-Driven Templating** (YAML manifests, not hardcoded scripts)
+2. ✅ **Dynamic UI** (React JSON Schema Form auto-generates GUI from manifest)
+3. ✅ **Smart Updates** (3-way merge preserves user modifications while applying template patches)
+4. ✅ **Universal Execution** (Sidecar pattern supports Copier, Yeoman, future tools)
+5. ✅ **Retro Aesthetic** (Windows 95 UI via React95)
+6. ✅ **Decentralized Registry** (Git-based, private/public, no backend infrastructure)
+
+***
+
+## **PART 2: REPOSITORY STRUCTURE**
+
+### **Root Directory Layout**
+
+```
+retro-vibecoder-upg/
+├── README.md                          # Project overview, quickstart, architecture diagram
+├── ARCHITECTURE.md                    # Deep dive into design decisions (this doc)
+├── CONTRIBUTING.md                    # Contributing guidelines, code style, PR process
+├── LICENSE                            # MIT/Apache 2.0
+│
+├── packages/                          # Monorepo root (pnpm workspaces)
+│
+│   ├── core/                          # === PHASE 1: UNIVERSAL SPEC ===
+│   │   ├── package.json
+│   │   ├── src/
+│   │   │   ├── schema/
+│   │   │   │   ├── upg-manifest.json  # JSON Schema (meta-schema) for upg.yaml
+│   │   │   │   ├── template-catalog.json  # Software Catalog schema
+│   │   │   │   └── validator.ts       # AJV-based schema validator + error reporting
+│   │   │   ├── transpiler/
+│   │   │   │   ├── manifest-to-schema.ts  # YAML upg.yaml → JSON Schema transpiler
+│   │   │   │   ├── conditional-logic.ts   # Maps when clauses → JSON Schema dependencies/oneOf
+│   │   │   │   ├── jinja2-filters.ts      # Defines Jinja2 filter mappings
+│   │   │   │   └── tests/
+│   │   │   │       ├── transpiler.test.ts
+│   │   │   │       └── fixtures/
+│   │   │   │           ├── simple-prompt.yaml
+│   │   │   │           ├── conditional-logic.yaml
+│   │   │   │           └── expected-output/
+│   │   │   ├── cli/
+│   │   │   │   ├── validate.ts        # CLI: upg validate <manifest>
+│   │   │   │   ├── test-generate.ts   # CLI: upg test-generate <manifest> [--data <json>]
+│   │   │   │   └── docs-gen.ts        # CLI: upg docs <manifest> (generates template docs)
+│   │   │   └── index.ts               # Public API exports
+│   │   ├── tests/
+│   │   │   ├── schema-validation.test.ts
+│   │   │   ├── transpiler-e2e.test.ts
+│   │   │   └── fixtures/
+│   │   │       ├── react-starter.upg.yaml      # Valid fixture
+│   │   │       ├── python-api.upg.yaml
+│   │   │       ├── invalid-manifest.yaml       # Invalid fixture (for error testing)
+│   │   │       └── edge-cases/
+│   │   │           ├── circular-dependencies.yaml
+│   │   │           ├── deeply-nested-conditionals.yaml
+│   │   │           └── unicode-descriptions.yaml
+│   │   └── README.md                  # Phase 1 docs
+│   │
+│   ├── engine/                        # === PHASE 2: GENERIC ENGINE (Tauri) ===
+│   │   ├── src-tauri/
+│   │   │   ├── Cargo.toml             # Rust dependencies + sidecar config
+│   │   │   ├── tauri.conf.json        # Tauri v2 config (sidecar binaries, allowlist)
+│   │   │   ├── src/
+│   │   │   │   ├── main.rs            # Tauri app entry, window creation
+│   │   │   │   ├── commands/
+│   │   │   │   │   ├── manifest.rs    # load_manifest(path: String) → ManifestData
+│   │   │   │   │   ├── generator.rs   # spawn_generator(template, dest, context) → Stream<Event>
+│   │   │   │   │   ├── registry.rs    # search_registry(query) → TemplateList
+│   │   │   │   │   ├── update.rs      # check_updates(project_path) → UpdateMetadata
+│   │   │   │   │   └── state.rs       # read_upg_answers(project_path) → AnswersData
+│   │   │   │   ├── sidecars/
+│   │   │   │   │   ├── copier.rs      # Sidecar orchestration for Copier (Python)
+│   │   │   │   │   ├── yeoman.rs      # Sidecar orchestration for Yeoman (Node)
+│   │   │   │   │   └── executor.rs    # Generic sidecar spawn + stream capture
+│   │   │   │   ├── registry/
+│   │   │   │   │   ├── git.rs         # Git clone/pull logic for registry repos
+│   │   │   │   │   ├── cache.rs       # Local cache management (~/.upg-cache)
+│   │   │   │   │   └── search.rs      # Local search against cached manifests
+│   │   │   │   ├── update/
+│   │   │   │   │   ├── smart_merge.rs # 3-way merge logic (base/current/target)
+│   │   │   │   │   ├── conflict.rs    # Git conflict marker insertion
+│   │   │   │   │   └── state_mgr.rs   # .upg-answers.yaml read/write
+│   │   │   │   └── utils/
+│   │   │   │       ├── logging.rs
+│   │   │   │       ├── fs.rs
+│   │   │   │       └── errors.rs
+│   │   │   └── binaries/
+│   │   │       ├── copier-cli/        # PyInstaller bundled Copier binary (or Nuitka)
+│   │   │       ├── yeoman-cli/        # esbuild bundled Yeoman binary (future)
+│   │   │       └── README.md          # Binary build instructions
+│   │   │
+│   │   ├── src-react/                 # React Frontend (Tauri webview)
+│   │   │   ├── package.json
+│   │   │   ├── tsconfig.json
+│   │   │   ├── vite.config.ts
+│   │   │   ├── src/
+│   │   │   │   ├── App.tsx            # Main app router
+│   │   │   │   ├── components/
+│   │   │   │   │   ├── Windows95/     # React95 wrapper components
+│   │   │   │   │   │   ├── Window.tsx
+│   │   │   │   │   │   ├── Button.tsx
+│   │   │   │   │   │   ├── TextField.tsx
+│   │   │   │   │   │   ├── Dialog.tsx
+│   │   │   │   │   │   └── Panel.tsx
+│   │   │   │   │   ├── TemplateSelector/
+│   │   │   │   │   │   ├── TemplateCard.tsx
+│   │   │   │   │   │   ├── TemplateList.tsx
+│   │   │   │   │   │   └── SearchBar.tsx
+│   │   │   │   │   ├── DynamicForm/
+│   │   │   │   │   │   ├── FormRenderer.tsx  # RJSF wrapper with Windows95 theming
+│   │   │   │   │   │   ├── FieldTemplate.tsx
+│   │   │   │   │   │   ├── WidgetOverrides.tsx  # Custom widgets for special types
+│   │   │   │   │   │   └── validators.ts
+│   │   │   │   │   ├── GenerationFlow/
+│   │   │   │   │   │   ├── ProgressBar.tsx
+│   │   │   │   │   │   ├── LogViewer.tsx  # Real-time sidecar output
+│   │   │   │   │   │   └── SuccessScreen.tsx
+│   │   │   │   │   ├── RegistryBrowser/
+│   │   │   │   │   │   ├── RegistryList.tsx
+│   │   │   │   │   │   ├── TemplateDetails.tsx
+│   │   │   │   │   │   └── UpdateNotification.tsx
+│   │   │   │   │   └── UpdateFlow/
+│   │   │   │   │       ├── UpdateChecker.tsx
+│   │   │   │   │       ├── ConflictResolver.tsx  # Manual merge conflict UI
+│   │   │   │   │       └── DiffViewer.tsx
+│   │   │   │   ├── hooks/
+│   │   │   │   │   ├── useManifest.ts
+│   │   │   │   │   ├── useSidecar.ts    # Interact with Rust backend
+│   │   │   │   │   ├── useRegistry.ts
+│   │   │   │   │   └── useFormState.ts
+│   │   │   │   ├── services/
+│   │   │   │   │   ├── tauri-api.ts     # Wrapper around @tauri-apps/api
+│   │   │   │   │   ├── manifest-parser.ts
+│   │   │   │   │   └── schema-transpiler.ts  # Client-side YAML→JSON Schema
+│   │   │   │   ├── store/
+│   │   │   │   │   ├── appSlice.ts      # Redux or Zustand state management
+│   │   │   │   │   ├── registrySlice.ts
+│   │   │   │   │   └── store.ts
+│   │   │   │   ├── styles/
+│   │   │   │   │   ├── index.css        # Windows95 retro theme
+│   │   │   │   │   ├── theme.ts
+│   │   │   │   │   └── react95-overrides.css
+│   │   │   │   └── index.tsx
+│   │   │   └── tests/
+│   │   │       ├── FormRenderer.test.tsx
+│   │   │       ├── TemplateSelector.test.tsx
+│   │   │       └── __mocks__/
+│   │   │           └── @tauri-apps/api.ts
+│   │   │
+│   │   ├── tests/
+│   │   │   ├── sidecar-integration.test.ts  # Test Copier sidecar spawn/capture
+│   │   │   ├── manifest-loading.test.ts
+│   │   │   ├── smart-update.test.rs        # Test 3-way merge logic
+│   │   │   └── fixtures/
+│   │   │       ├── sample-project/        # Pre-generated project for update testing
+│   │   │       └── manifests/
+│   │   │
+│   │   ├── binaries/
+│   │   │   ├── copier/
+│   │   │   │   ├── build.sh              # PyInstaller/Nuitka build script
+│   │   │   │   ├── main.py               # Entry point (wraps Copier library)
+│   │   │   │   └── requirements.txt
+│   │   │   └── yeoman/
+│   │   │       ├── build.sh              # esbuild/pkg build script (future)
+│   │   │       └── package.json
+│   │   │
+│   │   ├── README.md                   # Phase 2 docs
+│   │   └── SIDECAR-GUIDE.md             # How to add new sidecar binaries
+│   │
+│   ├── registry/                       # === PHASE 3: MARKETPLACE REGISTRY ===
+│   │   ├── manifests/                  # Template metadata (Git-based registry content)
+│   │   │   ├── react-starter/
+│   │   │   │   ├── 1.0.0.json           # Published template metadata
+│   │   │   │   ├── 1.1.0.json
+│   │   │   │   ├── 2.0.0.json           # Latest version
+│   │   │   │   └── index.json           # Pointer to latest + metadata
+│   │   │   ├── python-api/
+│   │   │   │   ├── 1.0.0.json
+│   │   │   │   ├── 2.0.0.json
+│   │   │   │   └── index.json
+│   │   │   ├── vue-storefront/
+│   │   │   │   └── *.json
+│   │   │   └── catalog-info.yaml        # Registry-level metadata
+│   │   │
+│   │   ├── templates/                  # Actual template repositories (submodules or references)
+│   │   │   ├── react-starter/
+│   │   │   ├── python-api/
+│   │   │   └── vue-storefront/
+│   │   │
+│   │   ├── validation/
+│   │   │   ├── ci-validate.ts           # GitHub Actions validation script
+│   │   │   └── lint-manifest.ts         # Lint template manifests before merge
+│   │   │
+│   │   ├── README.md                   # Registry setup and publishing guide
+│   │   └── PUBLISHING.md                # Template author publishing guide
+│   │
+│   ├── cli/                            # === COMMAND-LINE INTERFACE ===
+│   │   ├── package.json
+│   │   ├── src/
+│   │   │   ├── bin/upg.ts               # Entry point (upg generate, upg validate, etc.)
+│   │   │   ├── commands/
+│   │   │   │   ├── generate.ts          # upg generate [template] [--dest] [--data]
+│   │   │   │   ├── validate.ts          # upg validate <manifest>
+│   │   │   │   ├── update.ts            # upg update [--project-path]
+│   │   │   │   ├── registry-search.ts   # upg search <query>
+│   │   │   │   ├── template-test.ts     # upg test <manifest> [--data]
+│   │   │   │   └── init.ts              # upg init (interactive setup)
+│   │   │   ├── utils/
+│   │   │   │   ├── config.ts            # ~/.upg/config.yaml management
+│   │   │   │   ├── registry-cache.ts
+│   │   │   │   └── logger.ts
+│   │   │   └── index.ts
+│   │   └── tests/
+│   │       ├── commands/
+│   │       │   ├── generate.test.ts
+│   │       │   └── validate.test.ts
+│   │       └── fixtures/
+│   │
+│   └── shared/                         # === SHARED UTILITIES ===
+│       ├── package.json
+│       ├── src/
+│       │   ├── types/
+│       │   │   ├── manifest.ts          # TypeScript interfaces for upg.yaml
+│       │   │   ├── registry.ts
+│       │   │   ├── answers.ts
+│       │   │   └── sidecar.ts
+│       │   ├── constants/
+│       │   │   ├── defaults.ts
+│       │   │   ├── paths.ts
+│       │   │   └── error-codes.ts
+│       │   └── utils/
+│       │       ├── yaml-parser.ts
+│       │       ├── schema-validator.ts
+│       │       └── paths.ts
+│       └── tests/
+│           └── types.test.ts
+│
+├── templates/                         # === EXAMPLE TEMPLATES (for testing + demos) ===
+│   ├── react-starter/
+│   │   ├── upg.yaml                    # Universal Manifest
+│   │   ├── template/                   # Template files (Jinja2)
+│   │   │   ├── package.json.jinja
+│   │   │   ├── src/
+│   │   │   │   ├── App.tsx.jinja
+│   │   │   │   ├── index.css.jinja
+│   │   │   │   └── {{cookiecutter.project_slug}}/
+│   │   │   │       └── Component.tsx.jinja
+│   │   │   ├── .github/workflows/
+│   │   │   │   └── ci.yaml.jinja       # Conditionally included if use_ci == true
+│   │   │   ├── docker/
+│   │   │   │   ├── Dockerfile.jinja    # Conditional: use_docker
+│   │   │   │   └── .dockerignore.jinja
+│   │   │   ├── .eslintrc.json.jinja    # Conditional: use_eslint
+│   │   │   └── [other files]
+│   │   ├── copier.yml                  # (Legacy) For Copier tool integration
+│   │   ├── hooks/ (optional)
+│   │   │   ├── pre_prompt.py
+│   │   │   ├── post_generation.py      # Post-generation hooks (optional)
+│   │   │   └── pre_migration.py        # Pre-update hooks (smart update)
+│   │   ├── catalog-info.yaml           # Software Catalog metadata
+│   │   └── README.md                   # Template documentation
+│   │
+│   ├── python-api/
+│   │   ├── upg.yaml
+│   │   ├── template/
+│   │   │   ├── main.py.jinja
+│   │   │   ├── requirements.txt.jinja
+│   │   │   ├── Dockerfile.jinja        # if use_docker
+│   │   │   ├── tests/
+│   │   │   │   └── test_main.py.jinja
+│   │   │   └── [other files]
+│   │   ├── copier.yml
+│   │   ├── hooks/
+│   │   │   └── post_generation.py
+│   │   ├── catalog-info.yaml
+│   │   └── README.md
+│   │
+│   ├── vue-storefront/
+│   │   ├── upg.yaml
+│   │   ├── template/
+│   │   └── [similar structure]
+│   │
+│   └── monorepo-scaffold/
+│       ├── upg.yaml                    # Complex example: monorepo with workspace
+│       ├── template/
+│       │   ├── packages/
+│       │   │   ├── app/
+│       │   │   │   └── package.json.jinja
+│       │   │   ├── lib/
+│       │   │   │   └── package.json.jinja
+│       │   │   └── [conditional packages]
+│       │   └── turbo.json.jinja        # if use_turborepo
+│       └── upg.yaml
+│
+├── docs/                              # === DOCUMENTATION ===
+│   ├── index.md                        # Main docs entry
+│   ├── getting-started.md              # Quick start guide
+│   ├── architecture/
+│   │   ├── overview.md                 # Architecture diagrams + flow
+│   │   ├── phase-1-spec.md             # YAML manifest spec deep dive
+│   │   ├── phase-2-engine.md           # Tauri + RJSF architecture
+│   │   └── phase-3-registry.md         # Git registry + smart update
+│   ├── user-guide/
+│   │   ├── cli-commands.md
+│   │   ├── desktop-app.md
+│   │   └── marketplace.md
+│   ├── template-author/
+│   │   ├── manifest-spec.md            # Complete upg.yaml reference
+│   │   ├── examples.md                 # Template examples
+│   │   ├── publishing-guide.md         # How to publish to registry
+│   │   ├── best-practices.md           # Performance, security, UX tips
+│   │   └── hooks-api.md                # Post-generation + pre-migration hooks
+│   ├── operator-guide/
+│   │   ├── private-registry.md         # Set up internal registry
+│   │   ├── governance.md               # Namespace protection, review process
+│   │   └── monitoring.md
+│   ├── contributing/
+│   │   ├── dev-setup.md
+│   │   ├── running-tests.md
+│   │   ├── build-sidecar.md
+│   │   └── code-style.md
+│   └── _sidebar.md                     # Docs navigation (Docsify/Docusaurus)
+│
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                      # Lint, test, build on PR
+│   │   ├── validate-templates.yml      # Validate templates in registry
+│   │   ├── release.yml                 # Build + publish binaries (GitHub Releases)
+│   │   └── publish-docs.yml            # Deploy docs to GitHub Pages
+│   ├── CODEOWNERS                      # Code ownership rules
+│   ├── pull_request_template.md
+│   └── issue_template/
+│       ├── bug_report.md
+│       └── feature_request.md
+│
+├── scripts/
+│   ├── build-all.sh                    # Build all packages + sidecars
+│   ├── test-all.sh                     # Run all tests with coverage
+│   ├── validate-templates.sh           # Validate all example templates
+│   ├── publish-release.sh              # Create GitHub release
+│   └── setup-dev.sh                    # Dev environment setup
+│
+├── .editorconfig
+├── .gitignore
+├── pnpm-workspace.yaml                 # pnpm monorepo config
+├── turbo.json                          # Turbo build orchestration
+└── package.json                        # Root package (scripts, dev deps)
+```
+
+***
+
+## **PART 3: TESTING FRAMEWORK & SCAFFOLDING**
+
+### **3.1 Testing Philosophy**
+
+**Layers of Testing:**
+1. **Unit Tests** (fastest): Individual functions, transpilers, validators
+2. **Integration Tests** (mid-speed): Manifest → JSON Schema → RJSF rendering
+3. **End-to-End Tests** (slowest): Full generation flow with Copier sidecar
+4. **Template Validation Tests** (pre-publish): Ensures manifests are well-formed
+
+**Test Coverage Targets:**
+- Core schema validator: **95%+**
+- Transpiler logic: **95%+**
+- Sidecar orchestration: **80%+** (system tests harder to mock)
+- CLI commands: **85%+**
+
+***
+
+### **3.2 Test Scaffolding Structure**
+
+```
+tests/
+├── __fixtures__/                       # Reusable test data
+│   ├── manifests/
+│   │   ├── valid/
+│   │   │   ├── simple.upg.yaml         # Single string prompt
+│   │   │   ├── conditional.upg.yaml    # when clause + dependencies
+│   │   │   ├── complex.upg.yaml        # Multiple types, nested logic
+│   │   │   └── generated-schema/       # Expected JSON Schema output
+│   │   │       ├── simple.schema.json
+│   │   │       ├── conditional.schema.json
+│   │   │       └── complex.schema.json
+│   │   └── invalid/
+│   │       ├── missing-required-fields.yaml
+│   │       ├── invalid-type.yaml
+│   │       ├── circular-dependency.yaml
+│   │       └── malformed-jinja2.yaml
+│   ├── projects/                      # Pre-generated projects for update testing
+│   │   ├── react-v1.0.0/              # Generated with react-starter@1.0.0
+│   │   │   ├── .upg-answers.yaml       # Stored answers
+│   │   │   ├── package.json
+│   │   │   ├── src/
+│   │   │   └── [project files]
+│   │   ├── react-v1.0.0-modified/     # User made modifications
+│   │   │   ├── .upg-answers.yaml
+│   │   │   ├── package.json            # Modified: added "prettier"
+│   │   │   ├── src/
+│   │   │   │   └── CustomComponent.tsx # Added by user
+│   │   │   └── [modified files]
+│   │   └── react-v2.0.0-target/       # What v2.0.0 would generate
+│   │       ├── package.json
+│   │       ├── src/
+│   │       └── [new structure]
+│   └── merge-scenarios/               # 3-way merge test data
+│       ├── scenario-1-no-conflict/
+│       │   ├── base.json
+│       │   ├── current.json            # User modified this
+│       │   ├── target.json             # New version has this
+│       │   └── expected-result.json    # Expected 3-way merge output
+│       ├── scenario-2-conflict/
+│       │   └── [similar structure]     # Both sides modified same file
+│       └── scenario-3-file-move/
+│           └── [both sides reorganized]
+│
+├── unit/
+│   ├── schema/
+│   │   ├── validator.test.ts
+│   │   │   ├── validates well-formed manifest ✓
+│   │   │   ├── rejects manifest missing apiVersion ✓
+│   │   │   ├── rejects invalid prompt type ✓
+│   │   │   ├── validates conditional dependencies ✓
+│   │   │   └── provides clear error messages ✓
+│   │   └── __snapshots__/
+│   │       └── validator.test.ts.snap  # Jest snapshots for error output
+│   │
+│   ├── transpiler/
+│   │   ├── manifest-to-schema.test.ts
+│   │   │   ├── simple string prompt transpiles correctly ✓
+│   │   │   ├── select prompt generates enum ✓
+│   │   │   ├── boolean prompt becomes checkbox schema ✓
+│   │   │   ├── default values preserve dynamic expressions ✓
+│   │   │   └── snapshot: complex manifest → schema ✓
+│   │   ├── conditional-logic.test.ts
+│   │   │   ├── when: "X == Y" maps to dependencies ✓
+│   │   │   ├── when: "X != Y" negates correctly ✓
+│   │   │   ├── multiple when clauses combine with AND ✓
+│   │   │   ├── complex branching generates oneOf ✓
+│   │   │   └── snapshot: branching logic output ✓
+│   │   └── jinja2-filters.test.ts
+│   │       ├── upper filter works ✓
+│   │       ├── lower filter works ✓
+│   │       ├── slug filter works ✓
+│   │       ├── custom filters register ✓
+│   │       └── unknown filter errors gracefully ✓
+│   │
+│   ├── cli/
+│   │   ├── validate.test.ts
+│   │   │   ├── validates well-formed manifest ✓
+│   │   │   ├── reports specific error line numbers ✓
+│   │   │   └── suggests fixes for common errors ✓
+│   │   └── test-generate.test.ts
+│   │       ├── generates project with fixture data ✓
+│   │       ├── applies Jinja2 templates ✓
+│   │       ├── skips conditional files ✓
+│   │       └── reports generation errors ✓
+│   │
+│   └── shared/
+│       ├── yaml-parser.test.ts
+│       ├── schema-validator.test.ts
+│       └── types.test.ts
+│
+├── integration/
+│   ├── manifest-to-ui.test.ts          # YAML → JSON Schema → RJSF form
+│   │   ├── single prompt renders correctly ✓
+│   │   ├── multiple prompts render as fields ✓
+│   │   ├── when clause hides/shows fields ✓
+│   │   ├── validation errors display ✓
+│   │   └── form submission validates data ✓
+│   │
+│   ├── generation-flow.test.ts         # Full flow: manifest → form → generation
+│   │   ├── load manifest ✓
+│   │   ├── render dynamic form ✓
+│   │   ├── user submits answers ✓
+│   │   ├── spawn Copier sidecar ✓
+│   │   ├── capture generation logs ✓
+│   │   └── verify output files exist ✓
+│   │
+│   ├── registry-search.test.ts
+│   │   ├── clone registry repo ✓
+│   │   ├── parse manifest metadata ✓
+│   │   ├── search by name ✓
+│   │   ├── search by tag ✓
+│   │   └── filter by lifecycle ✓
+│   │
+│   ├── smart-update.test.ts            # 3-way merge scenarios
+│   │   ├── no-conflict scenario passes through ✓
+│   │   ├── user modification preserved ✓
+│   │   ├── template patch applied ✓
+│   │   ├── conflict generates markers ✓
+│   │   ├── moved files detected ✓
+│   │   └── new files added correctly ✓
+│   │
+│   └── sidecar-orchestration.test.ts   # Spawn + stream capture
+│       ├── spawn Copier with args ✓
+│       ├── capture stdout stream ✓
+│       ├── capture stderr stream ✓
+│       ├── handle sidecar timeout ✓
+│       └── signal termination ✓
+│
+├── e2e/
+│   ├── generation-flow.e2e.test.ts     # Real GUI + real Copier
+│   │   ├── desktop app opens ✓
+│   │   ├── user searches for template ✓
+│   │   ├── user selects template ✓
+│   │   ├── dynamic form renders ✓
+│   │   ├── user fills form + clicks generate ✓
+│   │   ├── sidecar runs in real-time ✓
+│   │   ├── project generated at destination ✓
+│   │   ├── .upg-answers.yaml written ✓
+│   │   └── success screen displayed ✓
+│   │
+│   ├── update-flow.e2e.test.ts         # Real update scenario
+│   │   ├── generate v1.0.0 project ✓
+│   │   ├── user modifies files ✓
+│   │   ├── run upg update ✓
+│   │   ├── update detected (v2.0.0 available) ✓
+│   │   ├── 3-way merge executed ✓
+│   │   ├── user changes preserved ✓
+│   │   ├── template patch applied ✓
+│   │   └── conflicts shown if any ✓
+│   │
+│   ├── registry-flow.e2e.test.ts       # Registry search + template info
+│   │   ├── marketplace opens ✓
+│   │   ├── templates display ✓
+│   │   ├── search filters results ✓
+│   │   ├── template detail view opens ✓
+│   │   ├── version history visible ✓
+│   │   └── generate button starts flow ✓
+│   │
+│   └── fixtures/
+│       ├── test-registry/              # Test Git registry repo
+│       └── test-templates/             # Minimal test templates
+│
+└── template-validation/
+    ├── schema.test.ts                  # Validate example templates against manifest schema
+    │   ├── react-starter/upg.yaml is valid ✓
+    │   ├── python-api/upg.yaml is valid ✓
+    │   ├── monorepo-scaffold/upg.yaml is valid ✓
+    │   └── all templates pass CI validation ✓
+    │
+    └── generation.test.ts              # Generate each example template
+        ├── react-starter with defaults generates ✓
+        ├── react-starter with options generates ✓
+        ├── python-api with conditionals generates ✓
+        ├── monorepo-scaffold complex scenario works ✓
+        └── generated projects pass basic validation ✓
+```
+
+***
+
+### **3.3 Test Execution Strategy**
+
+```bash
+# Unit tests (fast feedback)
+pnpm test:unit
+
+# Integration tests (medium feedback)
+pnpm test:integration
+
+# All validation + generation tests
+pnpm test:templates
+
+# End-to-end tests (slower, uses real apps)
+pnpm test:e2e
+
+# Everything
+pnpm test
+
+# With coverage
+pnpm test:coverage
+
+# Watch mode for development
+pnpm test:watch
+```
+
+**CI Pipeline (.github/workflows/ci.yml):**
+```yaml
+- Lint (2 min)
+- Unit tests (5 min)
+- Integration tests (8 min)
+- Template validation (3 min)
+- Build binaries (10 min)
+- E2E tests (15 min, parallel)
+---
+Total: ~20 min (parallel execution)
+```
+
+***
+
+## **PART 4: MANIFEST SPECIFICATION (Phase 1)**
+
+### **4.1 Complete upg.yaml Example**
+
+**File:** `templates/react-starter/upg.yaml`
+
+```yaml
+# Universal Project Generator Manifest
+# Schema version
+apiVersion: upg/v1
+
+# Metadata (Software Catalog inspired)
+metadata:
+  name: react-starter
+  version: 2.0.0
+  title: React Starter Kit
+  description: |
+    A production-ready React application scaffold with TypeScript,
+    Vite, ESLint, Prettier, GitHub Actions CI/CD, and Docker support.
+  tags:
+    - react
+    - frontend
+    - typescript
+    - vite
+  icon: https://cdn.jsdelivr.net/npm/simple-icons@11/icons/react.svg
+  author: retro-vibecoder-team
+  license: MIT
+  repository:
+    type: git
+    url: https://github.com/example/react-starter
+  documentation:
+    url: https://github.com/example/react-starter#readme
+  catalog-type: template
+  lifecycle: production
+  owner: platform-team
+
+# Project template metadata (for update mechanism)
+template:
+  # Marker files to detect this template in projects
+  markers:
+    - .upg-answers.yaml
+    - package.json  # Check for react in dependencies
+  
+  # Breaking changes documentation
+  breaking_changes:
+    - version: "2.0.0"
+      changes:
+        - Migrated from Create React App to Vite (breaking change in build config)
+        - Removed deprecated .env file pattern (use .env.local instead)
+      migration_notes: |
+        1. Update your npm scripts: `npm run build` now targets `dist/` instead of `build/`
+        2. Environment variables now use VITE_ prefix instead of REACT_APP_
+        3. See MIGRATION.md for detailed upgrade guide
+        migration_url: https://github.com/example/react-starter/blob/main/MIGRATION.md
+
+  # Smart update configuration (Phase 3)
+  smart_update:
+    enabled: true
+    # Files to preserve during updates (never overwrite)
+    preserve_files:
+      - .env.local
+      - .env.*.local
+      - src/**/*.test.ts  # User test files
+    # Files to always regenerate (overwrite user changes)
+    regenerate_files:
+      - package.json  # Critical for deps
+      - tsconfig.json
+      - vite.config.ts
+      - .github/workflows/**
+    # Strategies for merge conflicts
+    conflict_resolution: manual  # or "auto-accept-template" / "auto-accept-user"
+
+# Interactive prompts (Interrogation phase)
+prompts:
+  - id: project_name
+    type: string
+    title: "Project Name"
+    message: What is your project name?
+    help: "Used in package.json and generated folder name"
+    default: my-awesome-app
+    required: true
+    validator: "^[a-z0-9][a-z0-9-]*$"  # Regex: kebab-case, alphanumeric + hyphens
+    error_message: "Project name must be lowercase, alphanumeric, and hyphens only"
+
+  - id: project_slug
+    type: string
+    title: "Project Slug"
+    message: "Project slug (for folder/imports)"
+    default: "{{ project_name | replace('-', '_') }}"  # Jinja2 dynamic default
+    hidden: true  # Don't show in UI (computed field)
+
+  - id: description
+    type: string
+    title: "Project Description"
+    message: "Brief description of your project"
+    help: "This will be added to package.json"
+    default: ""
+    required: false
+
+  - id: author_name
+    type: string
+    title: "Author Name"
+    message: "Your name (for package.json)"
+    default: "{{ env.USER }}"  # Use environment variable
+    required: false
+
+  - id: use_typescript
+    type: boolean
+    title: "Use TypeScript?"
+    message: "Include TypeScript support?"
+    default: true
+    help: "TypeScript adds type safety. Recommended for production projects."
+
+  - id: eslint_style
+    type: select
+    title: "ESLint Config"
+    message: "Which ESLint style guide?"
+    choices:
+      - label: "Airbnb (Strict)"
+        value: airbnb
+      - label: "Google (Moderate)"
+        value: google
+      - label: "Standard (Relaxed)"
+        value: standard
+    default: standard
+    when: "use_typescript"  # Only show if TypeScript enabled
+    help: "Determines code style enforcement"
+
+  - id: use_testing_framework
+    type: boolean
+    title: "Add Testing?"
+    message: "Include Vitest + React Testing Library?"
+    default: true
+    help: "Provides unit and component testing"
+
+  - id: testing_framework
+    type: select
+    title: "Testing Framework"
+    message: "Which testing framework?"
+    choices:
+      - vitest
+      - jest
+    default: vitest
+    when: "use_testing_framework"
+
+  - id: use_ci_cd
+    type: boolean
+    title: "GitHub Actions CI/CD?"
+    message: "Add GitHub Actions workflows?"
+    default: true
+    help: "Automates linting, testing, and deployment"
+
+  - id: ci_cd_actions
+    type: multiselect
+    title: "CI/CD Actions"
+    message: "Select workflows to include:"
+    choices:
+      - label: Lint on push
+        value: lint
+      - label: Test on PR
+        value: test
+      - label: Build on merge
+        value: build
+      - label: Deploy to Vercel
+        value: deploy_vercel
+      - label: Deploy to GitHub Pages
+        value: deploy_pages
+    default:
+      - lint
+      - test
+      - build
+    when: "use_ci_cd"
+
+  - id: use_docker
+    type: boolean
+    title: "Docker Support?"
+    message: "Include Dockerfile for deployment?"
+    default: false
+    help: "Useful for containerized deployments"
+
+  - id: use_api_proxy
+    type: boolean
+    title: "API Proxy?"
+    message: "Configure CORS proxy for development?"
+    default: false
+    help: "Useful for testing against external APIs"
+
+  - id: api_proxy_url
+    type: string
+    title: "API Base URL"
+    message: "API endpoint to proxy:"
+    default: "https://api.example.com"
+    when: "use_api_proxy"
+    validator: "^https?://"
+    error_message: "Must be valid HTTP/HTTPS URL"
+
+# Execution phase: File generation and actions
+actions:
+  # Generate template files (with Jinja2 processing)
+  - type: generate
+    src: "template/"
+    dest: "./"
+    exclude:
+      - "./**/*.test.tsx"  # Exclude tests if not needed
+    variables:
+      project_name: "{{ project_name }}"
+      project_slug: "{{ project_slug }}"
+      author: "{{ author_name }}"
+      description: "{{ description }}"
+      use_typescript: "{{ use_typescript }}"
+      eslint_style: "{{ eslint_style }}"
+
+  # Skip (don't generate) certain files based on conditions
+  - type: skip
+    path: "src/**/*.test.tsx"
+    when: "not use_testing_framework"
+
+  - type: skip
+    path: ".github/workflows/**"
+    when: "not use_ci_cd"
+
+  - type: skip
+    path: "docker/"
+    when: "not use_docker"
+
+  # Copy binary files (images, fonts) without Jinja2 processing
+  - type: copy
+    src: "assets/"
+    dest: "public/"
+
+  # Create additional configuration files post-generation
+  - type: create_file
+    path: ".env.example"
+    content: |
+      # API Configuration
+      {% if use_api_proxy %}
+      VITE_API_BASE_URL=http://localhost:3001
+      {% else %}
+      VITE_API_BASE_URL=https://api.example.com
+      {% endif %}
+      
+      # Other vars
+      VITE_ENVIRONMENT=development
+
+  # Run commands post-generation
+  - type: command
+    command: "npm install"
+    when: "true"  # Always run
+    description: "Installing dependencies..."
+
+  - type: command
+    command: "npm run format"
+    when: "true"
+    description: "Formatting code..."
+
+  - type: command
+    command: "git init && git add . && git commit -m 'Initial commit from react-starter'"
+    when: "use_ci_cd"
+    description: "Initializing Git repository..."
+    on_error: "warn"  # Don't fail if git not available
+
+# Post-generation hooks (Python/JS scripts)
+hooks:
+  post_generation:
+    # Run after project generation
+    script: hooks/post_generation.py
+    description: "Post-generation customization"
+    on_error: "warn"
+
+  pre_migration:
+    # Run before smart update
+    script: hooks/pre_migration.py
+    description: "Pre-update validation"
+    when: "update"  # Special: only during updates
+    on_error: "fail"
+
+# Schema validation rules (beyond basic types)
+validation:
+  # Custom validation (e.g., project_name not in reserved words)
+  project_name:
+    - rule: "not_in_list"
+      params:
+        values: ["app", "test", "example", "demo"]
+      message: "Project name cannot be a reserved word"
+
+  # Cross-field validation
+  - rule: "ci_cd_actions_require_ci_cd"
+    condition: "ci_cd_actions.length > 0"
+    requires: "use_ci_cd == true"
+    message: "Cannot have CI/CD actions without enabling CI/CD"
+
+# Docs and examples
+documentation:
+  # Default generation with minimal prompts
+  quickstart: |
+    ```bash
+    upg generate react-starter --use-defaults
+    cd my-awesome-app
+    npm run dev
+    ```
+
+  # Advanced generation with options
+  custom_setup: |
+    ```bash
+    upg generate react-starter \
+      --project-name my-app \
+      --eslint-style airbnb \
+      --include-docker
+    ```
+
+  # Common customizations after generation
+  customization_guide: |
+    ## After Generation
+
+    1. Update environment variables in `.env.local`
+    2. Customize ESLint rules in `.eslintrc.js`
+    3. Configure GitHub Actions secrets in repository settings
+    4. Set up environment-specific builds (`dev`, `staging`, `prod`)
+
+  # FAQ
+  faq:
+    - question: "How do I change the ESLint configuration?"
+      answer: "Edit `.eslintrc.js` and customize rules per your needs."
+    - question: "How do I add new GitHub Actions workflows?"
+      answer: "Add new YAML files to `.github/workflows/` following the existing patterns."
+```
+
+***
+
+### **4.2 JSON Schema for Manifest Validation**
+
+**File:** `packages/core/src/schema/upg-manifest.json`
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://retro-vibecoder.dev/schema/upg-manifest.json",
+  "title": "Universal Project Generator Manifest Schema",
+  "type": "object",
+  "required": ["apiVersion", "metadata", "prompts", "actions"],
+  
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "pattern": "^upg/v[0-9]+$",
+      "examples": ["upg/v1"]
+    },
+    
+    "metadata": {
+      "type": "object",
+      "required": ["name", "version", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "minLength": 1,
+          "maxLength": 63
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)))*))?(\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+        },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "icon": { "type": "string", "format": "uri" },
+        "author": { "type": "string" },
+        "license": { "type": "string" },
+        "repository": {
+          "type": "object",
+          "properties": {
+            "type": { "enum": ["git", "svn"] },
+            "url": { "type": "string", "format": "uri" }
+          }
+        },
+        "lifecycle": {
+          "enum": ["experimental", "production", "deprecated"]
+        }
+      }
+    },
+
+    "template": {
+      "type": "object",
+      "properties": {
+        "markers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "breaking_changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["version", "changes"],
+            "properties": {
+              "version": { "type": "string" },
+              "changes": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "migration_notes": { "type": "string" },
+              "migration_url": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "smart_update": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "preserve_files": { "type": "array", "items": { "type": "string" } },
+            "regenerate_files": { "type": "array", "items": { "type": "string" } },
+            "conflict_resolution": { "enum": ["manual", "auto-accept-template", "auto-accept-user"] }
+          }
+        }
+      }
+    },
+
+    "prompts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "message"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z_][a-z0-9_]*$"
+          },
+          "type": {
+            "enum": ["string", "int", "float", "boolean", "select", "multiselect", "secret"]
+          },
+          "title": { "type": "string" },
+          "message": { "type": "string" },
+          "help": { "type": "string" },
+          "default": {},  // Any type
+          "required": { "type": "boolean" },
+          "hidden": { "type": "boolean" },
+          "validator": { "type": "string" },
+          "error_message": { "type": "string" },
+          "when": { "type": "string" },  // Conditional: Jinja2 expression
+          "choices": {
+            "oneOf": [
+              { "type": "array", "items": { "type": "string" } },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["label", "value"],
+                  "properties": {
+                    "label": { "type": "string" },
+                    "value": { "type": "string" }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "enum": ["select", "multiselect"] } } },
+            "then": { "required": ["choices"] }
+          },
+          {
+            "if": { "properties": { "type": { "enum": ["int", "float"] } } },
+            "then": { "properties": { "default": { "type": ["number", "string"] } } }
+          }
+        ]
+      }
+    },
+
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["type", "src", "dest"],
+            "properties": {
+              "type": { "const": "generate" },
+              "src": { "type": "string" },
+              "dest": { "type": "string" },
+              "exclude": { "type": "array", "items": { "type": "string" } },
+              "variables": { "type": "object" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "path"],
+            "properties": {
+              "type": { "const": "skip" },
+              "path": { "type": "string" },
+              "when": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "command"],
+            "properties": {
+              "type": { "const": "command" },
+              "command": { "type": "string" },
+              "description": { "type": "string" },
+              "when": { "type": "string" },
+              "on_error": { "enum": ["fail", "warn", "ignore"] }
+            }
+          }
+        ]
+      }
+    },
+
+    "hooks": {
+      "type": "object",
+      "properties": {
+        "post_generation": {
+          "type": "object",
+          "properties": {
+            "script": { "type": "string" },
+            "description": { "type": "string" },
+            "on_error": { "enum": ["fail", "warn"] }
+          }
+        },
+        "pre_migration": {
+          "type": "object",
+          "properties": {
+            "script": { "type": "string" },
+            "description": { "type": "string" },
+            "when": { "type": "string" },
+            "on_error": { "enum": ["fail", "warn"] }
+          }
+        }
+      }
+    },
+
+    "validation": {
+      "type": "object",
+      "additionalProperties": true
+    },
+
+    "documentation": {
+      "type": "object",
+      "properties": {
+        "quickstart": { "type": "string" },
+        "custom_setup": { "type": "string" },
+        "customization_guide": { "type": "string" },
+        "faq": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "question": { "type": "string" },
+              "answer": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "additionalProperties": false
+}
+```
+
+***
+
+## **PART 5: TEMPLATE EXAMPLES**
+
+### **5.1 React Starter Template Structure**
+
+```
+templates/react-starter/
+├── upg.yaml                    # Universal Manifest (shown above)
+├── catalog-info.yaml           # Software Catalog metadata
+├── README.md                   # Template documentation
+├── MIGRATION.md                # Update/migration guide
+│
+├── template/                   # Template files (Jinja2)
+│   ├── package.json.jinja
+│   ├── tsconfig.json.jinja
+│   ├── vite.config.ts.jinja
+│   ├── .eslintrc.js.jinja
+│   ├── .prettierrc.json.jinja
+│   ├── .env.example.jinja
+│   │
+│   ├── src/
+│   │   ├── main.tsx.jinja
+│   │   ├── App.tsx.jinja
+│   │   ├── App.css.jinja
+│   │   ├── index.css.jinja
+│   │   ├── vite-env.d.ts
+│   │   └── components/
+│   │       └── Button.tsx.jinja  (conditional if use_testing_framework)
+│   │
+│   ├── public/
+│   │   ├── vite.svg
+│   │   ├── react.svg
+│   │   └── index.html.jinja
+│   │
+│   ├── .github/
+│   │   └── workflows/
+│   │       ├── lint.yml.jinja      (conditional if use_ci_cd)
+│   │       ├── test.yml.jinja      (conditional if use_testing_framework)
+│   │       └── build.yml.jinja
+│   │
+│   ├── docker/
+│   │   ├── Dockerfile.jinja         (conditional if use_docker)
+│   │   ├── .dockerignore.jinja
+│   │   └── docker-compose.yml.jinja
+│   │
+│   ├── tests/ (conditional if use_testing_framework)
+│   │   ├── setup.ts.jinja
+│   │   └── App.test.tsx.jinja
+│   │
+│   └── .gitignore.jinja
+│
+├── hooks/
+│   ├── post_generation.py      # Post-generation hooks
+│   ├── pre_migration.py         # Pre-update validation
+│   └── requirements.txt
+│
+├── assets/
+│   └── [binary files: images, fonts]
+│
+└── .copier-answers.yml          # For backward compatibility with Copier
+```
+
+### **5.2 Key Template Files (Examples)**
+
+**File:** `templates/react-starter/template/package.json.jinja`
+
+```json
+{
+  "name": "{{ project_slug }}",
+  "version": "0.1.0",
+  "description": "{{ description }}",
+  "author": "{{ author }}",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
+    {% if use_testing_framework %},
+    "test": "{{ testing_framework }} run",
+    "test:watch": "{{ testing_framework }} --watch"
+    {% endif %}
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    {% if use_typescript %}"@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0",
+    {% endif %}"@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-{{ eslint_style }}": "^latest",
+    "prettier": "^3.0.0"
+    {% if use_testing_framework %},
+    "{{ testing_framework }}": "^1.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0"
+    {% endif %}
+  }
+}
+```
+
+**File:** `templates/react-starter/template/.github/workflows/test.yml.jinja`
+
+```yaml
+{% if use_testing_framework %}
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
+{% endif %}
+```
+
+**File:** `templates/react-starter/template/docker/Dockerfile.jinja`
+
+```dockerfile
+{% if use_docker %}
+# Build stage
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+RUN npm run build
+
+# Runtime stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+RUN npm install -g http-server
+
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 8080
+
+CMD ["http-server", "dist", "-p", "8080"]
+{% endif %}
+```
+
+**File:** `templates/react-starter/hooks/post_generation.py`
+
+```python
+#!/usr/bin/env python3
+"""Post-generation hooks for react-starter template."""
+
+import json
+import os
+import sys
+from pathlib import Path
+
+def main():
+    """Run post-generation tasks."""
+    
+    # Get context from environment (passed by UPG)
+    context = json.loads(os.environ.get("UPG_CONTEXT", "{}"))
+    
+    project_name = context.get("project_name", "my-app")
+    use_docker = context.get("use_docker", False)
+    
+    # Example: Create additional files based on context
+    if use_docker:
+        print("✅ Docker support enabled", file=sys.stderr)
+        # Could create docker-compose override, etc.
+    
+    # Example: Run git init if not already done
+    if not Path(".git").exists():
+        print("Initializing git repository...", file=sys.stderr)
+        os.system("git init")
+        os.system("git add .")
+        os.system('git commit -m "Initial commit from react-starter"')
+    
+    print(f"✅ Project '{project_name}' ready!", file=sys.stderr)
+    print("Next steps:", file=sys.stderr)
+    print(f"  cd {project_name}", file=sys.stderr)
+    print("  npm run dev", file=sys.stderr)
+
+if __name__ == "__main__":
+    main()
+```
+
+***
+
+### **5.3 Python API Template (Example)**
+
+**File:** `templates/python-api/upg.yaml` (abbreviated)
+
+```yaml
+apiVersion: upg/v1
+
+metadata:
+  name: python-api
+  version: 1.0.0
+  title: Python API Server
+  description: FastAPI/Flask REST API scaffold
+  tags: [python, api, backend]
+
+prompts:
+  - id: project_name
+    type: string
+    title: "Project Name"
+    message: "API project name?"
+    default: my-api
+    required: true
+
+  - id: framework
+    type: select
+    title: "Framework"
+    message: "Choose Python framework:"
+    choices:
+      - label: "FastAPI (Modern, Async)"
+        value: fastapi
+      - label: "Flask (Lightweight)"
+        value: flask
+    default: fastapi
+
+  - id: include_postgres
+    type: boolean
+    title: "PostgreSQL"
+    message: "Add PostgreSQL database support?"
+    default: true
+
+  - id: include_tests
+    type: boolean
+    title: "Tests"
+    message: "Include pytest fixtures?"
+    default: true
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./
+
+  - type: skip
+    path: "tests/"
+    when: "not include_tests"
+
+  - type: command
+    command: "python -m pip install -r requirements.txt"
+    description: "Installing dependencies..."
+```
+
+***
+
+### **5.4 Monorepo Scaffold Template (Complex Example)**
+
+**File:** `templates/monorepo-scaffold/upg.yaml` (abbreviated)
+
+```yaml
+apiVersion: upg/v1
+
+metadata:
+  name: monorepo-scaffold
+  version: 1.0.0
+  title: Monorepo Scaffold
+  description: pnpm + TypeScript + Turborepo monorepo structure
+  tags: [monorepo, turborepo, pnpm, typescript]
+
+prompts:
+  - id: repo_name
+    type: string
+    message: "Repository name?"
+    default: my-monorepo
+
+  - id: include_app
+    type: boolean
+    title: "App Package"
+    message: "Include web app package?"
+    default: true
+
+  - id: app_framework
+    type: select
+    title: "App Framework"
+    message: "Web app framework?"
+    choices: [react, vue, svelte]
+    when: "include_app"
+
+  - id: include_lib
+    type: boolean
+    title: "Shared Library"
+    message: "Include shared lib package?"
+    default: true
+
+  - id: include_api
+    type: boolean
+    title: "API Package"
+    message: "Include backend API package?"
+    default: true
+
+  - id: use_turborepo
+    type: boolean
+    title: "Turborepo"
+    message: "Use Turborepo for build orchestration?"
+    default: true
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./
+
+  - type: skip
+    path: "packages/app/"
+    when: "not include_app"
+
+  - type: skip
+    path: "packages/lib/"
+    when: "not include_lib"
+
+  - type: skip
+    path: "packages/api/"
+    when: "not include_api"
+
+  - type: skip
+    path: "turbo.json"
+    when: "not use_turborepo"
+
+  - type: command
+    command: "pnpm install"
+```
+
+***
+
+## **PART 6: PROJECT GOVERNANCE RULES**
+
+### **6.1 Code Quality & Standards**
+
+**File:** `CONTRIBUTING.md`
+
+```markdown
+# Contributing to Retro Vibecoder UPG
+
+## Code Standards
+
+### TypeScript
+- Target: **ES2020** (modern JavaScript)
+- Strict mode: `"strict": true` in `tsconfig.json`
+- No `any` type without `@ts-ignore` comment explaining why
+- Use discriminated unions for variant types
+- Prefer immutability (use `readonly` arrays, objects)
+
+### Rust
+- Format: `cargo fmt`
+- Lint: `cargo clippy -- -D warnings`
+- Test coverage: Aim for 80%+ on critical paths
+- Documentation: All public APIs must have doc comments
+
+### Python (Sidecars)
+- Format: `black`
+- Lint: `ruff`
+- Type hints: Use `typing` module, target Python 3.8+
+
+### File Naming
+- TypeScript: `camelCase.ts` (files), `PascalCase` (components)
+- Rust: `snake_case.rs`
+- Tests: `*.test.ts`, `*.test.rs`, `*_test.py`
+
+## Commit Messages
+
+Use Conventional Commits:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Refactor without behavior change
+- `test`: Add/modify tests
+- `docs`: Documentation
+- `chore`: Build, deps, etc.
+
+**Example:**
+```
+feat(transpiler): add support for multiselect prompts
+
+Multiselect prompts now correctly transpile to JSON Schema
+with proper handling of dependencies and default values.
+
+Closes #42
+```
+
+## PR Process
+
+1. **Create feature branch:** `git checkout -b feat/awesome-feature`
+2. **Commit locally:** Follow conventional commits
+3. **Push & open PR:** Include description of changes
+4. **Pass CI:** All tests, lints, and builds must pass
+5. **Code review:** At least 1 approval from CODEOWNERS
+6. **Merge:** Use "Squash and merge" for clean history
+
+## Testing Requirements
+
+- **New features:** Must include tests
+- **Minimum coverage:** 80% for new code
+- **E2E tests:** For user-facing flows
+
+Run locally:
+```bash
+pnpm test:unit          # Fast feedback
+pnpm test:integration   # Thorough checks
+pnpm test:e2e           # Full workflow
+```
+
+## Security
+
+- No secrets in code (use `.env`, GitHub Secrets)
+- Sanitize user input (template names, file paths)
+- Review template code before publishing
+- Report security issues privately to `security@retro-vibecoder.dev`
+
+## Documentation
+
+- Update docs/ for API/CLI changes
+- Include JSDoc comments on exported functions
+- Add inline comments for complex logic
+- Update README for new features
+
+## Performance Considerations
+
+- Transpiler should complete in <100ms for typical manifests
+- Manifest validation should be <50ms
+- UI should respond within 100ms to user actions
+- Sidecar orchestration should handle 1GB+ projects
+
+---
+```
+
+### **6.2 Release & Versioning Strategy**
+
+**File:** `RELEASE.md`
+
+```markdown
+# Release Process
+
+## Versioning
+
+Use **Semantic Versioning** (MAJOR.MINOR.PATCH):
+
+- **MAJOR:** Breaking changes (manifest schema incompatibility, API redesign)
+- **MINOR:** New features (new action types, new prompts)
+- **PATCH:** Bug fixes, performance improvements
+
+## Release Checklist
+
+1. **Update versions** in all `package.json` files
+2. **Update CHANGELOG.md** with changes (use Conventional Commits)
+3. **Bump templates** if manifest schema changed
+4. **Create PR** for review
+5. **Tag release:** `git tag v1.2.3`
+6. **GitHub Release:** Create release notes
+7. **Publish binaries:** Desktop app, CLI, npm packages
+8. **Announce:** Social media, documentation
+
+## CI/CD Pipeline
+
+GitHub Actions will:
+1. ✅ Run all tests (unit, integration, e2e)
+2. ✅ Build Tauri desktop app (macOS, Windows, Linux)
+3. ✅ Build sidecars (Copier, Yeoman binaries)
+4. ✅ Publish npm packages (@retro-vibecoder/*)
+5. ✅ Create GitHub Release with binaries
+6. ✅ Deploy documentation
+
+## Breaking Changes
+
+Document in MIGRATION.md and include migration guide with release notes.
+
+Example:
+```
+## v2.0.0 - Breaking Changes
+
+### Manifest Schema Changes
+- `prompts[].help` renamed to `prompts[].help_text`
+- `actions` now requires explicit `type` field
+
+### Migration
+Old:
+\`\`\`yaml
+prompts:
+  - id: name
+    help: "Enter project name"
+\`\`\`
+
+New:
+\`\`\`yaml
+prompts:
+  - id: name
+    help_text: "Enter project name"
+\`\`\`
+```
+
+---
+```
+
+### **6.3 Template Publishing Guidelines**
+
+**File:** `templates/PUBLISHING.md`
+
+```markdown
+# Template Publishing Guide
+
+## Before Publishing
+
+### 1. Validate Your Manifest
+```bash
+upg validate your-template/upg.yaml
+```
+
+### 2. Test Generation
+```bash
+upg test your-template/upg.yaml --output-dir ./test-output
+```
+
+Verify:
+- ✅ Files generated correctly
+- ✅ File permissions preserved
+- ✅ Jinja2 templates rendered properly
+- ✅ Conditional files included/excluded correctly
+- ✅ Post-generation hooks run successfully
+
+### 3. Document Your Template
+- Update `README.md` with usage instructions
+- Document all prompts and their impact
+- Include troubleshooting section
+- Add example projects generated
+
+### 4. Semantic Versioning
+- First release: `0.1.0` or `1.0.0`
+- Feature additions: Increment MINOR version
+- Breaking changes: Increment MAJOR version
+- Bug fixes: Increment PATCH version
+
+### 5. Catalog Metadata
+Update `catalog-info.yaml`:
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Template
+metadata:
+  name: my-template
+  title: My Awesome Template
+  description: Brief description
+spec:
+  type: template
+  lifecycle: production
+  owner: my-team
+  tags:
+    - framework
+    - language
+```
+
+## Publishing to Registry
+
+### Option 1: Public Registry
+
+1. Fork `retro-vibecoder-registry`
+2. Add your template to `templates/` directory
+3. Add metadata to `manifests/{template-name}/{version}.json`
+4. Create PR with description
+5. Maintainers will review and merge
+
+### Option 2: Private Registry
+
+1. Create private Git repository
+2. Add template files to `templates/{template-name}/`
+3. Create `manifests/{template-name}/` with metadata
+4. Configure UPG to use your registry
+
+## Registry Metadata Format
+
+File: `retro-vibecoder-registry/manifests/react-starter/2.0.0.json`
+
+```json
+{
+  "apiVersion": "upg/v1",
+  "metadata": {
+    "name": "react-starter",
+    "version": "2.0.0",
+    "title": "React Starter Kit",
+    "description": "Production-ready React app scaffold",
+    "tags": ["react", "frontend"],
+    "icon": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/react.svg"
+  },
+  "spec": {
+    "sourceUrl": "https://github.com/org/react-starter",
+    "lifecycle": "production",
+    "owner": "my-team",
+    "keywords": ["starter", "template", "react"]
+  }
+}
+```
+
+## Update Lifecycle
+
+To enable Smart Updates for your template:
+
+1. **Current Project** tracks template version in `.upg-answers.yaml`
+2. **User runs:** `upg update`
+3. **Engine detects:** New version available
+4. **Performs:** 3-way merge (base → current → target)
+5. **User resolves:** Merge conflicts manually if needed
+
+### Preparing Breaking Changes
+
+1. **Version:** Increment MAJOR version
+2. **Document:** Add to `breaking_changes` in manifest
+3. **Migration Guide:** Provide step-by-step upgrade path
+4. **Pre-migration Hook:** Validate user project is compatible
+
+Example `hooks/pre_migration.py`:
+```python
+#!/usr/bin/env python3
+import os
+import sys
+
+# Validate project can be updated to v2.0.0
+# Check for required files, structure, etc.
+
+if not os.path.exists("package.json"):
+    print("ERROR: package.json not found - this may not be a valid project", file=sys.stderr)
+    sys.exit(1)
+
+print("✅ Project is compatible with template v2.0.0", file=sys.stderr)
+```
+
+---
+```
+
+### **6.4 Security & Governance**
+
+**File:** `SECURITY.md`
+
+```markdown
+# Security Policy
+
+## Reporting Security Issues
+
+⚠️ Do NOT open public issues for security vulnerabilities.
+
+Email: `security@retro-vibecoder.dev`
+
+Include:
+- Description of vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if available)
+
+We'll acknowledge within 48 hours and provide timeline for patch.
+
+## Template Review Process
+
+### Automated Validation (CI)
+- ✅ Manifest schema validation
+- ✅ YAML syntax check
+- ✅ No hardcoded secrets (regex scan)
+- ✅ File permissions check
+
+### Manual Review (Maintainers)
+- ✅ No malicious shell commands
+- ✅ No excessive file system access
+- ✅ No network calls outside documented scope
+- ✅ Documentation is clear
+
+### Permission Model (Future)
+
+Sidecars will declare permissions:
+```yaml
+permissions:
+  filesystem:
+    - read: "{{project_dir}}/**"
+    - write: "{{project_dir}}/**"
+  network: false
+  shell: false
+```
+
+## Supply Chain Security
+
+- ✅ All binaries built in CI (no local builds)
+- ✅ Signed releases (GPG)
+- ✅ SBOMs (Software Bill of Materials) published
+- ✅ Dependency scanning (npm audit, cargo audit)
+- ✅ Regular security audits
+
+---
+```
+
+***
+
+## **PART 7: ROADMAP & TIMELINE**
+
+### **Q1 2026: Phase 1 Delivery (Weeks 1-12)**
+
+**Goal:** Define specification, build validator, publish manifest spec.
+
+- **Week 1-2:** Architecture review, repository setup
+- **Week 3-4:** YAML manifest spec + JSON Schema
+- **Week 5-6:** Transpiler logic (YAML → JSON Schema)
+- **Week 7-8:** CLI validator tool (`upg validate`)
+- **Week 9-10:** Documentation + example manifests
+- **Week 11:** Testing + refinement
+- **Week 12:** Release Phase 1 (CLI validator tool)
+
+**Deliverables:**
+- ✅ Phase 1 repository structure
+- ✅ `upg.yaml` manifest specification
+- ✅ JSON Schema meta-schema
+- ✅ CLI validator tool (`upg validate`)
+- ✅ 3 example templates (react, python-api, monorepo)
+- ✅ Comprehensive documentation
+
+***
+
+### **Q2 2026: Phase 2 Delivery (Weeks 13-24)**
+
+**Goal:** Build Generic Engine, Dynamic Forms, Desktop App.
+
+- **Week 13-14:** Tauri v2 project setup + React scaffolding
+- **Week 15-16:** RJSF integration + custom theming (Windows95)
+- **Week 17-18:** Manifest loading + schema transpiler (client-side)
+- **Week 19-20:** Copier sidecar orchestration
+- **Week 21-22:** Real-time log streaming + generation flow
+- **Week 23:** E2E tests + user testing
+- **Week 24:** Release Phase 2 (Desktop App Beta)
+
+**Mitigations Applied:**
+- ✅ Sidecar binary size optimization (Nuitka for Python)
+- ✅ Optional sidecar downloads
+- ✅ Template validation in CI
+
+**Deliverables:**
+- ✅ Tauri desktop application
+- ✅ React dynamic form UI with Windows95 theme
+- ✅ Copier sidecar integration
+- ✅ Real-time generation logging
+- ✅ CLI tool (parallel to desktop app)
+- ✅ Beta testing documentation
+
+***
+
+### **Q3 2026: Phase 3 Delivery (Weeks 25-36)**
+
+**Goal:** Marketplace Registry, Smart Updates, Ecosystem.
+
+- **Week 25-26:** Git-based registry infrastructure
+- **Week 27-28:** Registry caching + search functionality
+- **Week 29-30:** Smart Update (3-way merge) implementation
+- **Week 31-32:** Conflict resolution UI
+- **Week 33-34:** Template publishing guidelines + CI validation
+- **Week 35:** Private registry setup guide
+- **Week 36:** Release Phase 3 (Marketplace + Smart Updates)
+
+**Mitigations Applied:**
+- ✅ Template testing framework (pre-publish validation)
+- ✅ Governance model (namespace protection)
+- ✅ Update conflict resolution
+
+**Deliverables:**
+- ✅ Public Git-based registry
+- ✅ Registry browser UI in desktop app
+- ✅ Smart Update mechanism (3-way merge)
+- ✅ Conflict resolver UI
+- ✅ Private registry documentation
+- ✅ Template publishing guide
+
+***
+
+### **Q4 2026 & Beyond: Maintenance + Future Features**
+
+**Ongoing:**
+- ✅ Monitor registry quality
+- ✅ Security updates
+- ✅ Community template support
+- ✅ Performance optimization
+
+**Future Enhancements (v2.0):**
+- 🔮 WASM sandbox for templates
+- 🔮 Yeoman/esbuild sidecar
+- 🔮 Custom widget extensions
+- 🔮 Template telemetry/analytics
+- 🔮 AI-assisted template generation
+
+***
+
+## **SUMMARY**
+
+This comprehensive plan transforms the Retro Vibecoder from a monolithic tool into a universal, extensible platform. Key highlights:
+
+1. **Architecture:** Data-driven (YAML → JSON Schema → RJSF)
+2. **Execution:** Universal (Tauri + sidecars)
+3. **Lifecycle:** Smart Updates (3-way merge + registry)
+4. **Governance:** Clear rules, security-first, template validation
+
+**Timeline:** 36 weeks to full production (Q1-Q3 2026)
+
+**Success Metrics:**
+- ✅ 50+ templates in public registry by EOY
+- ✅ <5% update conflict rate (goal: < 1%)
+- ✅ <100ms manifest validation
+- ✅ Sub-1GB desktop app binary
+- ✅ Community adoption (GitHub stars, template contributions)
+
+---
+
+Sources
