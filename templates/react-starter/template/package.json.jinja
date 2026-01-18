@@ -1,0 +1,51 @@
+{
+  "name": "{{ project_name }}",
+  "version": "0.1.0",
+  "description": "{{ description }}",
+  "author": "{{ author }}",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "{% if use_typescript %}tsc && {% endif %}vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext {% if use_typescript %}ts,tsx{% else %}js,jsx{% endif %} --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{{% if use_typescript %}ts,tsx{% else %}js,jsx{% endif %},css}\""{% if use_testing %},
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"{% endif %}
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+{% if use_typescript %}
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.3.0",
+{% endif %}
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0",
+    "eslint": "^8.56.0",
+{% if use_typescript %}
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+{% endif %}
+{% if eslint_style == 'airbnb' %}
+    "eslint-config-airbnb": "^19.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+{% elif eslint_style == 'google' %}
+    "eslint-config-google": "^0.14.0",
+{% else %}
+    "eslint-config-standard": "^17.1.0",
+{% endif %}
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.2.0"{% if use_testing %},
+    "vitest": "^1.2.0",
+    "@testing-library/react": "^14.1.0",
+    "@testing-library/jest-dom": "^6.2.0",
+    "jsdom": "^23.2.0"{% endif %}
+  }
+}

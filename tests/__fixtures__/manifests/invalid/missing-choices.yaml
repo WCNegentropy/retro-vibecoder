@@ -1,0 +1,18 @@
+# Invalid manifest - select without choices
+apiVersion: upg/v1
+
+metadata:
+  name: missing-choices-test
+  version: 1.0.0
+  description: Testing missing choices
+
+prompts:
+  - id: option
+    type: select
+    message: Select an option
+    # Missing: choices (required for select type)
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Generated files
+*.generated.*
+pnpm-lock.yaml
+
+# Turbo
+.turbo/
+
+# Template files (Jinja2 syntax conflicts with Prettier)
+templates/**/*.jinja
+templates/**/*.jinja2
+
+# Tauri (Phase 2)
+src-tauri/target/

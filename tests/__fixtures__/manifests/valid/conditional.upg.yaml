@@ -1,0 +1,69 @@
+# Manifest with conditional logic for testing
+apiVersion: upg/v1
+
+metadata:
+  name: conditional-test
+  version: 1.0.0
+  description: A template with conditional prompts
+  tags:
+    - test
+    - conditional
+  lifecycle: experimental
+
+prompts:
+  - id: project_name
+    type: string
+    title: Project Name
+    message: What is your project name?
+    default: my-project
+    required: true
+
+  - id: use_database
+    type: boolean
+    title: Database
+    message: Include database support?
+    default: false
+
+  - id: database_type
+    type: select
+    title: Database Type
+    message: Which database?
+    choices:
+      - postgres
+      - mysql
+      - sqlite
+    default: postgres
+    when: "use_database"
+
+  - id: use_auth
+    type: boolean
+    title: Authentication
+    message: Include authentication?
+    default: false
+
+  - id: auth_provider
+    type: select
+    title: Auth Provider
+    message: Which auth provider?
+    choices:
+      - label: JWT (Self-managed)
+        value: jwt
+      - label: Auth0
+        value: auth0
+      - label: Firebase
+        value: firebase
+    default: jwt
+    when: "use_auth"
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./
+
+  - type: skip
+    path: database/
+    when: "not use_database"
+
+  - type: skip
+    path: auth/
+    when: "not use_auth"

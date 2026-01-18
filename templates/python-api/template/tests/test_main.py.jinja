@@ -1,0 +1,63 @@
+"""
+Tests for {{ project_name }}
+"""
+{% if use_testing %}
+{% if framework == 'fastapi' %}
+import pytest
+from httpx import AsyncClient, ASGITransport
+from main import app
+
+
+@pytest.fixture
+async def client():
+    """Create test client."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        yield client
+
+
+@pytest.mark.asyncio
+async def test_root(client):
+    """Test root endpoint."""
+    response = await client.get("/")
+    assert response.status_code == 200
+    assert "message" in response.json()
+
+
+@pytest.mark.asyncio
+async def test_health_check(client):
+    """Test health check endpoint."""
+    response = await client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+
+{% else %}
+import pytest
+from main import app
+
+
+@pytest.fixture
+def client():
+    """Create test client."""
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        yield client
+
+
+def test_root(client):
+    """Test root endpoint."""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b"message" in response.data
+
+
+def test_health_check(client):
+    """Test health check endpoint."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "healthy"
+{% endif %}
+{% endif %}

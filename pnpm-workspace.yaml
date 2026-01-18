@@ -1,0 +1,9 @@
+# pnpm workspace configuration
+# Defines the monorepo package structure
+
+packages:
+  # Core packages
+  - "packages/*"
+
+  # Example templates (for development/testing)
+  - "templates/*"

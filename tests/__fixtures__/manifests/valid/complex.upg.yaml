@@ -1,0 +1,168 @@
+# Complex manifest with all features for testing
+apiVersion: upg/v1
+
+metadata:
+  name: complex-test
+  version: 2.0.0
+  title: Complex Test Template
+  description: |
+    A complex template that exercises all manifest features
+    including multiple prompt types, actions, and hooks.
+  tags:
+    - test
+    - complex
+    - all-features
+  icon: https://example.com/icon.svg
+  author: test-team
+  license: MIT
+  repository:
+    type: git
+    url: https://github.com/example/complex-test
+  documentation:
+    url: https://example.com/docs
+  lifecycle: production
+  owner: platform-team
+
+template:
+  markers:
+    - .upg-answers.yaml
+    - package.json
+  breaking_changes:
+    - version: "2.0.0"
+      changes:
+        - Changed default framework to FastAPI
+        - Removed support for Python 3.8
+      migration_notes: |
+        Update your requirements.txt and switch to async patterns.
+  smart_update:
+    enabled: true
+    preserve_files:
+      - .env
+      - .env.local
+    regenerate_files:
+      - package.json
+    conflict_resolution: manual
+
+prompts:
+  - id: project_name
+    type: string
+    title: Project Name
+    message: What is your project name?
+    help: Used as the package name
+    default: my-complex-app
+    required: true
+    validator: "^[a-z0-9][a-z0-9-]*$"
+    error_message: Must be lowercase kebab-case
+
+  - id: version
+    type: string
+    title: Version
+    message: Initial version
+    default: "0.1.0"
+    validator: "^\\d+\\.\\d+\\.\\d+$"
+
+  - id: port
+    type: int
+    title: Port
+    message: Server port number
+    default: 8080
+    help: The port the server will listen on
+
+  - id: timeout
+    type: float
+    title: Timeout
+    message: Request timeout in seconds
+    default: 30.0
+
+  - id: enable_feature
+    type: boolean
+    title: Enable Feature
+    message: Enable experimental feature?
+    default: false
+
+  - id: log_level
+    type: select
+    title: Log Level
+    message: Logging verbosity
+    choices:
+      - label: Debug (Verbose)
+        value: debug
+      - label: Info (Normal)
+        value: info
+      - label: Warning (Quiet)
+        value: warn
+      - label: Error (Minimal)
+        value: error
+    default: info
+
+  - id: features
+    type: multiselect
+    title: Features
+    message: Select features to include
+    choices:
+      - label: API Documentation
+        value: docs
+      - label: Metrics
+        value: metrics
+      - label: Tracing
+        value: tracing
+      - label: Health Checks
+        value: health
+    default:
+      - docs
+      - health
+
+  - id: api_key
+    type: secret
+    title: API Key
+    message: Your API key
+    help: This will be stored securely
+    required: false
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./
+    variables:
+      project_name: "{{ project_name }}"
+      version: "{{ version }}"
+      port: "{{ port }}"
+
+  - type: copy
+    src: assets/
+    dest: public/
+
+  - type: skip
+    path: docs/
+    when: "'docs' not in features"
+
+  - type: create_file
+    path: .env.example
+    content: |
+      PORT={{ port }}
+      LOG_LEVEL={{ log_level }}
+      TIMEOUT={{ timeout }}
+
+  - type: command
+    command: echo "Project created successfully"
+    description: Finalizing setup
+    on_error: warn
+
+hooks:
+  post_generation:
+    script: hooks/post_generation.py
+    description: Post-generation customization
+    on_error: warn
+
+documentation:
+  quickstart: |
+    ```bash
+    upg generate complex-test
+    cd my-complex-app
+    npm install
+    npm start
+    ```
+
+  faq:
+    - question: How do I customize the template?
+      answer: Edit the upg.yaml manifest and re-run generation.
