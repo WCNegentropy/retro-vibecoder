@@ -1,0 +1,13 @@
+# Invalid manifest - missing required fields
+# Should fail validation
+
+metadata:
+  name: invalid-test
+  # Missing: version, description
+
+prompts:
+  - id: project_name
+    type: string
+    message: What is your project name?
+
+# Missing: actions array

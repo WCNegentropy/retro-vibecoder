@@ -1,0 +1,45 @@
+{
+  "name": "@retro-vibecoder/cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for the Universal Project Generator",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "upg": "./dist/bin/upg.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@retro-vibecoder/core": "workspace:*",
+    "@retro-vibecoder/shared": "workspace:*",
+    "commander": "^11.1.0",
+    "picocolors": "^1.0.0",
+    "ora": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0"
+  },
+  "keywords": [
+    "retro-vibecoder",
+    "upg",
+    "cli",
+    "scaffolding"
+  ],
+  "license": "MIT"
+}

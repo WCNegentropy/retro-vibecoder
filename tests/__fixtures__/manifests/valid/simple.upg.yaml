@@ -1,0 +1,23 @@
+# Simple valid manifest for testing
+apiVersion: upg/v1
+
+metadata:
+  name: simple-test
+  version: 1.0.0
+  description: A simple test template
+  tags:
+    - test
+  lifecycle: experimental
+
+prompts:
+  - id: project_name
+    type: string
+    title: Project Name
+    message: What is your project name?
+    default: my-project
+    required: true
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./

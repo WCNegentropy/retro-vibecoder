@@ -1,0 +1,17 @@
+# Invalid manifest - invalid prompt type
+apiVersion: upg/v1
+
+metadata:
+  name: invalid-type-test
+  version: 1.0.0
+  description: Testing invalid type
+
+prompts:
+  - id: project_name
+    type: invalid_type  # This is not a valid type
+    message: What is your project name?
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./

@@ -1,0 +1,172 @@
+# Universal Project Generator Manifest
+# React Starter Kit Template
+apiVersion: upg/v1
+
+metadata:
+  name: react-starter
+  version: 1.0.0
+  title: React Starter Kit
+  description: |
+    A production-ready React application scaffold with TypeScript,
+    Vite, ESLint, Prettier, and optional testing and Docker support.
+  tags:
+    - react
+    - frontend
+    - typescript
+    - vite
+  icon: https://cdn.jsdelivr.net/npm/simple-icons@11/icons/react.svg
+  author: retro-vibecoder-team
+  license: MIT
+  repository:
+    type: git
+    url: https://github.com/retro-vibecoder/templates-react-starter
+  lifecycle: production
+  owner: platform-team
+
+template:
+  markers:
+    - .upg-answers.yaml
+    - package.json
+  smart_update:
+    enabled: true
+    preserve_files:
+      - .env.local
+      - .env.*.local
+      - src/**/*.test.tsx
+    regenerate_files:
+      - package.json
+      - tsconfig.json
+      - vite.config.ts
+    conflict_resolution: manual
+
+prompts:
+  - id: project_name
+    type: string
+    title: Project Name
+    message: What is your project name?
+    help: Used in package.json and as the generated folder name
+    default: my-react-app
+    required: true
+    validator: "^[a-z0-9][a-z0-9-]*$"
+    error_message: Project name must be lowercase, alphanumeric, and hyphens only
+
+  - id: project_slug
+    type: string
+    title: Project Slug
+    message: Project slug (for imports)
+    default: "{{ project_name | replace('-', '_') }}"
+    hidden: true
+
+  - id: description
+    type: string
+    title: Description
+    message: Brief description of your project
+    help: This will be added to package.json
+    default: A React application
+    required: false
+
+  - id: author_name
+    type: string
+    title: Author Name
+    message: Your name (for package.json)
+    default: "{{ env.USER }}"
+    required: false
+
+  - id: use_typescript
+    type: boolean
+    title: TypeScript
+    message: Include TypeScript support?
+    default: true
+    help: TypeScript adds type safety. Recommended for production projects.
+
+  - id: eslint_style
+    type: select
+    title: ESLint Config
+    message: Which ESLint style guide?
+    choices:
+      - label: Standard (Relaxed)
+        value: standard
+      - label: Airbnb (Strict)
+        value: airbnb
+      - label: Google (Moderate)
+        value: google
+    default: standard
+    when: "use_typescript"
+    help: Determines code style enforcement
+
+  - id: use_testing
+    type: boolean
+    title: Testing
+    message: Include Vitest + React Testing Library?
+    default: true
+    help: Provides unit and component testing
+
+  - id: use_docker
+    type: boolean
+    title: Docker
+    message: Include Dockerfile for deployment?
+    default: false
+    help: Useful for containerized deployments
+
+  - id: use_ci
+    type: boolean
+    title: GitHub Actions
+    message: Add GitHub Actions CI workflow?
+    default: true
+    help: Automates linting and testing on push
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./
+    variables:
+      project_name: "{{ project_name }}"
+      project_slug: "{{ project_slug }}"
+      author: "{{ author_name }}"
+      description: "{{ description }}"
+      use_typescript: "{{ use_typescript }}"
+      eslint_style: "{{ eslint_style }}"
+
+  - type: skip
+    path: "tests/**"
+    when: "not use_testing"
+
+  - type: skip
+    path: ".github/**"
+    when: "not use_ci"
+
+  - type: skip
+    path: "docker/**"
+    when: "not use_docker"
+
+  - type: skip
+    path: "Dockerfile"
+    when: "not use_docker"
+
+  - type: command
+    command: "npm install"
+    when: "true"
+    description: Installing dependencies...
+    on_error: warn
+
+documentation:
+  quickstart: |
+    ```bash
+    upg generate react-starter --use-defaults
+    cd my-react-app
+    npm run dev
+    ```
+
+  custom_setup: |
+    ```bash
+    upg generate react-starter \
+      --project-name my-app \
+      --eslint-style airbnb \
+      --include-docker
+    ```
+
+  faq:
+    - question: How do I change the ESLint configuration?
+      answer: Edit `.eslintrc.js` and customize rules per your needs.
+    - question: How do I add new GitHub Actions workflows?
+      answer: Add new YAML files to `.github/workflows/` following existing patterns.

@@ -1,0 +1,180 @@
+# Universal Project Generator Manifest
+# Python API Template
+apiVersion: upg/v1
+
+metadata:
+  name: python-api
+  version: 1.0.0
+  title: Python API Server
+  description: |
+    A Python REST API scaffold with FastAPI or Flask,
+    optional database support, Docker, and testing.
+  tags:
+    - python
+    - api
+    - backend
+    - fastapi
+    - flask
+  icon: https://cdn.jsdelivr.net/npm/simple-icons@11/icons/python.svg
+  author: retro-vibecoder-team
+  license: MIT
+  repository:
+    type: git
+    url: https://github.com/retro-vibecoder/templates-python-api
+  lifecycle: production
+  owner: platform-team
+
+template:
+  markers:
+    - .upg-answers.yaml
+    - requirements.txt
+  smart_update:
+    enabled: true
+    preserve_files:
+      - .env
+      - .env.local
+      - tests/
+    regenerate_files:
+      - requirements.txt
+      - pyproject.toml
+    conflict_resolution: manual
+
+prompts:
+  - id: project_name
+    type: string
+    title: Project Name
+    message: What is your project name?
+    help: Used as the package name and directory
+    default: my-api
+    required: true
+    validator: "^[a-z0-9][a-z0-9-]*$"
+    error_message: Project name must be lowercase, alphanumeric, and hyphens only
+
+  - id: package_name
+    type: string
+    title: Package Name
+    message: Python package name
+    default: "{{ project_name | replace('-', '_') }}"
+    hidden: true
+
+  - id: description
+    type: string
+    title: Description
+    message: Brief description of your API
+    default: A Python REST API
+    required: false
+
+  - id: author_name
+    type: string
+    title: Author Name
+    message: Your name
+    default: "{{ env.USER }}"
+    required: false
+
+  - id: framework
+    type: select
+    title: Framework
+    message: Choose Python web framework
+    choices:
+      - label: FastAPI (Modern, Async)
+        value: fastapi
+      - label: Flask (Lightweight)
+        value: flask
+    default: fastapi
+    help: FastAPI is recommended for new projects
+
+  - id: use_database
+    type: boolean
+    title: Database
+    message: Include database support?
+    default: true
+    help: Adds SQLAlchemy and database configuration
+
+  - id: database_type
+    type: select
+    title: Database Type
+    message: Which database?
+    choices:
+      - label: PostgreSQL
+        value: postgres
+      - label: SQLite
+        value: sqlite
+      - label: MySQL
+        value: mysql
+    default: postgres
+    when: "use_database"
+
+  - id: use_docker
+    type: boolean
+    title: Docker
+    message: Include Dockerfile?
+    default: true
+    help: Useful for containerized deployments
+
+  - id: use_testing
+    type: boolean
+    title: Testing
+    message: Include pytest setup?
+    default: true
+    help: Adds pytest and test fixtures
+
+  - id: python_version
+    type: select
+    title: Python Version
+    message: Target Python version
+    choices:
+      - "3.11"
+      - "3.10"
+      - "3.9"
+    default: "3.11"
+
+actions:
+  - type: generate
+    src: template/
+    dest: ./
+    variables:
+      project_name: "{{ project_name }}"
+      package_name: "{{ package_name }}"
+      description: "{{ description }}"
+      author: "{{ author_name }}"
+      framework: "{{ framework }}"
+      use_database: "{{ use_database }}"
+      database_type: "{{ database_type }}"
+      python_version: "{{ python_version }}"
+
+  - type: skip
+    path: "tests/**"
+    when: "not use_testing"
+
+  - type: skip
+    path: "Dockerfile"
+    when: "not use_docker"
+
+  - type: skip
+    path: "docker-compose.yml"
+    when: "not use_docker"
+
+  - type: skip
+    path: "**/database/**"
+    when: "not use_database"
+
+  - type: command
+    command: "python -m pip install -r requirements.txt"
+    when: "true"
+    description: Installing dependencies...
+    on_error: warn
+
+documentation:
+  quickstart: |
+    ```bash
+    upg generate python-api --use-defaults
+    cd my-api
+    python -m pip install -r requirements.txt
+    python -m uvicorn main:app --reload
+    ```
+
+  faq:
+    - question: How do I run database migrations?
+      answer: Use Alembic for migrations. Run `alembic init alembic` to set up.
+    - question: How do I add new API endpoints?
+      answer: Add route handlers in `routes/` directory following existing patterns.

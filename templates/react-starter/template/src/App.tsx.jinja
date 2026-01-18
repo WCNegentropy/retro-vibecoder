@@ -1,0 +1,47 @@
+{% if use_typescript %}
+import { useState } from 'react';
+{% else %}
+import { useState } from 'react';
+{% endif %}
+import './App.css';
+
+{% if use_typescript %}
+interface CounterProps {
+  initialCount?: number;
+}
+
+function Counter({ initialCount = 0 }: CounterProps) {
+{% else %}
+function Counter({ initialCount = 0 }) {
+{% endif %}
+  const [count, setCount] = useState(initialCount);
+
+  return (
+    <div className="counter">
+      <button onClick={() => setCount(c => c - 1)}>-</button>
+      <span>{count}</span>
+      <button onClick={() => setCount(c => c + 1)}>+</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>{{ project_name }}</h1>
+        <p>{{ description }}</p>
+      </header>
+
+      <main>
+        <Counter />
+      </main>
+
+      <footer>
+        <p>Built with React + Vite{% if use_typescript %} + TypeScript{% endif %}</p>
+      </footer>
+    </div>
+  );
+}
+
+export default App;

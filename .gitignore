@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Turbo
+.turbo/
+
+# Cache
+.cache/
+.eslintcache
+.prettiercache
+
+# Generated files
+*.generated.*
+
+# Temporary files
+tmp/
+temp/
+
+# Tauri (Phase 2)
+src-tauri/target/
+
+# Sidecar binaries (Phase 2)
+binaries/copier-cli/dist/
+binaries/yeoman-cli/dist/
+
+# Template generation outputs (testing)
+test-output/
+.upg-answers.yaml
+
+# Secrets (never commit)
+*.pem
+*.key
+credentials.json
+secrets.json
