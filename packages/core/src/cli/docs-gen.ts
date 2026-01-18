@@ -7,7 +7,7 @@
  */
 
 import { readFile } from 'fs/promises';
-import { resolve, basename, dirname } from 'path';
+import { resolve } from 'path';
 import { validateManifest } from '../schema/validator.js';
 import type { UpgManifest, ManifestPrompt, PromptChoice } from '@retro-vibecoder/shared';
 

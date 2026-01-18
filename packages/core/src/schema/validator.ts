@@ -41,8 +41,8 @@ export function createValidator(options: ValidatorOptions = {}): Ajv {
   const ajv = new Ajv({
     allErrors: options.allErrors ?? true,
     verbose: true,
-    strict: true,
-    strictSchema: true,
+    // Disable strict mode to allow JSON Schema features like if/then with required
+    strict: false,
   });
 
   // Add format validators

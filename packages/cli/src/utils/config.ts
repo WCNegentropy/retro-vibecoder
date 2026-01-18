@@ -4,7 +4,7 @@
 
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname } from 'path';
-import { getConfigPath, getUpgHome, parseYaml, stringifyYaml } from '@retro-vibecoder/shared';
+import { getConfigPath, parseYaml, stringifyYaml } from '@retro-vibecoder/shared';
 
 /**
  * CLI configuration structure

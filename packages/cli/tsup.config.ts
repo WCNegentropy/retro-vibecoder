@@ -9,7 +9,4 @@ export default defineConfig({
   splitting: false,
   treeshake: true,
   external: ['@retro-vibecoder/core', '@retro-vibecoder/shared'],
-  banner: {
-    js: '#!/usr/bin/env node',
-  },
 });
