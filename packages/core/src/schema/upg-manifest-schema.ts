@@ -4,8 +4,6 @@
  * This schema defines the structure and validation rules for Universal Manifests.
  */
 
-import type { JSONSchemaType } from 'ajv';
-
 /**
  * Manifest schema as a JavaScript object
  * This is exported for programmatic use and also saved as JSON
