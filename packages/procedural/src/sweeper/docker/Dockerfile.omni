@@ -74,8 +74,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install poetry and uv
-RUN pip3 install --break-system-packages poetry uv ruff mypy
+# Install poetry, uv, and conan (C++ package manager)
+RUN pip3 install --break-system-packages poetry uv ruff mypy conan
 
 # ============================================================================
 # 6. JVM Ecosystem (OpenJDK 17 + Maven + Gradle)
@@ -113,6 +113,7 @@ RUN echo "=== Toolchain Versions ===" && \
     cargo --version && \
     go version && \
     python3 --version && \
+    conan --version && \
     java --version && \
     mvn --version && \
     gradle --version && \
