@@ -1,0 +1,127 @@
+# Universal Project Generator - Omni-Validator Image
+# This image contains all toolchains needed to validate generated projects.
+
+FROM ubuntu:24.04
+
+LABEL maintainer="Retro Vibecoder Team"
+LABEL description="Universal validator image with all supported language toolchains"
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set working directory
+WORKDIR /app
+
+# ============================================================================
+# 1. System Dependencies & Core Tools
+# ============================================================================
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    git \
+    build-essential \
+    cmake \
+    clang \
+    pkg-config \
+    libssl-dev \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
+# 2. Node.js Ecosystem (Node 20 LTS + pnpm + yarn + bun)
+# ============================================================================
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g pnpm@8 yarn && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | bash
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="$BUN_INSTALL/bin:$PATH"
+
+# ============================================================================
+# 3. Rust Ecosystem (Stable + Clippy + Rustfmt)
+# ============================================================================
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    --default-toolchain stable \
+    --component clippy rustfmt
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# ============================================================================
+# 4. Go Ecosystem (Go 1.22)
+# ============================================================================
+ENV GO_VERSION=1.22.0
+RUN wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
+    rm go${GO_VERSION}.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:$PATH"
+ENV GOPATH="/root/go"
+ENV PATH="$GOPATH/bin:$PATH"
+
+# Install golangci-lint
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.55.2
+
+# ============================================================================
+# 5. Python Ecosystem (Python 3.12 + pip + poetry + uv)
+# ============================================================================
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-venv \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install poetry and uv
+RUN pip3 install --break-system-packages poetry uv ruff mypy
+
+# ============================================================================
+# 6. JVM Ecosystem (OpenJDK 17 + Maven + Gradle)
+# ============================================================================
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openjdk-17-jdk \
+    maven \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Gradle
+ENV GRADLE_VERSION=8.5
+RUN wget -q https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip && \
+    unzip -q gradle-${GRADLE_VERSION}-bin.zip -d /opt && \
+    rm gradle-${GRADLE_VERSION}-bin.zip
+ENV PATH="/opt/gradle-${GRADLE_VERSION}/bin:$PATH"
+
+# ============================================================================
+# 7. .NET Ecosystem (dotnet-sdk-8.0)
+# ============================================================================
+RUN wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
+    dpkg -i packages-microsoft-prod.deb && \
+    rm packages-microsoft-prod.deb && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends dotnet-sdk-8.0 && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
+# 8. Verification
+# ============================================================================
+RUN echo "=== Toolchain Versions ===" && \
+    node --version && \
+    pnpm --version && \
+    bun --version && \
+    rustc --version && \
+    cargo --version && \
+    go version && \
+    python3 --version && \
+    java --version && \
+    mvn --version && \
+    gradle --version && \
+    dotnet --version
+
+# ============================================================================
+# Entry Point
+# ============================================================================
+COPY validate.sh /usr/local/bin/validate
+RUN chmod +x /usr/local/bin/validate
+
+ENTRYPOINT ["/usr/local/bin/validate"]

@@ -13,6 +13,7 @@ import { generateAction } from '../commands/generate.js';
 import { testAction } from '../commands/test.js';
 import { searchAction } from '../commands/search.js';
 import { initAction } from '../commands/init.js';
+import { sweepAction, seedAction } from '../commands/sweep.js';
 
 /**
  * Create the CLI program
@@ -97,6 +98,31 @@ export function createCli(): Command {
         process.exit(1);
       }
     });
+
+  // Sweep command - procedural generation
+  program
+    .command('sweep')
+    .description('Generate multiple projects procedurally from the Universal Matrix')
+    .option('-c, --count <number>', 'Number of projects to generate', '5')
+    .option('--validate', 'Validate generated projects', false)
+    .option('-o, --output <path>', 'Output directory for generated projects')
+    .option('-f, --format <format>', 'Output format (text|json)', 'text')
+    .option('-v, --verbose', 'Verbose output', false)
+    .option('--archetype <type>', 'Force specific archetype (web|backend|cli|mobile|desktop)')
+    .option('--language <lang>', 'Force specific language (typescript|python|go|rust|etc)')
+    .option('--framework <fw>', 'Force specific framework')
+    .action(sweepAction);
+
+  // Seed command - generate single project from seed
+  program
+    .command('seed <seed>')
+    .description('Generate a single project from a seed number')
+    .option('-o, --output <path>', 'Output directory for generated project')
+    .option('-v, --verbose', 'Show file content previews', false)
+    .option('--archetype <type>', 'Force specific archetype')
+    .option('--language <lang>', 'Force specific language')
+    .option('--framework <fw>', 'Force specific framework')
+    .action(seedAction);
 
   return program;
 }

@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@retro-vibecoder/core": "workspace:*",
+    "@retro-vibecoder/procedural": "workspace:*",
     "@retro-vibecoder/shared": "workspace:*",
     "commander": "^11.1.0",
     "picocolors": "^1.0.0",
