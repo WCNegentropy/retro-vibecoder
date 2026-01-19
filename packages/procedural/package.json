@@ -1,0 +1,64 @@
+{
+  "name": "@retro-vibecoder/procedural",
+  "version": "0.1.0",
+  "description": "Universal Procedural Generation engine for composing software projects from capabilities",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine/index.d.ts",
+      "import": "./dist/engine/index.js"
+    },
+    "./matrices": {
+      "types": "./dist/matrices/index.d.ts",
+      "import": "./dist/matrices/index.js"
+    },
+    "./strategies": {
+      "types": "./dist/strategies/index.d.ts",
+      "import": "./dist/strategies/index.js"
+    },
+    "./sweeper": {
+      "types": "./dist/sweeper/index.d.ts",
+      "import": "./dist/sweeper/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src/sweeper/docker/*"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:unit": "vitest run src/",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@retro-vibecoder/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0"
+  },
+  "keywords": [
+    "retro-vibecoder",
+    "upg",
+    "procedural",
+    "generation",
+    "universal"
+  ],
+  "license": "MIT"
+}
