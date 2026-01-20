@@ -4,26 +4,47 @@ Welcome to the Universal Project Generator documentation.
 
 ## What is UPG?
 
-The Universal Project Generator (UPG) transforms project scaffolding from imperative scripts to declarative YAML manifests. This enables:
+The Universal Project Generator (UPG) is a dual-mode project generation platform that combines declarative YAML manifests with procedural generation capabilities. This enables:
 
-- **Dynamic UI Generation** - Forms are generated from manifest definitions
-- **Template Marketplace** - Share and discover templates via a Git-based registry
-- **Smart Updates** - Keep projects in sync with template updates via 3-way merge
+- **Procedural Generation** (Phase 1.5) - Generate projects from seed numbers using a Universal Matrix of tech stacks
+- **Automated Discovery** - Constraint-based generation discovers thousands of valid configurations
+- **Dynamic UI Generation** - Forms are generated from manifest definitions (Phase 2)
+- **Deterministic Reproducibility** - Same seed always produces the same project
+- **Template Marketplace** - Share and discover both hand-crafted templates and procedural configurations
+- **Smart Updates** - Keep projects in sync with template updates via 3-way merge (Phase 3)
 
 ## Quick Start
 
+### Procedural Generation (Phase 1.5 - Current)
+
 ```bash
-# Install UPG
-npm install -g @retro-vibecoder/cli
+# Install dependencies
+pnpm install
 
-# Generate a project
-upg generate react-starter
+# Build all packages
+pnpm build
 
+# Generate a project from a seed
+pnpm --filter @retro-vibecoder/cli seed 82910 --output ./my-project
+
+# Run a procedural sweep (discover multiple projects)
+pnpm --filter @retro-vibecoder/cli sweep --count 10 --verbose
+
+# Sweep with validation and registry persistence
+pnpm --filter @retro-vibecoder/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+```
+
+### Manifest-Based Generation (Phase 1 - Validation tools available)
+
+```bash
 # Validate a manifest
 upg validate ./upg.yaml
 
 # Initialize a new template
 upg init
+
+# Generate from manifest (Phase 2 - Coming soon)
+upg generate react-starter
 ```
 
 ## Documentation Sections
@@ -107,9 +128,22 @@ External tools (Copier, Yeoman) are bundled as sidecars:
 
 ## Roadmap
 
-- **Phase 1** (Current): Universal Spec, Validation, CLI
-- **Phase 2** (Next): Desktop App, Dynamic Forms, Sidecar
-- **Phase 3** (Future): Registry, Smart Update, Marketplace
+- **Phase 1** (Completed): Universal Spec, Validation, CLI, Manifest Transpilation
+- **Phase 1.5** (Completed - Current): Universal Procedural Generation Engine
+  - Seed-based generation with Mulberry32 RNG
+  - Universal Matrix (7 dimensions, 100+ technology options)
+  - Constraint Solver for valid tech stack combinations
+  - Strategy Pipeline with 31+ generation strategies (Tier 1-5)
+  - Seed Sweeper validation pipeline
+  - CLI commands: `upg seed`, `upg sweep`
+- **Phase 2** (Next - Q2 2026): Desktop App with Dual-Mode Generation
+  - Manifest Mode: Dynamic Forms (RJSF) + Copier Sidecar
+  - Procedural Mode: Seed Generator + Stack Composer UI
+  - Integrated validation and preview
+- **Phase 3** (Future - Q3 2026): Marketplace with Hybrid Content
+  - Git-based Registry (manifest templates + procedural configs)
+  - Smart Update mechanism (3-way merge)
+  - Seed sharing and discovery
 
 ## Getting Help
 

@@ -6,20 +6,34 @@
 ## **PART 1: EXECUTIVE SUMMARY & STRATEGIC CONTEXT**
 
 ### **Project Vision**
-Transform the Retro Vibecoder from a monolithic, imperative scaffolding tool into a **Universal Project Generator (UPG)**—a declarative, data-driven platform that generates projects while maintaining them throughout their lifecycle via Smart Updates and a Git-backed Marketplace Registry.
+Transform the Retro Vibecoder from a monolithic, imperative scaffolding tool into a **Universal Project Generator (UPG)**—a declarative, data-driven platform enhanced with procedural generation capabilities that can both generate projects from templates AND automatically discover valid configurations from seeds, maintaining them throughout their lifecycle via Smart Updates and a Git-backed Marketplace Registry.
 
-### **Core Architecture**
-- **Phase 1:** Universal Spec & Template Manifest (YAML-based, JSON Schema validated)
-- **Phase 2:** Generic Engine & Dynamic Forms (Tauri v2 + React + RJSF)
-- **Phase 3:** Marketplace & Ecosystem (Git Registry + Smart Update + versioning)
+### **Core Architecture (UPDATED with Phase 1.5)**
+- **Phase 1:** Universal Spec & Template Manifest (COMPLETED - YAML-based, JSON Schema validated)
+- **Phase 1.5:** Universal Procedural Generation (COMPLETED - Constraint-based seed generation engine)
+- **Phase 2:** Generic Engine & Dynamic Forms (NEXT - Tauri v2 + React + RJSF + Procedural UI)
+- **Phase 3:** Marketplace & Ecosystem (FUTURE - Git Registry + Smart Update + Dual-mode templates)
 
-### **Key Differentiators**
+### **CRITICAL ARCHITECTURAL UPDATE**
+Following Phase 1 completion, a strategic detour was taken to implement **Phase 1.5: Universal Procedural Generation**. This system transforms the UPG from solely a "template consumer" into also a "template factory" that can:
+1. Generate valid project configurations from seed numbers (deterministic, reproducible)
+2. Automatically validate generated projects via the Seed Sweeper pipeline
+3. Discover thousands of working tech stack combinations programmatically
+4. Provide immediate CLI-based value while Phase 2 GUI is being developed
+5. Seed the Phase 3 marketplace with pre-validated configurations
+
+### **Key Differentiators (UPDATED with Phase 1.5)**
 1. ✅ **Data-Driven Templating** (YAML manifests, not hardcoded scripts)
-2. ✅ **Dynamic UI** (React JSON Schema Form auto-generates GUI from manifest)
-3. ✅ **Smart Updates** (3-way merge preserves user modifications while applying template patches)
-4. ✅ **Universal Execution** (Sidecar pattern supports Copier, Yeoman, future tools)
-5. ✅ **Retro Aesthetic** (Windows 95 UI via React95)
-6. ✅ **Decentralized Registry** (Git-based, private/public, no backend infrastructure)
+2. ✅ **Procedural Generation** (NEW - Phase 1.5: Seed-based project generation from Universal Matrix)
+3. ✅ **Constraint Solving** (NEW - Automated validation of technology combinations)
+4. ✅ **Deterministic Reproducibility** (NEW - Same seed = same project, always)
+5. ✅ **Dual-Mode Generation** (Manifest-based AND procedural generation)
+6. ✅ **Automated Validation** (NEW - Seed Sweeper pipeline tests generated projects)
+7. ✅ **Dynamic UI** (React JSON Schema Form auto-generates GUI from manifest)
+8. ✅ **Smart Updates** (3-way merge preserves user modifications while applying template patches)
+9. ✅ **Universal Execution** (Sidecar pattern + Strategy Pipeline supports diverse tooling)
+10. ✅ **Retro Aesthetic** (Windows 95 UI via React95 - Phase 2)
+11. ✅ **Decentralized Registry** (Git-based, private/public, no backend infrastructure)
 
 ***
 
@@ -36,6 +50,25 @@ retro-vibecoder-upg/
 │
 ├── packages/                          # Monorepo root (pnpm workspaces)
 │
+│   ├── shared/                        # === SHARED UTILITIES ===
+│   │   ├── package.json
+│   │   ├── src/
+│   │   │   ├── types/
+│   │   │   │   ├── manifest.ts          # TypeScript interfaces for upg.yaml
+│   │   │   │   ├── registry.ts
+│   │   │   │   ├── answers.ts
+│   │   │   │   └── sidecar.ts
+│   │   │   ├── constants/
+│   │   │   │   ├── defaults.ts
+│   │   │   │   ├── paths.ts
+│   │   │   │   └── error-codes.ts
+│   │   │   └── utils/
+│   │   │       ├── yaml-parser.ts
+│   │   │       ├── schema-validator.ts
+│   │   │       └── paths.ts
+│   │   └── tests/
+│   │       └── types.test.ts
+│   │
 │   ├── core/                          # === PHASE 1: UNIVERSAL SPEC ===
 │   │   ├── package.json
 │   │   ├── src/
@@ -71,7 +104,100 @@ retro-vibecoder-upg/
 │   │   │           └── unicode-descriptions.yaml
 │   │   └── README.md                  # Phase 1 docs
 │   │
-│   ├── engine/                        # === PHASE 2: GENERIC ENGINE (Tauri) ===
+│   ├── procedural/                    # === PHASE 1.5: UNIVERSAL PROCEDURAL GENERATION ===
+│   │   ├── package.json               # *** NEW PACKAGE - IMPLEMENTED ***
+│   │   ├── src/
+│   │   │   ├── types.ts               # Core type system (TechStack, GenerationStrategy, etc.)
+│   │   │   ├── index.ts               # Public API exports
+│   │   │   │
+│   │   │   ├── engine/                # Core assembly engine
+│   │   │   │   ├── rng.ts             # SeededRNG (Mulberry32 PRNG) - deterministic randomness
+│   │   │   │   ├── assembler.ts       # ProjectAssembler: seed → project transformation
+│   │   │   │   ├── constraints.ts     # Constraint Solver (incompatibility/requirement rules)
+│   │   │   │   └── index.ts
+│   │   │   │
+│   │   │   ├── matrices/              # The Universal Matrix - software possibility space
+│   │   │   │   ├── archetypes.ts      # 7 archetypes (web, backend, cli, mobile, etc.)
+│   │   │   │   ├── languages.ts       # 12+ languages (TypeScript, Python, Go, Rust, etc.)
+│   │   │   │   ├── frameworks.ts      # 40+ frameworks (React, FastAPI, Spring Boot, etc.)
+│   │   │   │   ├── databases.ts       # SQL, NoSQL, graph databases
+│   │   │   │   └── index.ts
+│   │   │   │
+│   │   │   ├── strategies/            # Pluggable generation strategies (31+ files)
+│   │   │   │   ├── common/            # Cross-language strategies
+│   │   │   │   │   ├── git.ts         # .gitignore generation
+│   │   │   │   │   ├── docker.ts      # Dockerfile templates
+│   │   │   │   │   ├── ci.ts          # GitHub Actions/CI config
+│   │   │   │   │   └── readme.ts      # README generation
+│   │   │   │   │
+│   │   │   │   ├── api/               # Backend API strategies (Tier 1)
+│   │   │   │   │   ├── typescript.ts  # Express, Fastify, NestJS
+│   │   │   │   │   ├── python.ts      # FastAPI, Flask, Django
+│   │   │   │   │   ├── rust.ts        # Axum, Actix, Clap CLI
+│   │   │   │   │   ├── go.ts          # Gin, Echo, Cobra CLI
+│   │   │   │   │   └── index.ts
+│   │   │   │   │
+│   │   │   │   ├── web/               # Web frontend strategies (Tier 5)
+│   │   │   │   │   ├── vite.ts        # React, Vue, Svelte, Solid (Vite-based)
+│   │   │   │   │   └── index.ts
+│   │   │   │   │
+│   │   │   │   ├── backend/           # Enterprise backend (Tier 3)
+│   │   │   │   │   ├── java.ts        # Spring Boot
+│   │   │   │   │   └── csharp.ts      # .NET Core / ASP.NET
+│   │   │   │   │
+│   │   │   │   ├── systems/           # Systems programming (Tier 2)
+│   │   │   │   │   └── cpp.ts         # C++ (CMake)
+│   │   │   │   │
+│   │   │   │   ├── mobile/            # Mobile development (Tier 4)
+│   │   │   │   │   └── react-native.ts # React Native + Expo
+│   │   │   │   │
+│   │   │   │   └── index.ts           # AllStrategies array export
+│   │   │   │
+│   │   │   └── sweeper/               # Validation pipeline
+│   │   │       ├── pipeline.ts        # Sweeper: validate generated projects
+│   │   │       └── docker/            # Docker multi-builder configs
+│   │   │
+│   │   ├── tests/
+│   │   │   ├── engine/
+│   │   │   │   ├── rng.test.ts        # Test deterministic RNG
+│   │   │   │   ├── assembler.test.ts  # Test project assembly
+│   │   │   │   └── constraints.test.ts # Test constraint solver
+│   │   │   ├── strategies/
+│   │   │   │   ├── typescript.test.ts
+│   │   │   │   ├── python.test.ts
+│   │   │   │   └── rust.test.ts
+│   │   │   └── integration/
+│   │   │       └── end-to-end.test.ts # Full generation + validation
+│   │   │
+│   │   └── README.md                  # Phase 1.5 documentation
+│   │
+│   ├── cli/                           # === COMMAND-LINE INTERFACE ===
+│   │   ├── package.json
+│   │   ├── src/
+│   │   │   ├── bin/upg.ts             # Entry point
+│   │   │   ├── commands/
+│   │   │   │   ├── generate.ts        # upg generate [template]
+│   │   │   │   ├── validate.ts        # upg validate <manifest>
+│   │   │   │   ├── seed.ts            # upg seed <number> (NEW - Phase 1.5)
+│   │   │   │   ├── sweep.ts           # upg sweep --count N (NEW - Phase 1.5)
+│   │   │   │   ├── update.ts          # upg update [--project-path]
+│   │   │   │   ├── registry-search.ts # upg search <query>
+│   │   │   │   ├── template-test.ts   # upg test <manifest>
+│   │   │   │   └── init.ts            # upg init (interactive setup)
+│   │   │   ├── utils/
+│   │   │   │   ├── config.ts          # ~/.upg/config.yaml management
+│   │   │   │   ├── registry-cache.ts
+│   │   │   │   └── logger.ts
+│   │   │   └── index.ts
+│   │   └── tests/
+│   │       ├── commands/
+│   │       │   ├── generate.test.ts
+│   │       │   ├── validate.test.ts
+│   │       │   ├── seed.test.ts       # NEW - Phase 1.5
+│   │       │   └── sweep.test.ts      # NEW - Phase 1.5
+│   │       └── fixtures/
+│   │
+│   ├── engine/                        # === PHASE 2: GENERIC ENGINE (Tauri) - NOT YET IMPLEMENTED ===
 │   │   ├── src-tauri/
 │   │   │   ├── Cargo.toml             # Rust dependencies + sidecar config
 │   │   │   ├── tauri.conf.json        # Tauri v2 config (sidecar binaries, allowlist)
@@ -1895,98 +2021,153 @@ permissions:
 
 ***
 
-## **PART 7: ROADMAP & TIMELINE**
+## **PART 7: ROADMAP & TIMELINE (UPDATED with Phase 1.5)**
 
-### **Q1 2026: Phase 1 Delivery (Weeks 1-12)**
+### **Q4 2025: Phase 1 Delivery (COMPLETED)**
 
 **Goal:** Define specification, build validator, publish manifest spec.
-
-- **Week 1-2:** Architecture review, repository setup
-- **Week 3-4:** YAML manifest spec + JSON Schema
-- **Week 5-6:** Transpiler logic (YAML → JSON Schema)
-- **Week 7-8:** CLI validator tool (`upg validate`)
-- **Week 9-10:** Documentation + example manifests
-- **Week 11:** Testing + refinement
-- **Week 12:** Release Phase 1 (CLI validator tool)
 
 **Deliverables:**
 - ✅ Phase 1 repository structure
 - ✅ `upg.yaml` manifest specification
 - ✅ JSON Schema meta-schema
 - ✅ CLI validator tool (`upg validate`)
+- ✅ Transpiler logic (YAML → JSON Schema)
 - ✅ 3 example templates (react, python-api, monorepo)
 - ✅ Comprehensive documentation
 
 ***
 
-### **Q2 2026: Phase 2 Delivery (Weeks 13-24)**
+### **Q4 2025 / Q1 2026: Phase 1.5 Delivery (COMPLETED) - STRATEGIC DETOUR**
 
-**Goal:** Build Generic Engine, Dynamic Forms, Desktop App.
+**Goal:** Build Universal Procedural Generation engine for automated project discovery and validation.
 
-- **Week 13-14:** Tauri v2 project setup + React scaffolding
-- **Week 15-16:** RJSF integration + custom theming (Windows95)
-- **Week 17-18:** Manifest loading + schema transpiler (client-side)
-- **Week 19-20:** Copier sidecar orchestration
-- **Week 21-22:** Real-time log streaming + generation flow
-- **Week 23:** E2E tests + user testing
-- **Week 24:** Release Phase 2 (Desktop App Beta)
+**Timeline:** 8-10 weeks
 
-**Mitigations Applied:**
-- ✅ Sidecar binary size optimization (Nuitka for Python)
-- ✅ Optional sidecar downloads
-- ✅ Template validation in CI
+**Key Achievements:**
+- ✅ Universal Matrix defined (7 dimensions, 100+ technology options)
+- ✅ Seeded RNG (Mulberry32) implemented for deterministic generation
+- ✅ Constraint Solver built (incompatibility + requirement rules)
+- ✅ Strategy Pipeline architecture created
+- ✅ 31+ generation strategies implemented:
+  - **Tier 1**: TypeScript (Express, Fastify, NestJS), Python (FastAPI, Flask, Django), Rust (Axum, Actix, Clap)
+  - **Tier 2**: Go (Gin, Echo, Cobra), C++ (CMake)
+  - **Tier 3**: Java (Spring Boot), C# (.NET Core)
+  - **Tier 4**: React Native (Expo)
+  - **Tier 5**: Web (React, Vue, Svelte, Solid via Vite)
+- ✅ Seed Sweeper validation pipeline with Docker execution
+- ✅ CLI commands implemented:
+  - `upg seed <number>` - Generate from seed
+  - `upg sweep --count N --validate --save-registry` - Procedural sweeps
+- ✅ Registry persistence (JSON format)
+- ✅ Complete type system and public API
+- ✅ Test coverage for RNG, constraints, and core strategies
+- ✅ Documentation for procedural generation
 
 **Deliverables:**
-- ✅ Tauri desktop application
-- ✅ React dynamic form UI with Windows95 theme
-- ✅ Copier sidecar integration
-- ✅ Real-time generation logging
-- ✅ CLI tool (parallel to desktop app)
-- ✅ Beta testing documentation
+- ✅ packages/procedural/ package (31+ TypeScript files)
+- ✅ Working CLI tool for procedural generation
+- ✅ Automated validation pipeline
+- ✅ Examples of generated projects across all tiers
+- ✅ Updated architecture documentation
+
+**Strategic Value:**
+- **Immediate Value**: Functional project generation without GUI
+- **Validation Proof**: Demonstrates universal generation feasibility
+- **Registry Seeding**: Provides initial marketplace content
+- **Risk Reduction**: Validates tech stack compatibility before Phase 2 GUI
 
 ***
 
-### **Q3 2026: Phase 3 Delivery (Weeks 25-36)**
+### **Q2 2026: Phase 2 Delivery (NEXT) - UPDATED SCOPE**
 
-**Goal:** Marketplace Registry, Smart Updates, Ecosystem.
+**Goal:** Build Generic Engine with DUAL-MODE generation (Manifest + Procedural).
 
-- **Week 25-26:** Git-based registry infrastructure
-- **Week 27-28:** Registry caching + search functionality
-- **Week 29-30:** Smart Update (3-way merge) implementation
-- **Week 31-32:** Conflict resolution UI
-- **Week 33-34:** Template publishing guidelines + CI validation
-- **Week 35:** Private registry setup guide
-- **Week 36:** Release Phase 3 (Marketplace + Smart Updates)
+**Timeline:** 12 weeks (adjusted from original 12 weeks, but with more capabilities)
 
-**Mitigations Applied:**
-- ✅ Template testing framework (pre-publish validation)
-- ✅ Governance model (namespace protection)
-- ✅ Update conflict resolution
+- **Week 1-2:** Tauri v2 project setup + React scaffolding
+- **Week 3-4:** RJSF integration + custom theming (Windows95)
+- **Week 5-6:** Manifest loading + schema transpiler (client-side)
+- **Week 7-8:** Procedural engine integration + Seed Generator UI
+- **Week 9-10:** Stack Composer UI + Copier sidecar orchestration
+- **Week 11:** Real-time log streaming + dual-mode generation flow
+- **Week 12:** E2E tests + user testing
+- **Week 13:** Release Phase 2 (Desktop App Beta)
+
+**Enhanced Features (vs. original plan):**
+- ✅ Dual-mode generation:
+  - **Manifest Mode**: Select template → RJSF form → generate via Copier
+  - **Procedural Mode**: Enter seed OR compose stack → preview → generate via procedural engine
+- ✅ Seed Gallery UI: Browse pre-validated seeds from sweeper runs
+- ✅ Stack Composer: Interactive dropdowns with constraint validation
+- ✅ Preview System: Show generated file structure before creation
 
 **Deliverables:**
-- ✅ Public Git-based registry
-- ✅ Registry browser UI in desktop app
-- ✅ Smart Update mechanism (3-way merge)
-- ✅ Conflict resolver UI
-- ✅ Private registry documentation
-- ✅ Template publishing guide
+- 🎯 Tauri desktop application with dual-mode support
+- 🎯 React dynamic form UI with Windows95 theme
+- 🎯 Copier sidecar integration
+- 🎯 Procedural engine GUI integration
+- 🎯 Seed generator and stack composer interfaces
+- 🎯 Real-time generation logging
+- 🎯 CLI tool enhancements
+- 🎯 Beta testing documentation
+
+***
+
+### **Q3 2026: Phase 3 Delivery (FUTURE) - UPDATED SCOPE**
+
+**Goal:** Marketplace Registry with HYBRID CONTENT (Manifest + Procedural).
+
+**Timeline:** 12 weeks
+
+- **Week 1-2:** Git-based registry infrastructure (dual content support)
+- **Week 3-4:** Registry caching + search functionality (filter by generation mode)
+- **Week 5-6:** Smart Update (3-way merge) implementation
+- **Week 7-8:** Conflict resolution UI
+- **Week 9-10:** Template publishing guidelines + procedural config publishing
+- **Week 11:** Private registry setup guide
+- **Week 12:** Release Phase 3 (Marketplace + Smart Updates)
+
+**Enhanced Registry Features:**
+- **Hand-crafted templates**: Curated upg.yaml manifests (high quality, opinionated)
+- **Procedurally-discovered configs**: Validated seed configurations (comprehensive coverage)
+- **Hybrid templates**: Manifests that use procedural strategies for initialization
+- **Seed sharing**: Users can share favorite seeds via registry
+- **Validation metrics**: Show sweeper success rates for procedural configs
+
+**Deliverables:**
+- 🎯 Public Git-based registry with dual content types
+- 🎯 Registry browser UI with filtering (manifest vs. procedural vs. hybrid)
+- 🎯 Smart Update mechanism (3-way merge)
+- 🎯 Conflict resolver UI
+- 🎯 Private registry documentation
+- 🎯 Dual publishing guide (template authoring + seed curation)
+- 🎯 100+ validated entries:
+  - 20+ hand-crafted manifest templates
+  - 80+ procedurally-validated configurations
 
 ***
 
 ### **Q4 2026 & Beyond: Maintenance + Future Features**
 
 **Ongoing:**
-- ✅ Monitor registry quality
+- ✅ Monitor registry quality (both manifest and procedural)
 - ✅ Security updates
 - ✅ Community template support
 - ✅ Performance optimization
+- ✅ Expand Universal Matrix (new languages, frameworks)
 
-**Future Enhancements (v2.0):**
-- 🔮 WASM sandbox for templates
-- 🔮 Yeoman/esbuild sidecar
-- 🔮 Custom widget extensions
-- 🔮 Template telemetry/analytics
-- 🔮 AI-assisted template generation
+**Future Enhancements (v2.0+):**
+- 🔮 **Tier 6-7 Expansion**: Game development (Unity, Godot), Desktop apps (Electron)
+- 🔮 **AI-Assisted Customization**: Use LLMs to modify generated projects
+- 🔮 **Collaborative Seed Discovery**: Community sweeper runs, shared findings
+- 🔮 **Template Analytics**: Usage metrics, popularity rankings
+- 🔮 **Strategy Marketplace**: Allow community-contributed generation strategies
+- 🔮 **WASM Sandbox**: Run strategies in WebAssembly for security
+- 🔮 **Parallel Sweeper**: Distribute validation across multiple machines
+- 🔮 **Incremental Validation**: Only re-validate changed strategies
+- 🔮 **Template Ratings & Reviews**: Community feedback system
+- 🔮 **Recommended Configurations**: ML-based stack suggestions based on requirements
 
 ***
 
