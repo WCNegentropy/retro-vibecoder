@@ -1,0 +1,1196 @@
+/**
+ * Web Frontend Strategies
+ *
+ * Generates Vite-powered web applications (React, Vue, Svelte, Solid).
+ * Uses a universal Vite strategy that adapts based on the selected framework.
+ */
+
+import type { GenerationStrategy, Styling } from '../../types.js';
+
+/**
+ * Get Vite plugin configuration for a framework
+ */
+function getVitePlugins(framework: string): { imports: string; plugins: string } {
+  switch (framework) {
+    case 'react':
+      return {
+        imports: "import react from '@vitejs/plugin-react';",
+        plugins: 'react()',
+      };
+    case 'vue':
+      return {
+        imports: "import vue from '@vitejs/plugin-vue';",
+        plugins: 'vue()',
+      };
+    case 'svelte':
+      return {
+        imports: "import { svelte } from '@sveltejs/vite-plugin-svelte';",
+        plugins: 'svelte()',
+      };
+    case 'solid':
+      return {
+        imports: "import solid from 'vite-plugin-solid';",
+        plugins: 'solid()',
+      };
+    default:
+      return { imports: '', plugins: '' };
+  }
+}
+
+/**
+ * Get framework-specific dependencies
+ */
+function getFrameworkDeps(framework: string): {
+  deps: Record<string, string>;
+  devDeps: Record<string, string>;
+} {
+  switch (framework) {
+    case 'react':
+      return {
+        deps: {
+          react: '^18.2.0',
+          'react-dom': '^18.2.0',
+          'react-router-dom': '^6.22.0',
+        },
+        devDeps: {
+          '@types/react': '^18.2.55',
+          '@types/react-dom': '^18.2.19',
+          '@vitejs/plugin-react': '^4.2.1',
+        },
+      };
+    case 'vue':
+      return {
+        deps: {
+          vue: '^3.4.15',
+          'vue-router': '^4.2.5',
+          pinia: '^2.1.7',
+        },
+        devDeps: {
+          '@vitejs/plugin-vue': '^5.0.3',
+          'vue-tsc': '^1.8.27',
+        },
+      };
+    case 'svelte':
+      return {
+        deps: {
+          svelte: '^4.2.9',
+        },
+        devDeps: {
+          '@sveltejs/vite-plugin-svelte': '^3.0.1',
+          'svelte-check': '^3.6.3',
+          tslib: '^2.6.2',
+        },
+      };
+    case 'solid':
+      return {
+        deps: {
+          'solid-js': '^1.8.11',
+          '@solidjs/router': '^0.10.10',
+        },
+        devDeps: {
+          'vite-plugin-solid': '^2.9.1',
+        },
+      };
+    default:
+      return { deps: {}, devDeps: {} };
+  }
+}
+
+/**
+ * Get styling dependencies
+ */
+function getStylingDeps(styling: Styling): {
+  deps: Record<string, string>;
+  devDeps: Record<string, string>;
+} {
+  switch (styling) {
+    case 'tailwind':
+      return {
+        deps: {},
+        devDeps: {
+          tailwindcss: '^3.4.1',
+          postcss: '^8.4.35',
+          autoprefixer: '^10.4.17',
+        },
+      };
+    case 'styled-components':
+      return {
+        deps: {
+          'styled-components': '^6.1.8',
+        },
+        devDeps: {
+          '@types/styled-components': '^5.1.34',
+        },
+      };
+    case 'scss':
+      return {
+        deps: {},
+        devDeps: {
+          sass: '^1.70.0',
+        },
+      };
+    default:
+      return { deps: {}, devDeps: {} };
+  }
+}
+
+/**
+ * Generate the main entry file based on framework
+ */
+function generateMainEntry(framework: string, _projectName: string): string {
+  switch (framework) {
+    case 'react':
+      return `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+);
+`;
+    case 'vue':
+      return `import { createApp } from 'vue';
+import { createRouter, createWebHistory } from 'vue-router';
+import { createPinia } from 'pinia';
+import App from './App.vue';
+import './style.css';
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: '/', component: () => import('./views/Home.vue') },
+    { path: '/about', component: () => import('./views/About.vue') },
+  ],
+});
+
+const pinia = createPinia();
+const app = createApp(App);
+
+app.use(router);
+app.use(pinia);
+app.mount('#app');
+`;
+    case 'svelte':
+      return `import App from './App.svelte';
+import './app.css';
+
+const app = new App({
+  target: document.getElementById('app')!,
+});
+
+export default app;
+`;
+    case 'solid':
+      return `import { render } from 'solid-js/web';
+import { Router } from '@solidjs/router';
+import App from './App';
+import './index.css';
+
+const root = document.getElementById('root');
+
+render(() => (
+  <Router>
+    <App />
+  </Router>
+), root!);
+`;
+    default:
+      return '';
+  }
+}
+
+/**
+ * Generate the main App component based on framework
+ */
+function generateAppComponent(framework: string, projectName: string): string {
+  switch (framework) {
+    case 'react':
+      return `import { Routes, Route, Link } from 'react-router-dom';
+
+function Home() {
+  return (
+    <div className="page">
+      <h1>Welcome to ${projectName}</h1>
+      <p>Generated by Retro Vibecoder UPG</p>
+    </div>
+  );
+}
+
+function About() {
+  return (
+    <div className="page">
+      <h1>About</h1>
+      <p>A React application built with Vite and TypeScript.</p>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div className="app">
+      <nav className="nav">
+        <Link to="/">Home</Link>
+        <Link to="/about">About</Link>
+      </nav>
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+`;
+    case 'vue':
+      return `<script setup lang="ts">
+import { RouterView, RouterLink } from 'vue-router';
+</script>
+
+<template>
+  <div class="app">
+    <nav class="nav">
+      <RouterLink to="/">Home</RouterLink>
+      <RouterLink to="/about">About</RouterLink>
+    </nav>
+    <main>
+      <RouterView />
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.nav a {
+  color: #42b883;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+</style>
+`;
+    case 'svelte':
+      return `<script lang="ts">
+  let count = 0;
+  const increment = () => count += 1;
+</script>
+
+<main>
+  <h1>Welcome to ${projectName}</h1>
+  <p>Generated by Retro Vibecoder UPG</p>
+
+  <div class="card">
+    <button on:click={increment}>
+      Count is {count}
+    </button>
+  </div>
+
+  <p class="read-the-docs">
+    Built with Svelte + Vite + TypeScript
+  </p>
+</main>
+
+<style>
+  main {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  h1 {
+    color: #ff3e00;
+  }
+
+  .card {
+    padding: 2em;
+  }
+
+  button {
+    font-size: 1rem;
+    padding: 0.6em 1.2em;
+    border-radius: 8px;
+    border: 1px solid #ff3e00;
+    background-color: #fff;
+    cursor: pointer;
+    transition: border-color 0.25s;
+  }
+
+  button:hover {
+    border-color: #ff6633;
+  }
+
+  .read-the-docs {
+    color: #888;
+  }
+</style>
+`;
+    case 'solid':
+      return `import { createSignal } from 'solid-js';
+import { A } from '@solidjs/router';
+
+function App() {
+  const [count, setCount] = createSignal(0);
+
+  return (
+    <div class="app">
+      <nav class="nav">
+        <A href="/">Home</A>
+        <A href="/about">About</A>
+      </nav>
+
+      <main>
+        <h1>Welcome to ${projectName}</h1>
+        <p>Generated by Retro Vibecoder UPG</p>
+
+        <div class="card">
+          <button onClick={() => setCount(c => c + 1)}>
+            Count is {count()}
+          </button>
+        </div>
+
+        <p class="read-the-docs">
+          Built with Solid + Vite + TypeScript
+        </p>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+`;
+    default:
+      return '';
+  }
+}
+
+/**
+ * Generate base CSS styles
+ */
+function generateBaseStyles(styling: Styling): string {
+  if (styling === 'tailwind') {
+    return `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
+  min-height: 100vh;
+}
+`;
+  }
+
+  return `:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root, #app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: #535bf2;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: #646cff;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+`;
+}
+
+/**
+ * React Strategy - Vite + React + TypeScript
+ */
+export const ReactStrategy: GenerationStrategy = {
+  id: 'web-react',
+  name: 'React Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'react',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const viteConfig = getVitePlugins('react');
+    const frameworkDeps = getFrameworkDeps('react');
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        private: true,
+        version: '0.1.0',
+        type: 'module',
+        scripts: {
+          dev: 'vite',
+          build: 'tsc && vite build',
+          preview: 'vite preview',
+          lint: 'eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0',
+          test: 'vitest',
+          typecheck: 'tsc --noEmit',
+        },
+        dependencies: {
+          ...frameworkDeps.deps,
+          ...stylingDeps.deps,
+        },
+        devDependencies: {
+          typescript: '^5.3.3',
+          vite: '^5.1.0',
+          vitest: '^1.2.2',
+          eslint: '^8.56.0',
+          '@typescript-eslint/eslint-plugin': '^7.0.0',
+          '@typescript-eslint/parser': '^7.0.0',
+          'eslint-plugin-react-hooks': '^4.6.0',
+          'eslint-plugin-react-refresh': '^0.4.5',
+          ...frameworkDeps.devDeps,
+          ...stylingDeps.devDeps,
+        },
+      },
+      null,
+      2
+    );
+
+    // vite.config.ts
+    files['vite.config.ts'] = `import { defineConfig } from 'vite';
+${viteConfig.imports}
+
+export default defineConfig({
+  plugins: [${viteConfig.plugins}],
+  server: {
+    port: 3000,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
+});
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2020',
+          useDefineForClassFields: true,
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          module: 'ESNext',
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          allowImportingTsExtensions: true,
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          jsx: 'react-jsx',
+          strict: true,
+          noUnusedLocals: true,
+          noUnusedParameters: true,
+          noFallthroughCasesInSwitch: true,
+        },
+        include: ['src'],
+        references: [{ path: './tsconfig.node.json' }],
+      },
+      null,
+      2
+    );
+
+    // tsconfig.node.json
+    files['tsconfig.node.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          composite: true,
+          skipLibCheck: true,
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+          allowSyntheticDefaultImports: true,
+        },
+        include: ['vite.config.ts'],
+      },
+      null,
+      2
+    );
+
+    // index.html
+    files['index.html'] = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${projectName}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+`;
+
+    // src/main.tsx
+    files['src/main.tsx'] = generateMainEntry('react', projectName);
+
+    // src/App.tsx
+    files['src/App.tsx'] = generateAppComponent('react', projectName);
+
+    // src/index.css
+    files['src/index.css'] = generateBaseStyles(stack.styling);
+
+    // Tailwind config if needed
+    if (stack.styling === 'tailwind') {
+      files['tailwind.config.js'] = `/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+`;
+      files['postcss.config.js'] = `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+`;
+    }
+
+    // Basic test
+    files['src/App.test.tsx'] = `import { describe, it, expect } from 'vitest';
+
+describe('App', () => {
+  it('should pass basic test', () => {
+    expect(true).toBe(true);
+  });
+});
+`;
+
+    // ESLint config
+    files['.eslintrc.cjs'] = `module.exports = {
+  root: true,
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react-hooks/recommended',
+  ],
+  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['react-refresh'],
+  rules: {
+    'react-refresh/only-export-components': [
+      'warn',
+      { allowConstantExport: true },
+    ],
+  },
+};
+`;
+  },
+};
+
+/**
+ * Vue Strategy - Vite + Vue 3 + TypeScript
+ */
+export const VueStrategy: GenerationStrategy = {
+  id: 'web-vue',
+  name: 'Vue Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'vue',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const viteConfig = getVitePlugins('vue');
+    const frameworkDeps = getFrameworkDeps('vue');
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        private: true,
+        version: '0.1.0',
+        type: 'module',
+        scripts: {
+          dev: 'vite',
+          build: 'vue-tsc && vite build',
+          preview: 'vite preview',
+          lint: 'eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts',
+          test: 'vitest',
+          typecheck: 'vue-tsc --noEmit',
+        },
+        dependencies: {
+          ...frameworkDeps.deps,
+          ...stylingDeps.deps,
+        },
+        devDependencies: {
+          typescript: '^5.3.3',
+          vite: '^5.1.0',
+          vitest: '^1.2.2',
+          eslint: '^8.56.0',
+          'eslint-plugin-vue': '^9.21.1',
+          '@typescript-eslint/eslint-plugin': '^7.0.0',
+          '@typescript-eslint/parser': '^7.0.0',
+          ...frameworkDeps.devDeps,
+          ...stylingDeps.devDeps,
+        },
+      },
+      null,
+      2
+    );
+
+    // vite.config.ts
+    files['vite.config.ts'] = `import { defineConfig } from 'vite';
+${viteConfig.imports}
+
+export default defineConfig({
+  plugins: [${viteConfig.plugins}],
+  server: {
+    port: 3000,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
+});
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2020',
+          useDefineForClassFields: true,
+          module: 'ESNext',
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          allowImportingTsExtensions: true,
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          jsx: 'preserve',
+          strict: true,
+          noUnusedLocals: true,
+          noUnusedParameters: true,
+          noFallthroughCasesInSwitch: true,
+        },
+        include: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.vue'],
+        references: [{ path: './tsconfig.node.json' }],
+      },
+      null,
+      2
+    );
+
+    // tsconfig.node.json
+    files['tsconfig.node.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          composite: true,
+          skipLibCheck: true,
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+          allowSyntheticDefaultImports: true,
+        },
+        include: ['vite.config.ts'],
+      },
+      null,
+      2
+    );
+
+    // index.html
+    files['index.html'] = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${projectName}</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+`;
+
+    // src/main.ts
+    files['src/main.ts'] = generateMainEntry('vue', projectName);
+
+    // src/App.vue
+    files['src/App.vue'] = generateAppComponent('vue', projectName);
+
+    // src/views/Home.vue
+    files['src/views/Home.vue'] = `<script setup lang="ts">
+</script>
+
+<template>
+  <div class="home">
+    <h1>Welcome to ${projectName}</h1>
+    <p>Generated by Retro Vibecoder UPG</p>
+  </div>
+</template>
+
+<style scoped>
+.home {
+  text-align: center;
+  padding: 2rem;
+}
+
+h1 {
+  color: #42b883;
+}
+</style>
+`;
+
+    // src/views/About.vue
+    files['src/views/About.vue'] = `<script setup lang="ts">
+</script>
+
+<template>
+  <div class="about">
+    <h1>About</h1>
+    <p>A Vue 3 application built with Vite and TypeScript.</p>
+  </div>
+</template>
+
+<style scoped>
+.about {
+  text-align: center;
+  padding: 2rem;
+}
+</style>
+`;
+
+    // src/style.css
+    files['src/style.css'] = generateBaseStyles(stack.styling);
+
+    // Tailwind config if needed
+    if (stack.styling === 'tailwind') {
+      files['tailwind.config.js'] = `/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+`;
+      files['postcss.config.js'] = `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+`;
+    }
+
+    // env.d.ts for Vue
+    files['src/env.d.ts'] = `/// <reference types="vite/client" />
+
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue';
+  const component: DefineComponent<{}, {}, any>;
+  export default component;
+}
+`;
+  },
+};
+
+/**
+ * Svelte Strategy - Vite + Svelte + TypeScript
+ */
+export const SvelteStrategy: GenerationStrategy = {
+  id: 'web-svelte',
+  name: 'Svelte Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'svelte',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const viteConfig = getVitePlugins('svelte');
+    const frameworkDeps = getFrameworkDeps('svelte');
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        private: true,
+        version: '0.1.0',
+        type: 'module',
+        scripts: {
+          dev: 'vite',
+          build: 'vite build',
+          preview: 'vite preview',
+          check: 'svelte-check --tsconfig ./tsconfig.json',
+          test: 'vitest',
+        },
+        dependencies: {
+          ...frameworkDeps.deps,
+          ...stylingDeps.deps,
+        },
+        devDependencies: {
+          typescript: '^5.3.3',
+          vite: '^5.1.0',
+          vitest: '^1.2.2',
+          ...frameworkDeps.devDeps,
+          ...stylingDeps.devDeps,
+        },
+      },
+      null,
+      2
+    );
+
+    // vite.config.ts
+    files['vite.config.ts'] = `import { defineConfig } from 'vite';
+${viteConfig.imports}
+
+export default defineConfig({
+  plugins: [${viteConfig.plugins}],
+  server: {
+    port: 3000,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
+});
+`;
+
+    // svelte.config.js
+    files['svelte.config.js'] = `import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
+export default {
+  preprocess: vitePreprocess(),
+};
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        extends: '@tsconfig/svelte/tsconfig.json',
+        compilerOptions: {
+          target: 'ESNext',
+          useDefineForClassFields: true,
+          module: 'ESNext',
+          resolveJsonModule: true,
+          allowJs: true,
+          checkJs: true,
+          isolatedModules: true,
+        },
+        include: ['src/**/*.ts', 'src/**/*.svelte'],
+        references: [{ path: './tsconfig.node.json' }],
+      },
+      null,
+      2
+    );
+
+    // tsconfig.node.json
+    files['tsconfig.node.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          composite: true,
+          skipLibCheck: true,
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+        },
+        include: ['vite.config.ts'],
+      },
+      null,
+      2
+    );
+
+    // index.html
+    files['index.html'] = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${projectName}</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+`;
+
+    // src/main.ts
+    files['src/main.ts'] = generateMainEntry('svelte', projectName);
+
+    // src/App.svelte
+    files['src/App.svelte'] = generateAppComponent('svelte', projectName);
+
+    // src/app.css
+    files['src/app.css'] = generateBaseStyles(stack.styling);
+
+    // Tailwind config if needed
+    if (stack.styling === 'tailwind') {
+      files['tailwind.config.js'] = `/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{svelte,js,ts}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+`;
+      files['postcss.config.js'] = `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+`;
+    }
+
+    // src/vite-env.d.ts
+    files['src/vite-env.d.ts'] = `/// <reference types="svelte" />
+/// <reference types="vite/client" />
+`;
+  },
+};
+
+/**
+ * Solid Strategy - Vite + Solid + TypeScript
+ */
+export const SolidStrategy: GenerationStrategy = {
+  id: 'web-solid',
+  name: 'Solid Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'solid',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const viteConfig = getVitePlugins('solid');
+    const frameworkDeps = getFrameworkDeps('solid');
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        private: true,
+        version: '0.1.0',
+        type: 'module',
+        scripts: {
+          dev: 'vite',
+          build: 'vite build',
+          preview: 'vite preview',
+          test: 'vitest',
+          typecheck: 'tsc --noEmit',
+        },
+        dependencies: {
+          ...frameworkDeps.deps,
+          ...stylingDeps.deps,
+        },
+        devDependencies: {
+          typescript: '^5.3.3',
+          vite: '^5.1.0',
+          vitest: '^1.2.2',
+          ...frameworkDeps.devDeps,
+          ...stylingDeps.devDeps,
+        },
+      },
+      null,
+      2
+    );
+
+    // vite.config.ts
+    files['vite.config.ts'] = `import { defineConfig } from 'vite';
+${viteConfig.imports}
+
+export default defineConfig({
+  plugins: [${viteConfig.plugins}],
+  server: {
+    port: 3000,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    target: 'esnext',
+  },
+});
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ESNext',
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+          allowSyntheticDefaultImports: true,
+          esModuleInterop: true,
+          jsx: 'preserve',
+          jsxImportSource: 'solid-js',
+          types: ['vite/client'],
+          noEmit: true,
+          isolatedModules: true,
+          strict: true,
+          noUnusedLocals: true,
+          noUnusedParameters: true,
+          noFallthroughCasesInSwitch: true,
+        },
+        include: ['src'],
+      },
+      null,
+      2
+    );
+
+    // index.html
+    files['index.html'] = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${projectName}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
+`;
+
+    // src/index.tsx
+    files['src/index.tsx'] = generateMainEntry('solid', projectName);
+
+    // src/App.tsx
+    files['src/App.tsx'] = generateAppComponent('solid', projectName);
+
+    // src/index.css
+    files['src/index.css'] = generateBaseStyles(stack.styling);
+
+    // Tailwind config if needed
+    if (stack.styling === 'tailwind') {
+      files['tailwind.config.js'] = `/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+`;
+      files['postcss.config.js'] = `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+`;
+    }
+  },
+};

@@ -111,6 +111,7 @@ export function createCli(): Command {
     .option('--archetype <type>', 'Force specific archetype (web|backend|cli|mobile|desktop)')
     .option('--language <lang>', 'Force specific language (typescript|python|go|rust|etc)')
     .option('--framework <fw>', 'Force specific framework')
+    .option('--save-registry <path>', 'Save validated projects to registry manifest')
     .action(sweepAction);
 
   // Seed command - generate single project from seed

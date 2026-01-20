@@ -24,6 +24,15 @@ export {
   CobraStrategy,
 } from './api/index.js';
 
+// Web frontend strategies
+export {
+  WebStrategies,
+  ReactStrategy,
+  VueStrategy,
+  SvelteStrategy,
+  SolidStrategy,
+} from './web/index.js';
+
 // Systems strategies (C++)
 export { CppStrategy } from './systems/cpp.js';
 
@@ -36,6 +45,7 @@ export { ExpoStrategy } from './mobile/react-native.js';
 
 import { CommonStrategies } from './common/index.js';
 import { ApiStrategies } from './api/index.js';
+import { WebStrategies } from './web/index.js';
 import { CppStrategy } from './systems/cpp.js';
 import { JavaSpringStrategy } from './backend/java.js';
 import { CSharpApiStrategy } from './backend/csharp.js';
@@ -48,6 +58,8 @@ import type { GenerationStrategy } from '../types.js';
 export const AllStrategies: GenerationStrategy[] = [
   ...CommonStrategies,
   ...ApiStrategies,
+  // Web frontend (React, Vue, Svelte, Solid)
+  ...WebStrategies,
   // Tier 2: Systems (C++)
   CppStrategy,
   // Tier 3: Enterprise (Java, C#)
@@ -100,4 +112,22 @@ export function getTier4Strategies(): GenerationStrategy[] {
   const tier4Ids = ['mobile-expo'];
 
   return [...getTier3Strategies(), ...AllStrategies.filter((s) => tier4Ids.includes(s.id))];
+}
+
+/**
+ * Get strategies by tier 5 (All strategies including Web)
+ */
+export function getTier5Strategies(): GenerationStrategy[] {
+  // Tier 5: Web Frontend (React, Vue, Svelte, Solid)
+  const tier5Ids = ['web-react', 'web-vue', 'web-svelte', 'web-solid'];
+
+  return [...getTier4Strategies(), ...AllStrategies.filter((s) => tier5Ids.includes(s.id))];
+}
+
+/**
+ * Get web strategies only
+ */
+export function getWebStrategies(): GenerationStrategy[] {
+  const webIds = ['web-react', 'web-vue', 'web-svelte', 'web-solid'];
+  return AllStrategies.filter((s) => webIds.includes(s.id));
 }
