@@ -17,6 +17,36 @@ interface SweepOptions {
   archetype?: string;
   language?: string;
   framework?: string;
+  saveRegistry?: string;
+}
+
+/**
+ * Registry entry for a validated project
+ */
+interface RegistryEntry {
+  seed: number;
+  id: string;
+  stack: {
+    archetype: string;
+    language: string;
+    framework: string;
+    runtime: string;
+    database: string;
+    orm: string;
+  };
+  files: string[];
+  validatedAt: string;
+  upgVersion: string;
+}
+
+/**
+ * Registry manifest structure
+ */
+interface RegistryManifest {
+  version: string;
+  generatedAt: string;
+  totalEntries: number;
+  entries: RegistryEntry[];
 }
 
 /**
@@ -172,12 +202,100 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         console.log();
         console.log(pc.cyan(`Projects written to: ${options.output}`));
       }
+
+      // Save to registry if requested
+      if (options.saveRegistry) {
+        const validResults = results.filter((r) => r.validated === true);
+
+        if (validResults.length > 0) {
+          const registryPath = await saveToRegistry(validResults, options.saveRegistry);
+          console.log();
+          console.log(pc.green(`Registry saved: ${validResults.length} valid project(s) to ${registryPath}`));
+        } else {
+          console.log();
+          console.log(pc.yellow('No valid projects to save to registry'));
+        }
+      }
     }
   } catch (error) {
     spinner.fail('Generation failed');
     console.error(pc.red(`Error: ${error instanceof Error ? error.message : String(error)}`));
     process.exit(1);
   }
+}
+
+/**
+ * Save validated results to registry manifest
+ */
+async function saveToRegistry(
+  results: Array<{
+    seed: number;
+    id: string;
+    stack: Record<string, string>;
+    files: string[];
+    validated?: boolean;
+  }>,
+  registryPath: string
+): Promise<string> {
+  const { writeFile, readFile, mkdir } = await import('node:fs/promises');
+  const { dirname, join } = await import('node:path');
+
+  // Ensure registry directory exists
+  await mkdir(dirname(registryPath), { recursive: true });
+
+  // Load existing registry if it exists
+  let existingManifest: RegistryManifest = {
+    version: '1.0.0',
+    generatedAt: new Date().toISOString(),
+    totalEntries: 0,
+    entries: [],
+  };
+
+  try {
+    const existing = await readFile(registryPath, 'utf-8');
+    existingManifest = JSON.parse(existing);
+  } catch {
+    // File doesn't exist, use default
+  }
+
+  // Create new entries
+  const newEntries: RegistryEntry[] = results.map((r) => ({
+    seed: r.seed,
+    id: r.id,
+    stack: {
+      archetype: r.stack.archetype,
+      language: r.stack.language,
+      framework: r.stack.framework,
+      runtime: r.stack.runtime,
+      database: r.stack.database,
+      orm: r.stack.orm,
+    },
+    files: r.files,
+    validatedAt: new Date().toISOString(),
+    upgVersion: '1.0.0',
+  }));
+
+  // Merge entries (deduplicate by seed)
+  const existingSeeds = new Set(existingManifest.entries.map((e) => e.seed));
+  const uniqueNewEntries = newEntries.filter((e) => !existingSeeds.has(e.seed));
+
+  const allEntries = [...existingManifest.entries, ...uniqueNewEntries];
+
+  // Sort by seed
+  allEntries.sort((a, b) => a.seed - b.seed);
+
+  // Create updated manifest
+  const updatedManifest: RegistryManifest = {
+    version: '1.0.0',
+    generatedAt: new Date().toISOString(),
+    totalEntries: allEntries.length,
+    entries: allEntries,
+  };
+
+  // Write manifest
+  await writeFile(registryPath, JSON.stringify(updatedManifest, null, 2), 'utf-8');
+
+  return registryPath;
 }
 
 /**
