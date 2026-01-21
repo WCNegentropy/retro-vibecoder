@@ -79,9 +79,13 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       files: string[];
       validated?: boolean;
       validationError?: string;
+      failed?: boolean;
+      error?: string;
     }> = [];
 
     const startTime = Date.now();
+    let successCount = 0;
+    let failCount = 0;
 
     for (let seed = 1; seed <= count; seed++) {
       spinner.text = `Generating project ${seed}/${count}...`;
@@ -98,56 +102,78 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         assemblerOptions.framework = options.framework;
       }
 
-      const assembler = new ProjectAssembler(seed, assemblerOptions);
-      assembler.registerStrategies(AllStrategies);
+      try {
+        const assembler = new ProjectAssembler(seed, assemblerOptions);
+        assembler.registerStrategies(AllStrategies);
 
-      const project = await assembler.generate();
+        const project = await assembler.generate();
 
-      const result = {
-        seed,
-        id: project.id,
-        stack: {
-          archetype: project.stack.archetype,
-          language: project.stack.language,
-          framework: project.stack.framework,
-          runtime: project.stack.runtime,
-          database: project.stack.database,
-          orm: project.stack.orm,
-        },
-        files: Object.keys(project.files),
-        validated: undefined as boolean | undefined,
-        validationError: undefined as string | undefined,
-      };
+        const result = {
+          seed,
+          id: project.id,
+          stack: {
+            archetype: project.stack.archetype,
+            language: project.stack.language,
+            framework: project.stack.framework,
+            runtime: project.stack.runtime,
+            database: project.stack.database,
+            orm: project.stack.orm,
+          },
+          files: Object.keys(project.files),
+          validated: undefined as boolean | undefined,
+          validationError: undefined as string | undefined,
+          failed: false,
+        };
 
-      // If validation is requested, validate the project
-      if (options.validate) {
-        spinner.text = `Validating project ${seed}/${count}...`;
-        const validationResults = await runUniversalSweep(1, {
-          useDocker: false,
-          verbose: false,
+        // If validation is requested, validate the project
+        if (options.validate) {
+          spinner.text = `Validating project ${seed}/${count}...`;
+          const validationResults = await runUniversalSweep(1, {
+            useDocker: false,
+            verbose: false,
+          });
+
+          if (validationResults.length > 0) {
+            result.validated = validationResults[0].success;
+            result.validationError = validationResults[0].error;
+          }
+        }
+
+        results.push(result);
+        successCount++;
+
+        // Write output to file if specified
+        if (options.output) {
+          const { writeFile, mkdir } = await import('node:fs/promises');
+          const { join, dirname } = await import('node:path');
+
+          const outputDir = join(options.output, project.id);
+          await mkdir(outputDir, { recursive: true });
+
+          for (const [filePath, content] of Object.entries(project.files)) {
+            const fullPath = join(outputDir, filePath);
+            await mkdir(dirname(fullPath), { recursive: true });
+            await writeFile(fullPath, content, 'utf-8');
+          }
+        }
+      } catch (error) {
+        // Generation failed for this seed - skip and continue
+        failCount++;
+        results.push({
+          seed,
+          id: `failed-seed-${seed}`,
+          stack: {
+            archetype: 'unknown',
+            language: 'unknown',
+            framework: 'unknown',
+            runtime: 'unknown',
+            database: 'unknown',
+            orm: 'unknown',
+          },
+          files: [],
+          failed: true,
+          error: error instanceof Error ? error.message : String(error),
         });
-
-        if (validationResults.length > 0) {
-          result.validated = validationResults[0].success;
-          result.validationError = validationResults[0].error;
-        }
-      }
-
-      results.push(result);
-
-      // Write output to file if specified
-      if (options.output) {
-        const { writeFile, mkdir } = await import('node:fs/promises');
-        const { join, dirname } = await import('node:path');
-
-        const outputDir = join(options.output, project.id);
-        await mkdir(outputDir, { recursive: true });
-
-        for (const [filePath, content] of Object.entries(project.files)) {
-          const fullPath = join(outputDir, filePath);
-          await mkdir(dirname(fullPath), { recursive: true });
-          await writeFile(fullPath, content, 'utf-8');
-        }
       }
     }
 
@@ -156,13 +182,26 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
 
     // Output results
     if (options.format === 'json') {
-      console.log(JSON.stringify({ results, duration }, null, 2));
+      console.log(JSON.stringify({ results, duration, successCount, failCount }, null, 2));
     } else {
       console.log();
-      console.log(pc.bold(pc.green(`✓ Generated ${count} project(s) in ${duration}ms`)));
+      if (failCount > 0) {
+        console.log(pc.bold(pc.yellow(`✓ Generated ${successCount}/${count} project(s) in ${duration}ms (${failCount} failed)`)));
+      } else {
+        console.log(pc.bold(pc.green(`✓ Generated ${count} project(s) in ${duration}ms`)));
+      }
       console.log();
 
       for (const result of results) {
+        if (result.failed) {
+          console.log(pc.bold(pc.red(`Seed ${result.seed}: FAILED`)));
+          if (options.verbose && result.error) {
+            console.log(pc.red(`  Error: ${result.error}`));
+          }
+          console.log();
+          continue;
+        }
+
         const status = result.validated === undefined
           ? ''
           : result.validated
@@ -187,13 +226,15 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         console.log();
       }
 
-      // Summary
-      const archetypes = new Set(results.map((r) => r.stack.archetype));
-      const languages = new Set(results.map((r) => r.stack.language));
-      const frameworks = new Set(results.map((r) => r.stack.framework));
+      // Summary - only include successful results
+      const successfulResults = results.filter((r) => !r.failed);
+      const archetypes = new Set(successfulResults.map((r) => r.stack.archetype));
+      const languages = new Set(successfulResults.map((r) => r.stack.language));
+      const frameworks = new Set(successfulResults.map((r) => r.stack.framework));
 
       console.log(pc.dim('─'.repeat(50)));
       console.log(pc.bold('Summary:'));
+      console.log(`  Success rate: ${successCount}/${count} (${Math.round((successCount / count) * 100)}%)`);
       console.log(`  Archetypes: ${[...archetypes].join(', ')}`);
       console.log(`  Languages: ${[...languages].join(', ')}`);
       console.log(`  Frameworks: ${[...frameworks].join(', ')}`);
@@ -205,7 +246,8 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
 
       // Save to registry if requested
       if (options.saveRegistry) {
-        const validResults = results.filter((r) => r.validated === true);
+        // Filter out failed and include only validated (or all successful if not validating)
+        const validResults = results.filter((r) => !r.failed && (r.validated === true || (r.validated === undefined && !options.validate)));
 
         if (validResults.length > 0) {
           const registryPath = await saveToRegistry(validResults, options.saveRegistry);
