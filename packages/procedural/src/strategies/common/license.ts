@@ -1,6 +1,25 @@
-MIT License
+/**
+ * License Strategy
+ *
+ * Automatically generates an MIT License file for all generated projects.
+ * This ensures that the output of the UPG "factory" is legally clear from moment zero.
+ */
 
-Copyright (c) 2026 WCNEGENTROPY HOLDINGS LLC
+import type { GenerationStrategy } from '../../types.js';
+
+export const LicenseStrategy: GenerationStrategy = {
+  id: 'license',
+  name: 'MIT License Generation',
+  priority: 0, // Run early to ensure file exists
+
+  matches: () => true, // Applies to ALL generated projects
+
+  apply: async ({ files, projectName }) => {
+    const year = new Date().getFullYear();
+
+    files['LICENSE'] = `MIT License
+
+Copyright (c) ${year} ${projectName} Authors (Generated via Retro Vibecoder UPG)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +38,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+`;
+  },
+};

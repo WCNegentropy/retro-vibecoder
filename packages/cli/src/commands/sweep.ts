@@ -26,6 +26,8 @@ interface SweepOptions {
 interface RegistryEntry {
   seed: number;
   id: string;
+  /** Explicit license field - all registry entries are MIT licensed */
+  license: 'MIT';
   stack: {
     archetype: string;
     language: string;
@@ -300,10 +302,11 @@ async function saveToRegistry(
     // File doesn't exist, use default
   }
 
-  // Create new entries
+  // Create new entries - all registry entries are MIT licensed
   const newEntries: RegistryEntry[] = results.map((r) => ({
     seed: r.seed,
     id: r.id,
+    license: 'MIT' as const,
     stack: {
       archetype: r.stack.archetype,
       language: r.stack.language,

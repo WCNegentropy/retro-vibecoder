@@ -4,9 +4,11 @@
  * UPG CLI - Universal Project Generator
  *
  * Main entry point for the CLI.
+ * Copyright (c) 2026 WCNEGENTROPY HOLDINGS LLC - MIT License
  */
 
 import { Command } from 'commander';
+import pc from 'picocolors';
 import { version } from '../../package.json';
 import { validateAction } from '../commands/validate.js';
 import { generateAction } from '../commands/generate.js';
@@ -24,7 +26,15 @@ export function createCli(): Command {
   program
     .name('upg')
     .description('Universal Project Generator - Data-driven project scaffolding')
-    .version(version);
+    .version(version)
+    .hook('preAction', () => {
+      // Print disclaimer on stderr so it doesn't break piping stdout
+      console.error(pc.dim('-------------------------------------------------------'));
+      console.error(pc.dim('  Retro Vibecoder UPG - Open Source Procedural Engine'));
+      console.error(pc.dim('  (c) WCNEGENTROPY HOLDINGS LLC | MIT License'));
+      console.error(pc.dim('  Generated Code: User Responsibility'));
+      console.error(pc.dim('-------------------------------------------------------'));
+    });
 
   // Validate command
   program
