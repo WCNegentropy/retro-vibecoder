@@ -45,12 +45,16 @@ export {
   getValidOrms,
   getValidDatabases,
   applyDefaults,
+  validateConstraints,
+  getSuggestedFrameworks,
+  formatValidationError,
   INCOMPATIBILITY_RULES,
   REQUIREMENT_RULES,
   DEFAULT_PAIRINGS,
   type AssemblerOptions,
   type WeightedItem,
   type ConstraintValidation,
+  type ConstraintValidationResult,
 } from './engine/index.js';
 
 // Matrices

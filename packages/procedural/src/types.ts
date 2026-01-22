@@ -74,7 +74,8 @@ export type Framework =
   | BackendFramework
   | CliFramework
   | DesktopFramework
-  | MobileFramework;
+  | MobileFramework
+  | 'none'; // For library/game archetypes or languages without framework support
 
 /** Database types */
 export type Database =

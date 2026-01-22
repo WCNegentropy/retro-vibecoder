@@ -300,6 +300,9 @@ export class ProjectAssembler {
 
   /**
    * Pick a framework compatible with archetype and language.
+   *
+   * Fixed BUG-002: Framework-Language Fallback Mismatch
+   * Now provides sensible defaults for ALL languages instead of falling back to 'express'
    */
   private pickFramework(archetype: Archetype, language: Language): Framework {
     const validFrameworks = getValidFrameworks(archetype, language);
@@ -307,13 +310,22 @@ export class ProjectAssembler {
     // For library/game archetypes, framework might be empty
     if (validFrameworks.length === 0) {
       // Return a sensible default based on language
-      const defaults: Partial<Record<Language, Framework>> = {
+      // Complete mapping for all supported languages
+      const defaults: Record<Language, Framework> = {
         typescript: 'express',
+        javascript: 'express', // JS can use TS-compatible frameworks
         python: 'fastapi',
         go: 'gin',
         rust: 'axum',
+        java: 'spring-boot',
+        kotlin: 'spring-boot', // Kotlin works with Spring Boot
+        csharp: 'aspnet-core',
+        cpp: 'none', // C++ doesn't have a web framework in our set
+        swift: 'none', // Swift backends not yet supported
+        ruby: 'rails',
+        php: 'laravel',
       };
-      return defaults[language] ?? 'express';
+      return defaults[language] ?? 'none';
     }
 
     return this.rng.pick(validFrameworks);
