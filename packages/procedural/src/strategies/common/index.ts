@@ -8,11 +8,13 @@ export { GitStrategy } from './git.js';
 export { DockerStrategy } from './docker.js';
 export { CIStrategy } from './ci.js';
 export { ReadmeStrategy } from './readme.js';
+export { LicenseStrategy } from './license.js';
 
 import { GitStrategy } from './git.js';
 import { DockerStrategy } from './docker.js';
 import { CIStrategy } from './ci.js';
 import { ReadmeStrategy } from './readme.js';
+import { LicenseStrategy } from './license.js';
 import type { GenerationStrategy } from '../../types.js';
 
 /**
@@ -23,4 +25,5 @@ export const CommonStrategies: GenerationStrategy[] = [
   DockerStrategy,
   CIStrategy,
   ReadmeStrategy,
+  LicenseStrategy,
 ];
