@@ -122,6 +122,9 @@ export function createCli(): Command {
     .option('--language <lang>', 'Force specific language (typescript|python|go|rust|etc)')
     .option('--framework <fw>', 'Force specific framework')
     .option('--save-registry <path>', 'Save validated projects to registry manifest')
+    .option('--start-seed <number>', 'Starting seed number (default: 1)')
+    .option('--dry-run', 'Preview stacks without generating files', false)
+    .option('--only-valid', 'Keep retrying until N valid projects are found', false)
     .action(sweepAction);
 
   // Seed command - generate single project from seed

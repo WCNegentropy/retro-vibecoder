@@ -3,6 +3,14 @@
  *
  * Universal procedural generation sweep - generates and optionally validates
  * projects across the Universal Matrix.
+ *
+ * Enhanced with:
+ * - Early constraint validation
+ * - --start-seed option for seed range control
+ * - --dry-run mode for preview without generation
+ * - --only-valid filter to retry until N valid stacks found
+ * - Progress indicator for large sweeps
+ * - Improved error messages with stack context and suggestions
  */
 
 import pc from 'picocolors';
@@ -18,6 +26,9 @@ interface SweepOptions {
   language?: string;
   framework?: string;
   saveRegistry?: string;
+  startSeed?: string;
+  dryRun?: boolean;
+  onlyValid?: boolean;
 }
 
 /**
@@ -52,13 +63,30 @@ interface RegistryManifest {
 }
 
 /**
+ * Progress bar helper for large sweeps
+ */
+function createProgressBar(current: number, total: number, width: number = 30): string {
+  const percentage = Math.round((current / total) * 100);
+  const filled = Math.round((current / total) * width);
+  const empty = width - filled;
+  const bar = pc.green('█'.repeat(filled)) + pc.dim('░'.repeat(empty));
+  return `[${bar}] ${percentage}% (${current}/${total})`;
+}
+
+/**
  * Sweep action - generate projects procedurally
  */
 export async function sweepAction(options: SweepOptions): Promise<void> {
   const count = parseInt(options.count, 10);
+  const startSeed = options.startSeed ? parseInt(options.startSeed, 10) : 1;
 
   if (isNaN(count) || count < 1) {
     console.error(pc.red('Error: Count must be a positive integer'));
+    process.exit(1);
+  }
+
+  if (isNaN(startSeed) || startSeed < 1) {
+    console.error(pc.red('Error: Start seed must be a positive integer'));
     process.exit(1);
   }
 
@@ -70,9 +98,47 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       ProjectAssembler,
       AllStrategies,
       runUniversalSweep,
+      validateConstraints,
+      getValidLanguagesForArchetype,
+      getSuggestedFrameworks,
     } = await import('@retro-vibecoder/procedural');
 
-    spinner.text = `Generating ${count} project(s)...`;
+    // Early validation of user constraints
+    if (options.archetype || options.language || options.framework) {
+      const validation = validateConstraints(
+        options.archetype as any,
+        options.language as any,
+        options.framework as any
+      );
+
+      if (!validation.valid) {
+        spinner.fail('Invalid constraints specified');
+        console.error();
+        for (const error of validation.errors) {
+          console.error(pc.red(`  ✗ ${error}`));
+        }
+        console.error();
+        console.error(pc.yellow('Suggestions:'));
+        for (const suggestion of validation.suggestions) {
+          console.error(pc.yellow(`  → ${suggestion}`));
+        }
+
+        // Additional helpful info
+        if (options.archetype && !options.language) {
+          const languages = getValidLanguagesForArchetype(options.archetype as any);
+          console.error(pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`));
+        }
+
+        process.exit(1);
+      }
+    }
+
+    // Dry-run mode
+    if (options.dryRun) {
+      spinner.text = 'Dry-run: previewing stacks without generating files...';
+    } else {
+      spinner.text = `Generating ${count} project(s) from seed ${startSeed}...`;
+    }
 
     const results: Array<{
       seed: number;
@@ -88,9 +154,24 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
     const startTime = Date.now();
     let successCount = 0;
     let failCount = 0;
+    let currentSeed = startSeed;
+    let attempts = 0;
+    const maxAttempts = options.onlyValid ? count * 10 : count; // Allow more attempts for --only-valid
 
-    for (let seed = 1; seed <= count; seed++) {
-      spinner.text = `Generating project ${seed}/${count}...`;
+    // Use progress indicator for large sweeps (>= 50)
+    const showProgress = count >= 50 && options.format === 'text';
+
+    while (successCount < count && attempts < maxAttempts) {
+      const seed = currentSeed++;
+      attempts++;
+
+      if (showProgress && attempts % 10 === 0) {
+        spinner.text = `${createProgressBar(successCount, count)} ${options.onlyValid ? 'Finding valid stacks...' : 'Generating...'}`;
+      } else if (!showProgress) {
+        spinner.text = options.onlyValid
+          ? `Finding valid stack ${successCount + 1}/${count} (attempt ${attempts})...`
+          : `Generating project ${attempts}/${count}...`;
+      }
 
       const assemblerOptions: Record<string, unknown> = {};
 
@@ -128,8 +209,8 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         };
 
         // If validation is requested, validate the project
-        if (options.validate) {
-          spinner.text = `Validating project ${seed}/${count}...`;
+        if (options.validate && !options.dryRun) {
+          spinner.text = `Validating project ${successCount + 1}/${count}...`;
           const validationResults = await runUniversalSweep(1, {
             useDocker: false,
             verbose: false,
@@ -144,8 +225,8 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         results.push(result);
         successCount++;
 
-        // Write output to file if specified
-        if (options.output) {
+        // Write output to file if specified (skip in dry-run mode)
+        if (options.output && !options.dryRun) {
           const { writeFile, mkdir } = await import('node:fs/promises');
           const { join, dirname } = await import('node:path');
 
@@ -159,23 +240,27 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
           }
         }
       } catch (error) {
-        // Generation failed for this seed - skip and continue
-        failCount++;
-        results.push({
-          seed,
-          id: `failed-seed-${seed}`,
-          stack: {
-            archetype: 'unknown',
-            language: 'unknown',
-            framework: 'unknown',
-            runtime: 'unknown',
-            database: 'unknown',
-            orm: 'unknown',
-          },
-          files: [],
-          failed: true,
-          error: error instanceof Error ? error.message : String(error),
-        });
+        // Generation failed for this seed
+        if (!options.onlyValid) {
+          // Only track failures if not in --only-valid mode
+          failCount++;
+          results.push({
+            seed,
+            id: `failed-seed-${seed}`,
+            stack: {
+              archetype: options.archetype ?? 'unknown',
+              language: options.language ?? 'unknown',
+              framework: options.framework ?? 'unknown',
+              runtime: 'unknown',
+              database: 'unknown',
+              orm: 'unknown',
+            },
+            files: [],
+            failed: true,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        // In --only-valid mode, just continue to next seed
       }
     }
 
@@ -184,21 +269,43 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
 
     // Output results
     if (options.format === 'json') {
-      console.log(JSON.stringify({ results, duration, successCount, failCount }, null, 2));
+      console.log(JSON.stringify({
+        results,
+        duration,
+        successCount,
+        failCount,
+        startSeed,
+        dryRun: options.dryRun ?? false,
+        onlyValid: options.onlyValid ?? false,
+      }, null, 2));
     } else {
       console.log();
-      if (failCount > 0) {
-        console.log(pc.bold(pc.yellow(`✓ Generated ${successCount}/${count} project(s) in ${duration}ms (${failCount} failed)`)));
+
+      // Header with mode indicator
+      const modeIndicator = options.dryRun ? pc.cyan('[DRY-RUN] ') : '';
+      const onlyValidIndicator = options.onlyValid ? pc.magenta('[ONLY-VALID] ') : '';
+
+      if (failCount > 0 && !options.onlyValid) {
+        console.log(pc.bold(pc.yellow(`${modeIndicator}${onlyValidIndicator}✓ Generated ${successCount}/${count} project(s) in ${duration}ms (${failCount} failed)`)));
       } else {
-        console.log(pc.bold(pc.green(`✓ Generated ${count} project(s) in ${duration}ms`)));
+        console.log(pc.bold(pc.green(`${modeIndicator}${onlyValidIndicator}✓ Generated ${successCount} project(s) in ${duration}ms`)));
       }
+
+      if (options.onlyValid && attempts > count) {
+        console.log(pc.dim(`  (tried ${attempts} seeds to find ${count} valid stacks)`));
+      }
+
       console.log();
 
       for (const result of results) {
         if (result.failed) {
           console.log(pc.bold(pc.red(`Seed ${result.seed}: FAILED`)));
           if (options.verbose && result.error) {
-            console.log(pc.red(`  Error: ${result.error}`));
+            // Enhanced error message with stack context
+            const stackContext = result.stack.archetype !== 'unknown'
+              ? ` [${result.stack.archetype}/${result.stack.language}/${result.stack.framework}]`
+              : '';
+            console.log(pc.red(`  Error${stackContext}: ${result.error}`));
           }
           console.log();
           continue;
@@ -210,7 +317,9 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
             ? pc.green(' [VALID]')
             : pc.red(' [INVALID]');
 
-        console.log(pc.bold(`Seed ${result.seed}: ${result.id}${status}`));
+        const dryRunNote = options.dryRun ? pc.cyan(' (preview)') : '';
+
+        console.log(pc.bold(`Seed ${result.seed}: ${result.id}${status}${dryRunNote}`));
 
         if (options.verbose) {
           console.log(pc.dim(`  Archetype: ${result.stack.archetype}`));
@@ -236,18 +345,24 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
 
       console.log(pc.dim('─'.repeat(50)));
       console.log(pc.bold('Summary:'));
-      console.log(`  Success rate: ${successCount}/${count} (${Math.round((successCount / count) * 100)}%)`);
+      console.log(`  Success rate: ${successCount}/${options.onlyValid ? attempts : count} (${Math.round((successCount / (options.onlyValid ? attempts : count)) * 100)}%)`);
+      console.log(`  Seed range: ${startSeed} - ${currentSeed - 1}`);
       console.log(`  Archetypes: ${[...archetypes].join(', ')}`);
       console.log(`  Languages: ${[...languages].join(', ')}`);
       console.log(`  Frameworks: ${[...frameworks].join(', ')}`);
 
-      if (options.output) {
+      if (options.dryRun) {
+        console.log();
+        console.log(pc.cyan('Dry-run mode: No files were written to disk'));
+      }
+
+      if (options.output && !options.dryRun) {
         console.log();
         console.log(pc.cyan(`Projects written to: ${options.output}`));
       }
 
-      // Save to registry if requested
-      if (options.saveRegistry) {
+      // Save to registry if requested (skip in dry-run mode)
+      if (options.saveRegistry && !options.dryRun) {
         // Filter out failed and include only validated (or all successful if not validating)
         const validResults = results.filter((r) => !r.failed && (r.validated === true || (r.validated === undefined && !options.validate)));
 
@@ -363,7 +478,50 @@ export async function seedAction(seedStr: string, options: {
   const spinner = ora('Generating project...').start();
 
   try {
-    const { ProjectAssembler, AllStrategies } = await import('@retro-vibecoder/procedural');
+    const {
+      ProjectAssembler,
+      AllStrategies,
+      validateConstraints,
+      getValidLanguagesForArchetype,
+      getSuggestedFrameworks,
+    } = await import('@retro-vibecoder/procedural');
+
+    // Early validation of user constraints
+    if (options.archetype || options.language || options.framework) {
+      const validation = validateConstraints(
+        options.archetype as any,
+        options.language as any,
+        options.framework as any
+      );
+
+      if (!validation.valid) {
+        spinner.fail('Invalid constraints specified');
+        console.error();
+        for (const error of validation.errors) {
+          console.error(pc.red(`  ✗ ${error}`));
+        }
+        console.error();
+        console.error(pc.yellow('Suggestions:'));
+        for (const suggestion of validation.suggestions) {
+          console.error(pc.yellow(`  → ${suggestion}`));
+        }
+
+        // Additional helpful info
+        if (options.archetype && !options.language) {
+          const languages = getValidLanguagesForArchetype(options.archetype as any);
+          console.error(pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`));
+        }
+
+        if (options.archetype && options.language) {
+          const frameworks = getSuggestedFrameworks(options.archetype as any, options.language as any);
+          if (frameworks.length > 0) {
+            console.error(pc.dim(`Compatible frameworks: ${frameworks.join(', ')}`));
+          }
+        }
+
+        process.exit(1);
+      }
+    }
 
     const assemblerOptions: Record<string, unknown> = {};
 
@@ -444,7 +602,20 @@ export async function seedAction(seedStr: string, options: {
     }
   } catch (error) {
     spinner.fail('Generation failed');
-    console.error(pc.red(`Error: ${error instanceof Error ? error.message : String(error)}`));
+
+    // Enhanced error message
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(pc.red(`Error: ${errorMsg}`));
+
+    // Provide suggestions based on the error
+    if (errorMsg.includes('Invalid stack')) {
+      console.error();
+      console.error(pc.yellow('Suggestions:'));
+      console.error(pc.yellow('  → Try a different seed number'));
+      console.error(pc.yellow('  → Use --archetype and --language to constrain generation'));
+      console.error(pc.yellow('  → Example: upg seed 42 --archetype backend --language typescript'));
+    }
+
     process.exit(1);
   }
 }

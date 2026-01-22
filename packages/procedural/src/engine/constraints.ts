@@ -404,3 +404,87 @@ export function applyDefaults(stack: Partial<TechStack>): Partial<TechStack> {
 
   return result;
 }
+
+// ============================================================================
+// Pre-Generation Validation Helpers
+// ============================================================================
+
+/**
+ * Validate constraints before generation starts.
+ * This provides early feedback for user-specified constraints.
+ */
+export interface ConstraintValidationResult {
+  valid: boolean;
+  errors: string[];
+  suggestions: string[];
+}
+
+/**
+ * Validate that user-specified constraints are compatible.
+ * Returns helpful suggestions if constraints are invalid.
+ */
+export function validateConstraints(
+  archetype?: Archetype,
+  language?: Language,
+  framework?: Framework
+): ConstraintValidationResult {
+  const errors: string[] = [];
+  const suggestions: string[] = [];
+
+  // Validate archetype-language compatibility
+  if (archetype && language) {
+    const validLanguages = getValidLanguagesForArchetype(archetype);
+    if (!validLanguages.includes(language)) {
+      errors.push(`Language '${language}' is not compatible with archetype '${archetype}'`);
+      suggestions.push(`Compatible languages for '${archetype}': ${validLanguages.join(', ')}`);
+    }
+  }
+
+  // Validate framework-language compatibility
+  if (framework && language && framework !== 'none') {
+    const frameworkEntry = FRAMEWORK_MAP.get(framework);
+    if (frameworkEntry && frameworkEntry.language !== language) {
+      errors.push(`Framework '${framework}' requires language '${frameworkEntry.language}', not '${language}'`);
+      suggestions.push(`Either use --language ${frameworkEntry.language} or try a different framework`);
+    }
+  }
+
+  // Validate framework-archetype compatibility
+  if (framework && archetype && framework !== 'none') {
+    const frameworkEntry = FRAMEWORK_MAP.get(framework);
+    if (frameworkEntry && frameworkEntry.archetype !== archetype) {
+      errors.push(`Framework '${framework}' is for archetype '${frameworkEntry.archetype}', not '${archetype}'`);
+      suggestions.push(`Either use --archetype ${frameworkEntry.archetype} or choose a different framework`);
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    suggestions,
+  };
+}
+
+/**
+ * Get suggestion for compatible frameworks given archetype and language
+ */
+export function getSuggestedFrameworks(archetype: Archetype, language: Language): Framework[] {
+  return getValidFrameworks(archetype, language);
+}
+
+/**
+ * Format a validation error with helpful context
+ */
+export function formatValidationError(
+  seed: number,
+  stack: Partial<TechStack>,
+  violations: string[]
+): string {
+  const stackInfo = [
+    `archetype=${stack.archetype ?? 'unknown'}`,
+    `language=${stack.language ?? 'unknown'}`,
+    `framework=${stack.framework ?? 'unknown'}`,
+  ].join(', ');
+
+  return `Seed ${seed} (${stackInfo}): ${violations[0]}`;
+}

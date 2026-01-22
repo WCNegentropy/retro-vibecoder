@@ -30,5 +30,9 @@ export {
   getValidOrms,
   getValidDatabases,
   applyDefaults,
+  validateConstraints,
+  getSuggestedFrameworks,
+  formatValidationError,
   type ConstraintValidation,
+  type ConstraintValidationResult,
 } from './constraints.js';
