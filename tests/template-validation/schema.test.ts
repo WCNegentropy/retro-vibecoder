@@ -78,8 +78,7 @@ describe('Template Validation', () => {
       // formData is optional but should exist if there are defaults
       // Note: Jinja2 expressions in defaults are skipped (evaluated at runtime)
       const promptsWithStaticDefaults = manifest.prompts.filter(
-        p => p.default !== undefined &&
-             !(typeof p.default === 'string' && p.default.includes('{{'))
+        p => p.default !== undefined && !(typeof p.default === 'string' && p.default.includes('{{'))
       );
       if (promptsWithStaticDefaults.length > 0 && result.formData) {
         for (const prompt of promptsWithStaticDefaults) {
@@ -195,10 +194,7 @@ describe('Template Validation', () => {
       const templates = ['react-starter', 'python-api'];
 
       for (const templateName of templates) {
-        const content = await readFile(
-          join(TEMPLATES_DIR, templateName, 'upg.yaml'),
-          'utf-8'
-        );
+        const content = await readFile(join(TEMPLATES_DIR, templateName, 'upg.yaml'), 'utf-8');
         const manifest = parseYaml<UpgManifest>(content);
         const result = transpileManifestToSchema(manifest);
 
@@ -213,10 +209,7 @@ describe('Template Validation', () => {
       const templates = ['react-starter', 'python-api'];
 
       for (const templateName of templates) {
-        const content = await readFile(
-          join(TEMPLATES_DIR, templateName, 'upg.yaml'),
-          'utf-8'
-        );
+        const content = await readFile(join(TEMPLATES_DIR, templateName, 'upg.yaml'), 'utf-8');
         const manifest = parseYaml<UpgManifest>(content);
         const result = transpileManifestToSchema(manifest);
 
@@ -237,10 +230,7 @@ describe('Template Validation', () => {
 
   describe('Template Content Validation', () => {
     it('react-starter has valid prompt ids (no spaces or special chars)', async () => {
-      const content = await readFile(
-        join(TEMPLATES_DIR, 'react-starter/upg.yaml'),
-        'utf-8'
-      );
+      const content = await readFile(join(TEMPLATES_DIR, 'react-starter/upg.yaml'), 'utf-8');
       const manifest = parseYaml<UpgManifest>(content);
 
       for (const prompt of manifest.prompts) {
@@ -249,10 +239,7 @@ describe('Template Validation', () => {
     });
 
     it('python-api has valid prompt ids (no spaces or special chars)', async () => {
-      const content = await readFile(
-        join(TEMPLATES_DIR, 'python-api/upg.yaml'),
-        'utf-8'
-      );
+      const content = await readFile(join(TEMPLATES_DIR, 'python-api/upg.yaml'), 'utf-8');
       const manifest = parseYaml<UpgManifest>(content);
 
       for (const prompt of manifest.prompts) {
@@ -266,10 +253,7 @@ describe('Template Validation', () => {
       const validLifecycles = ['experimental', 'stable', 'deprecated', 'archived', 'production'];
 
       for (const templateName of templates) {
-        const content = await readFile(
-          join(TEMPLATES_DIR, templateName, 'upg.yaml'),
-          'utf-8'
-        );
+        const content = await readFile(join(TEMPLATES_DIR, templateName, 'upg.yaml'), 'utf-8');
         const manifest = parseYaml<UpgManifest>(content);
 
         if (manifest.metadata.lifecycle) {
@@ -282,10 +266,7 @@ describe('Template Validation', () => {
       const templates = ['react-starter', 'python-api'];
 
       for (const templateName of templates) {
-        const content = await readFile(
-          join(TEMPLATES_DIR, templateName, 'upg.yaml'),
-          'utf-8'
-        );
+        const content = await readFile(join(TEMPLATES_DIR, templateName, 'upg.yaml'), 'utf-8');
         const manifest = parseYaml<UpgManifest>(content);
 
         if (manifest.metadata.tags) {

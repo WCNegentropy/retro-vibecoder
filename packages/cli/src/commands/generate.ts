@@ -105,7 +105,6 @@ export async function generateAction(
     console.log(`  Data: ${JSON.stringify(formData, null, 2)}`);
     console.log('');
     console.log(pc.cyan('To complete setup, the Copier sidecar will be invoked (Phase 2).'));
-
   } catch (error) {
     spinner.fail('Generation failed');
     console.error(pc.red(`Error: ${(error as Error).message}`));

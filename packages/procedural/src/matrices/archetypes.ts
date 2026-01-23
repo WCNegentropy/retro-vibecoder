@@ -5,7 +5,13 @@
  */
 
 import type { Archetype, Language, Framework } from '../types.js';
-import { WEB_FRAMEWORKS, BACKEND_FRAMEWORKS, CLI_FRAMEWORKS, DESKTOP_FRAMEWORKS, MOBILE_FRAMEWORKS } from './frameworks.js';
+import {
+  WEB_FRAMEWORKS,
+  BACKEND_FRAMEWORKS,
+  CLI_FRAMEWORKS,
+  DESKTOP_FRAMEWORKS,
+  MOBILE_FRAMEWORKS,
+} from './frameworks.js';
 
 /**
  * Archetype definition with metadata
@@ -33,7 +39,18 @@ export const ARCHETYPES: readonly ArchetypeEntry[] = [
     id: 'backend',
     name: 'Backend API',
     description: 'Server-side API or service',
-    compatibleLanguages: ['typescript', 'javascript', 'python', 'go', 'rust', 'java', 'kotlin', 'csharp', 'ruby', 'php'],
+    compatibleLanguages: [
+      'typescript',
+      'javascript',
+      'python',
+      'go',
+      'rust',
+      'java',
+      'kotlin',
+      'csharp',
+      'ruby',
+      'php',
+    ],
     frameworks: BACKEND_FRAMEWORKS,
   },
   {
@@ -61,7 +78,19 @@ export const ARCHETYPES: readonly ArchetypeEntry[] = [
     id: 'library',
     name: 'Library/Package',
     description: 'Reusable library or package',
-    compatibleLanguages: ['typescript', 'javascript', 'python', 'go', 'rust', 'java', 'kotlin', 'csharp', 'cpp', 'ruby', 'php'],
+    compatibleLanguages: [
+      'typescript',
+      'javascript',
+      'python',
+      'go',
+      'rust',
+      'java',
+      'kotlin',
+      'csharp',
+      'cpp',
+      'ruby',
+      'php',
+    ],
     frameworks: [],
   },
   {
@@ -77,13 +106,13 @@ export const ARCHETYPES: readonly ArchetypeEntry[] = [
  * Map of archetype IDs to their entries
  */
 export const ARCHETYPE_MAP: ReadonlyMap<Archetype, ArchetypeEntry> = new Map(
-  ARCHETYPES.map((arch) => [arch.id, arch])
+  ARCHETYPES.map(arch => [arch.id, arch])
 );
 
 /**
  * List of all archetype IDs
  */
-export const ARCHETYPE_IDS: readonly Archetype[] = ARCHETYPES.map((a) => a.id);
+export const ARCHETYPE_IDS: readonly Archetype[] = ARCHETYPES.map(a => a.id);
 
 /**
  * Get compatible languages for an archetype

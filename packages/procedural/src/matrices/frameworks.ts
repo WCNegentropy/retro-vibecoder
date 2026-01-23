@@ -330,28 +330,31 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
  * Map of framework IDs to their entries
  */
 export const FRAMEWORK_MAP: ReadonlyMap<Framework, FrameworkEntry> = new Map(
-  FRAMEWORKS.map((fw) => [fw.id, fw])
+  FRAMEWORKS.map(fw => [fw.id, fw])
 );
 
 /**
  * Get frameworks by archetype
  */
 export function getFrameworksByArchetype(archetype: Archetype): FrameworkEntry[] {
-  return FRAMEWORKS.filter((fw) => fw.archetype === archetype);
+  return FRAMEWORKS.filter(fw => fw.archetype === archetype);
 }
 
 /**
  * Get frameworks by language
  */
 export function getFrameworksByLanguage(language: Language): FrameworkEntry[] {
-  return FRAMEWORKS.filter((fw) => fw.language === language);
+  return FRAMEWORKS.filter(fw => fw.language === language);
 }
 
 /**
  * Get frameworks that match both archetype and language
  */
-export function getCompatibleFrameworks(archetype: Archetype, language: Language): FrameworkEntry[] {
-  return FRAMEWORKS.filter((fw) => fw.archetype === archetype && fw.language === language);
+export function getCompatibleFrameworks(
+  archetype: Archetype,
+  language: Language
+): FrameworkEntry[] {
+  return FRAMEWORKS.filter(fw => fw.archetype === archetype && fw.language === language);
 }
 
 /**

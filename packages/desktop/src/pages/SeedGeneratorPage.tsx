@@ -94,12 +94,10 @@ function SeedGeneratorPage() {
               type="text"
               className="form-input"
               value={outputPath}
-              onChange={(e) => setOutputPath(e.target.value)}
+              onChange={e => setOutputPath(e.target.value)}
               placeholder="./my-project"
             />
-            <p className="form-help">
-              Directory where the project will be generated.
-            </p>
+            <p className="form-help">Directory where the project will be generated.</p>
           </div>
 
           <div className="form-actions">
@@ -121,11 +119,7 @@ function SeedGeneratorPage() {
             </button>
           </div>
 
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
+          {error && <div className="error-message">{error}</div>}
         </section>
 
         <section className="preview-section">

@@ -14,10 +14,7 @@ interface TestOptions {
 /**
  * Execute the test command
  */
-export async function testAction(
-  manifest: string,
-  options: TestOptions
-): Promise<void> {
+export async function testAction(manifest: string, options: TestOptions): Promise<void> {
   try {
     const result = await testGenerateCommand({
       manifestPath: manifest,

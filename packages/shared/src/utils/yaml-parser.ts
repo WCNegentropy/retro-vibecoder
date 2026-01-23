@@ -33,10 +33,7 @@ const DEFAULT_PARSE_OPTIONS: YamlParseOptions = {
  * @returns Parsed object
  * @throws Error if YAML is invalid
  */
-export function parseYaml<T = unknown>(
-  content: string,
-  options: YamlParseOptions = {}
-): T {
+export function parseYaml<T = unknown>(content: string, options: YamlParseOptions = {}): T {
   const opts = { ...DEFAULT_PARSE_OPTIONS, ...options };
 
   try {

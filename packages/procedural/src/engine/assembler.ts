@@ -141,7 +141,8 @@ export class ProjectAssembler {
       projectName,
       rng: {
         pick: <T>(items: readonly T[]) => this.rng.pick(items),
-        pickWeighted: <T>(items: readonly { value: T; weight: number }[]) => this.rng.pickWeighted(items),
+        pickWeighted: <T>(items: readonly { value: T; weight: number }[]) =>
+          this.rng.pickWeighted(items),
         float: () => this.rng.float(),
         int: (min: number, max: number) => this.rng.int(min, max),
         bool: (probability?: number) => this.rng.bool(probability),
@@ -269,8 +270,8 @@ export class ProjectAssembler {
       return this.rng.pickWeighted([
         { value: 'typescript' as Language, weight: 40 },
         ...validLanguages
-          .filter((l) => l !== 'typescript')
-          .map((l) => ({ value: l, weight: 60 / (validLanguages.length - 1) })),
+          .filter(l => l !== 'typescript')
+          .map(l => ({ value: l, weight: 60 / (validLanguages.length - 1) })),
       ]);
     }
 
@@ -373,7 +374,7 @@ export class ProjectAssembler {
     }
 
     // Filter out 'none' and pick from actual ORMs
-    const actualOrms = validOrms.filter((o) => o !== 'none');
+    const actualOrms = validOrms.filter(o => o !== 'none');
     if (actualOrms.length === 0) {
       return 'none';
     }
@@ -385,7 +386,12 @@ export class ProjectAssembler {
    * Pick a transport layer based on archetype.
    */
   private pickTransport(archetype: Archetype): Transport {
-    if (archetype === 'web' || archetype === 'cli' || archetype === 'desktop' || archetype === 'mobile') {
+    if (
+      archetype === 'web' ||
+      archetype === 'cli' ||
+      archetype === 'desktop' ||
+      archetype === 'mobile'
+    ) {
       return 'rest'; // Default for non-backend
     }
 

@@ -37,7 +37,7 @@ function buildFileTree(files: Record<string, string>): TreeNode[] {
       const isFile = i === parts.length - 1;
       const currentPath = parts.slice(0, i + 1).join('/');
 
-      let node = current.find((n) => n.name === part);
+      let node = current.find(n => n.name === part);
 
       if (!node) {
         node = {
@@ -58,13 +58,15 @@ function buildFileTree(files: Record<string, string>): TreeNode[] {
 
   // Sort folders first, then files
   const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
-    return nodes.sort((a, b) => {
-      if (a.type === b.type) return a.name.localeCompare(b.name);
-      return a.type === 'folder' ? -1 : 1;
-    }).map((node) => ({
-      ...node,
-      children: node.children ? sortNodes(node.children) : undefined,
-    }));
+    return nodes
+      .sort((a, b) => {
+        if (a.type === b.type) return a.name.localeCompare(b.name);
+        return a.type === 'folder' ? -1 : 1;
+      })
+      .map(node => ({
+        ...node,
+        children: node.children ? sortNodes(node.children) : undefined,
+      }));
   };
 
   return sortNodes(root);
@@ -112,7 +114,7 @@ function Preview({ files, title = 'Generated Files' }: PreviewProps) {
   const tree = useMemo(() => buildFileTree(files), [files]);
 
   const toggleFolder = (path: string) => {
-    setExpandedFolders((prev) => {
+    setExpandedFolders(prev => {
       const next = new Set(prev);
       if (next.has(path)) {
         next.delete(path);
@@ -130,7 +132,9 @@ function Preview({ files, title = 'Generated Files' }: PreviewProps) {
     <div className="preview-container">
       <div className="preview-header">
         <h3>{title}</h3>
-        <span className="file-count">{fileCount} file{fileCount !== 1 ? 's' : ''}</span>
+        <span className="file-count">
+          {fileCount} file{fileCount !== 1 ? 's' : ''}
+        </span>
       </div>
 
       <div className="preview-layout">
@@ -146,14 +150,9 @@ function Preview({ files, title = 'Generated Files' }: PreviewProps) {
 
         <div className="file-content-panel">
           {selectedContent ? (
-            <FileContentView
-              filename={selectedFile || ''}
-              content={selectedContent}
-            />
+            <FileContentView filename={selectedFile || ''} content={selectedContent} />
           ) : (
-            <div className="no-file-selected">
-              Select a file to preview its contents
-            </div>
+            <div className="no-file-selected">Select a file to preview its contents</div>
           )}
         </div>
       </div>
@@ -181,7 +180,7 @@ function FileTreeView({
 }) {
   return (
     <ul className="file-tree" style={{ paddingLeft: depth * 16 }}>
-      {nodes.map((node) => (
+      {nodes.map(node => (
         <li key={node.path}>
           {node.type === 'folder' ? (
             <>
@@ -190,9 +189,7 @@ function FileTreeView({
                 className="tree-item folder"
                 onClick={() => onToggleFolder(node.path)}
               >
-                <span className="tree-icon">
-                  {expandedFolders.has(node.path) ? 'v' : '>'}
-                </span>
+                <span className="tree-icon">{expandedFolders.has(node.path) ? 'v' : '>'}</span>
                 <span className="tree-name">{node.name}/</span>
               </button>
               {expandedFolders.has(node.path) && node.children && (
@@ -225,13 +222,7 @@ function FileTreeView({
 /**
  * File content view with basic syntax highlighting
  */
-function FileContentView({
-  filename,
-  content,
-}: {
-  filename: string;
-  content: string;
-}) {
+function FileContentView({ filename, content }: { filename: string; content: string }) {
   const language = getFileLanguage(filename);
   const lines = content.split('\n');
 

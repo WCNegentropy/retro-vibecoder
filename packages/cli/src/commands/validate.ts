@@ -14,10 +14,7 @@ interface ValidateOptions {
 /**
  * Execute the validate command
  */
-export async function validateAction(
-  manifest: string,
-  options: ValidateOptions
-): Promise<void> {
+export async function validateAction(manifest: string, options: ValidateOptions): Promise<void> {
   try {
     const result = await validateCommand({
       path: manifest,

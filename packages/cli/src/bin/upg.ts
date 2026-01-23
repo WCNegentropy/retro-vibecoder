@@ -148,7 +148,7 @@ const program = createCli();
 program.configureOutput({
   outputError: (str, write) => {
     // Check if this is a "seed" command with a negative number
-    if (str.includes("unknown option") && str.includes("'-")) {
+    if (str.includes('unknown option') && str.includes("'-")) {
       const match = str.match(/'-(\d+)'/);
       if (match && process.argv.includes('seed')) {
         write(pc.red(`Error: Seed must be a positive integer (got -${match[1]})\n`));

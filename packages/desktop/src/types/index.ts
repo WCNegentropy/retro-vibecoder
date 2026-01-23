@@ -29,14 +29,7 @@ export type Runtime = 'node' | 'deno' | 'bun' | 'jvm' | 'dotnet' | 'native' | 'b
 export type Framework = string;
 
 /** Database types */
-export type Database =
-  | 'postgres'
-  | 'mysql'
-  | 'sqlite'
-  | 'mongodb'
-  | 'redis'
-  | 'neo4j'
-  | 'none';
+export type Database = 'postgres' | 'mysql' | 'sqlite' | 'mongodb' | 'redis' | 'neo4j' | 'none';
 
 /** CI/CD platforms */
 export type CICD = 'github-actions' | 'gitlab-ci' | 'circleci' | 'none';

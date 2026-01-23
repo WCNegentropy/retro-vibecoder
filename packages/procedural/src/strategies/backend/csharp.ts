@@ -14,7 +14,7 @@ export const CSharpApiStrategy: GenerationStrategy = {
   name: '.NET Web API',
   priority: 10,
 
-  matches: (stack) =>
+  matches: stack =>
     stack.language === 'csharp' &&
     stack.archetype === 'backend' &&
     stack.framework === 'aspnet-core',
@@ -30,14 +30,26 @@ export const CSharpApiStrategy: GenerationStrategy = {
     ];
 
     if (stack.database === 'postgres') {
-      packageRefs.push('<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />');
-      packageRefs.push('<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />');
+      packageRefs.push(
+        '<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />'
+      );
+      packageRefs.push(
+        '<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />'
+      );
     } else if (stack.database === 'mysql') {
-      packageRefs.push('<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />');
-      packageRefs.push('<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />');
+      packageRefs.push(
+        '<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />'
+      );
+      packageRefs.push(
+        '<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />'
+      );
     } else if (stack.database === 'sqlite') {
-      packageRefs.push('<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />');
-      packageRefs.push('<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />');
+      packageRefs.push(
+        '<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />'
+      );
+      packageRefs.push(
+        '<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />'
+      );
     }
 
     files[`${cleanName}.csproj`] = `<Project Sdk="Microsoft.NET.Sdk.Web">
@@ -99,66 +111,74 @@ app.Run();
     files['Program.cs'] = programCs;
 
     // 3. Properties/launchSettings.json
-    files['Properties/launchSettings.json'] = JSON.stringify({
-      "$schema": "https://json.schemastore.org/launchsettings.json",
-      "profiles": {
-        "http": {
-          "commandName": "Project",
-          "dotnetRunMessages": true,
-          "launchBrowser": false,
-          "applicationUrl": "http://localhost:5000",
-          "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development"
-          }
+    files['Properties/launchSettings.json'] = JSON.stringify(
+      {
+        $schema: 'https://json.schemastore.org/launchsettings.json',
+        profiles: {
+          http: {
+            commandName: 'Project',
+            dotnetRunMessages: true,
+            launchBrowser: false,
+            applicationUrl: 'http://localhost:5000',
+            environmentVariables: {
+              ASPNETCORE_ENVIRONMENT: 'Development',
+            },
+          },
+          https: {
+            commandName: 'Project',
+            dotnetRunMessages: true,
+            launchBrowser: false,
+            applicationUrl: 'https://localhost:5001;http://localhost:5000',
+            environmentVariables: {
+              ASPNETCORE_ENVIRONMENT: 'Development',
+            },
+          },
         },
-        "https": {
-          "commandName": "Project",
-          "dotnetRunMessages": true,
-          "launchBrowser": false,
-          "applicationUrl": "https://localhost:5001;http://localhost:5000",
-          "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development"
-          }
-        }
-      }
-    }, null, 2);
+      },
+      null,
+      2
+    );
 
     // 4. appsettings.json
     const appSettings: Record<string, unknown> = {
-      "Logging": {
-        "LogLevel": {
-          "Default": "Information",
-          "Microsoft.AspNetCore": "Warning"
-        }
+      Logging: {
+        LogLevel: {
+          Default: 'Information',
+          'Microsoft.AspNetCore': 'Warning',
+        },
       },
-      "AllowedHosts": "*"
+      AllowedHosts: '*',
     };
 
     if (stack.database === 'postgres') {
-      appSettings["ConnectionStrings"] = {
-        "DefaultConnection": `Host=localhost;Database=${cleanName.toLowerCase()};Username=postgres;Password=postgres`
+      appSettings['ConnectionStrings'] = {
+        DefaultConnection: `Host=localhost;Database=${cleanName.toLowerCase()};Username=postgres;Password=postgres`,
       };
     } else if (stack.database === 'mysql') {
-      appSettings["ConnectionStrings"] = {
-        "DefaultConnection": `Server=localhost;Database=${cleanName.toLowerCase()};User=root;Password=root`
+      appSettings['ConnectionStrings'] = {
+        DefaultConnection: `Server=localhost;Database=${cleanName.toLowerCase()};User=root;Password=root`,
       };
     } else if (stack.database === 'sqlite') {
-      appSettings["ConnectionStrings"] = {
-        "DefaultConnection": `Data Source=${cleanName.toLowerCase()}.db`
+      appSettings['ConnectionStrings'] = {
+        DefaultConnection: `Data Source=${cleanName.toLowerCase()}.db`,
       };
     }
 
     files['appsettings.json'] = JSON.stringify(appSettings, null, 2);
 
     // 5. appsettings.Development.json
-    files['appsettings.Development.json'] = JSON.stringify({
-      "Logging": {
-        "LogLevel": {
-          "Default": "Debug",
-          "Microsoft.AspNetCore": "Information"
-        }
-      }
-    }, null, 2);
+    files['appsettings.Development.json'] = JSON.stringify(
+      {
+        Logging: {
+          LogLevel: {
+            Default: 'Debug',
+            'Microsoft.AspNetCore': 'Information',
+          },
+        },
+      },
+      null,
+      2
+    );
 
     // 6. DbContext if database is configured
     if (stack.database !== 'none') {

@@ -14,10 +14,8 @@ export const AxumStrategy: GenerationStrategy = {
   name: 'Axum Backend',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'rust' &&
-    stack.archetype === 'backend' &&
-    stack.framework === 'axum',
+  matches: stack =>
+    stack.language === 'rust' && stack.archetype === 'backend' && stack.framework === 'axum',
 
   apply: async ({ files, projectName, stack }) => {
     // Cargo.toml
@@ -170,10 +168,8 @@ export const ActixStrategy: GenerationStrategy = {
   name: 'Actix Web Backend',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'rust' &&
-    stack.archetype === 'backend' &&
-    stack.framework === 'actix',
+  matches: stack =>
+    stack.language === 'rust' && stack.archetype === 'backend' && stack.framework === 'actix',
 
   apply: async ({ files, projectName, stack }) => {
     // Cargo.toml
@@ -321,7 +317,8 @@ RUST_LOG=info
 `;
 
   // Database module
-  files['src/db.rs'] = `use sqlx::${database === 'sqlite' ? 'sqlite' : 'postgres'}::${database === 'sqlite' ? 'Sqlite' : 'Postgres'}Pool;
+  files['src/db.rs'] =
+    `use sqlx::${database === 'sqlite' ? 'sqlite' : 'postgres'}::${database === 'sqlite' ? 'Sqlite' : 'Postgres'}Pool;
 use std::env;
 
 pub type DbPool = ${database === 'sqlite' ? 'Sqlite' : 'Postgres'}Pool;
@@ -346,10 +343,8 @@ export const ClapStrategy: GenerationStrategy = {
   name: 'Clap CLI',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'rust' &&
-    stack.archetype === 'cli' &&
-    stack.framework === 'clap',
+  matches: stack =>
+    stack.language === 'rust' && stack.archetype === 'cli' && stack.framework === 'clap',
 
   apply: async ({ files, projectName }) => {
     // Cargo.toml

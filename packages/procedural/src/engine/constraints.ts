@@ -33,32 +33,104 @@ export const INCOMPATIBILITY_RULES: readonly IncompatibilityRule[] = [
   // Language-specific ORMs
   {
     when: { language: 'go' },
-    incompatible: { orm: ['prisma', 'typeorm', 'sequelize', 'drizzle', 'sqlalchemy', 'diesel', 'entity-framework', 'activerecord', 'eloquent'] },
+    incompatible: {
+      orm: [
+        'prisma',
+        'typeorm',
+        'sequelize',
+        'drizzle',
+        'sqlalchemy',
+        'diesel',
+        'entity-framework',
+        'activerecord',
+        'eloquent',
+      ],
+    },
     reason: 'Go uses GORM or raw SQL drivers',
   },
   {
     when: { language: 'rust' },
-    incompatible: { orm: ['prisma', 'typeorm', 'sequelize', 'drizzle', 'sqlalchemy', 'gorm', 'entity-framework', 'activerecord', 'eloquent'] },
+    incompatible: {
+      orm: [
+        'prisma',
+        'typeorm',
+        'sequelize',
+        'drizzle',
+        'sqlalchemy',
+        'gorm',
+        'entity-framework',
+        'activerecord',
+        'eloquent',
+      ],
+    },
     reason: 'Rust uses Diesel or SQLx',
   },
   {
     when: { language: 'python' },
-    incompatible: { orm: ['prisma', 'typeorm', 'sequelize', 'drizzle', 'gorm', 'diesel', 'entity-framework', 'activerecord', 'eloquent'] },
+    incompatible: {
+      orm: [
+        'prisma',
+        'typeorm',
+        'sequelize',
+        'drizzle',
+        'gorm',
+        'diesel',
+        'entity-framework',
+        'activerecord',
+        'eloquent',
+      ],
+    },
     reason: 'Python uses SQLAlchemy or Django ORM',
   },
   {
     when: { language: 'csharp' },
-    incompatible: { orm: ['prisma', 'typeorm', 'sequelize', 'drizzle', 'sqlalchemy', 'gorm', 'diesel', 'activerecord', 'eloquent'] },
+    incompatible: {
+      orm: [
+        'prisma',
+        'typeorm',
+        'sequelize',
+        'drizzle',
+        'sqlalchemy',
+        'gorm',
+        'diesel',
+        'activerecord',
+        'eloquent',
+      ],
+    },
     reason: 'C# uses Entity Framework',
   },
   {
     when: { language: 'ruby' },
-    incompatible: { orm: ['prisma', 'typeorm', 'sequelize', 'drizzle', 'sqlalchemy', 'gorm', 'diesel', 'entity-framework', 'eloquent'] },
+    incompatible: {
+      orm: [
+        'prisma',
+        'typeorm',
+        'sequelize',
+        'drizzle',
+        'sqlalchemy',
+        'gorm',
+        'diesel',
+        'entity-framework',
+        'eloquent',
+      ],
+    },
     reason: 'Ruby uses ActiveRecord',
   },
   {
     when: { language: 'php' },
-    incompatible: { orm: ['prisma', 'typeorm', 'sequelize', 'drizzle', 'sqlalchemy', 'gorm', 'diesel', 'entity-framework', 'activerecord'] },
+    incompatible: {
+      orm: [
+        'prisma',
+        'typeorm',
+        'sequelize',
+        'drizzle',
+        'sqlalchemy',
+        'gorm',
+        'diesel',
+        'entity-framework',
+        'activerecord',
+      ],
+    },
     reason: 'PHP uses Eloquent or Doctrine',
   },
 
@@ -79,12 +151,40 @@ export const INCOMPATIBILITY_RULES: readonly IncompatibilityRule[] = [
   // Mobile frameworks are language-specific
   {
     when: { framework: 'swiftui' },
-    incompatible: { language: ['typescript', 'javascript', 'python', 'go', 'rust', 'java', 'csharp', 'cpp', 'kotlin', 'php', 'ruby'] },
+    incompatible: {
+      language: [
+        'typescript',
+        'javascript',
+        'python',
+        'go',
+        'rust',
+        'java',
+        'csharp',
+        'cpp',
+        'kotlin',
+        'php',
+        'ruby',
+      ],
+    },
     reason: 'SwiftUI requires Swift',
   },
   {
     when: { framework: 'jetpack-compose' },
-    incompatible: { language: ['typescript', 'javascript', 'python', 'go', 'rust', 'java', 'csharp', 'cpp', 'swift', 'php', 'ruby'] },
+    incompatible: {
+      language: [
+        'typescript',
+        'javascript',
+        'python',
+        'go',
+        'rust',
+        'java',
+        'csharp',
+        'cpp',
+        'swift',
+        'php',
+        'ruby',
+      ],
+    },
     reason: 'Jetpack Compose requires Kotlin',
   },
 ];
@@ -194,25 +294,70 @@ export const REQUIREMENT_RULES: readonly RequirementRule[] = [
  */
 export const DEFAULT_PAIRINGS: readonly DefaultPairing[] = [
   // React defaults
-  { key: 'framework', value: 'react', defaults: { buildTool: 'vite', styling: 'tailwind', testing: 'vitest' }, weight: 10 },
-  { key: 'framework', value: 'vue', defaults: { buildTool: 'vite', styling: 'tailwind', testing: 'vitest' }, weight: 10 },
-  { key: 'framework', value: 'svelte', defaults: { buildTool: 'vite', styling: 'tailwind', testing: 'vitest' }, weight: 10 },
+  {
+    key: 'framework',
+    value: 'react',
+    defaults: { buildTool: 'vite', styling: 'tailwind', testing: 'vitest' },
+    weight: 10,
+  },
+  {
+    key: 'framework',
+    value: 'vue',
+    defaults: { buildTool: 'vite', styling: 'tailwind', testing: 'vitest' },
+    weight: 10,
+  },
+  {
+    key: 'framework',
+    value: 'svelte',
+    defaults: { buildTool: 'vite', styling: 'tailwind', testing: 'vitest' },
+    weight: 10,
+  },
 
   // Backend defaults
-  { key: 'framework', value: 'express', defaults: { buildTool: 'tsup', testing: 'vitest', orm: 'prisma' }, weight: 10 },
-  { key: 'framework', value: 'fastapi', defaults: { orm: 'sqlalchemy', database: 'postgres' }, weight: 10 },
+  {
+    key: 'framework',
+    value: 'express',
+    defaults: { buildTool: 'tsup', testing: 'vitest', orm: 'prisma' },
+    weight: 10,
+  },
+  {
+    key: 'framework',
+    value: 'fastapi',
+    defaults: { orm: 'sqlalchemy', database: 'postgres' },
+    weight: 10,
+  },
   { key: 'framework', value: 'gin', defaults: { orm: 'gorm', database: 'postgres' }, weight: 10 },
-  { key: 'framework', value: 'axum', defaults: { orm: 'diesel', database: 'postgres' }, weight: 10 },
-  { key: 'framework', value: 'spring-boot', defaults: { buildTool: 'gradle', database: 'postgres' }, weight: 10 },
+  {
+    key: 'framework',
+    value: 'axum',
+    defaults: { orm: 'diesel', database: 'postgres' },
+    weight: 10,
+  },
+  {
+    key: 'framework',
+    value: 'spring-boot',
+    defaults: { buildTool: 'gradle', database: 'postgres' },
+    weight: 10,
+  },
 
   // Rust defaults
-  { key: 'language', value: 'rust', defaults: { buildTool: 'cargo', testing: 'rust-test' }, weight: 15 },
+  {
+    key: 'language',
+    value: 'rust',
+    defaults: { buildTool: 'cargo', testing: 'rust-test' },
+    weight: 15,
+  },
 
   // Go defaults
   { key: 'language', value: 'go', defaults: { buildTool: 'make', testing: 'go-test' }, weight: 15 },
 
   // TypeScript/Node defaults
-  { key: 'language', value: 'typescript', defaults: { runtime: 'node', packaging: 'docker' }, weight: 10 },
+  {
+    key: 'language',
+    value: 'typescript',
+    defaults: { runtime: 'node', packaging: 'docker' },
+    weight: 10,
+  },
 ];
 
 // ============================================================================
@@ -245,7 +390,9 @@ export function checkIncompatibilities(stack: Partial<TechStack>): string[] {
       for (const [key, incompatibleValues] of Object.entries(rule.incompatible)) {
         const currentValue = stack[key as keyof TechStack];
         if (currentValue && (incompatibleValues as unknown[]).includes(currentValue)) {
-          violations.push(`${rule.reason}: ${key}='${currentValue}' is incompatible with ${JSON.stringify(rule.when)}`);
+          violations.push(
+            `${rule.reason}: ${key}='${currentValue}' is incompatible with ${JSON.stringify(rule.when)}`
+          );
         }
       }
     }
@@ -259,10 +406,29 @@ export function checkIncompatibilities(stack: Partial<TechStack>): string[] {
  */
 function areLanguagesEquivalent(lang1: string, lang2: string, framework?: string): boolean {
   // JavaScript and TypeScript are interchangeable for Node.js frameworks
-  const nodeFrameworks = ['express', 'fastify', 'nestjs', 'commander', 'yargs', 'react', 'vue', 'svelte', 'solid', 'angular', 'qwik', 'nextjs', 'nuxt', 'sveltekit', 'react-native', 'electron'];
+  const nodeFrameworks = [
+    'express',
+    'fastify',
+    'nestjs',
+    'commander',
+    'yargs',
+    'react',
+    'vue',
+    'svelte',
+    'solid',
+    'angular',
+    'qwik',
+    'nextjs',
+    'nuxt',
+    'sveltekit',
+    'react-native',
+    'electron',
+  ];
   if (nodeFrameworks.includes(framework ?? '')) {
-    if ((lang1 === 'typescript' && lang2 === 'javascript') ||
-        (lang1 === 'javascript' && lang2 === 'typescript')) {
+    if (
+      (lang1 === 'typescript' && lang2 === 'javascript') ||
+      (lang1 === 'javascript' && lang2 === 'typescript')
+    ) {
       return true;
     }
   }
@@ -270,8 +436,7 @@ function areLanguagesEquivalent(lang1: string, lang2: string, framework?: string
   // Java and Kotlin are interchangeable for JVM frameworks
   const jvmFrameworks = ['spring-boot', 'flutter'];
   if (jvmFrameworks.includes(framework ?? '')) {
-    if ((lang1 === 'java' && lang2 === 'kotlin') ||
-        (lang1 === 'kotlin' && lang2 === 'java')) {
+    if ((lang1 === 'java' && lang2 === 'kotlin') || (lang1 === 'kotlin' && lang2 === 'java')) {
       return true;
     }
   }
@@ -299,11 +464,17 @@ export function checkRequirements(stack: Partial<TechStack>): string[] {
           // Special handling for language equivalence
           if (key === 'language') {
             const framework = stack.framework;
-            if (!areLanguagesEquivalent(currentValue as string, requiredValue as string, framework)) {
-              violations.push(`${rule.reason}: requires ${key}='${requiredValue}', got '${currentValue}'`);
+            if (
+              !areLanguagesEquivalent(currentValue as string, requiredValue as string, framework)
+            ) {
+              violations.push(
+                `${rule.reason}: requires ${key}='${requiredValue}', got '${currentValue}'`
+              );
             }
           } else if (currentValue !== requiredValue) {
-            violations.push(`${rule.reason}: requires ${key}='${requiredValue}', got '${currentValue}'`);
+            violations.push(
+              `${rule.reason}: requires ${key}='${requiredValue}', got '${currentValue}'`
+            );
           }
         }
       }
@@ -324,7 +495,9 @@ export function validateStack(stack: Partial<TechStack>): ConstraintValidation {
   // Check archetype-language compatibility
   if (stack.archetype && stack.language) {
     if (!isLanguageCompatible(stack.archetype, stack.language)) {
-      violations.push(`Language '${stack.language}' is not compatible with archetype '${stack.archetype}'`);
+      violations.push(
+        `Language '${stack.language}' is not compatible with archetype '${stack.archetype}'`
+      );
     }
   }
 
@@ -340,19 +513,40 @@ export function validateStack(stack: Partial<TechStack>): ConstraintValidation {
     const frameworkEntry = FRAMEWORK_MAP.get(stack.framework);
     if (frameworkEntry && frameworkEntry.language !== stack.language) {
       // Allow JavaScript as equivalent to TypeScript for Node.js frameworks
-      const isNodeFramework = ['express', 'fastify', 'nestjs', 'commander', 'yargs', 'react', 'vue', 'svelte', 'solid', 'angular', 'qwik', 'nextjs', 'nuxt', 'sveltekit', 'react-native', 'electron'].includes(stack.framework);
-      const isJsEquivalent = isNodeFramework &&
+      const isNodeFramework = [
+        'express',
+        'fastify',
+        'nestjs',
+        'commander',
+        'yargs',
+        'react',
+        'vue',
+        'svelte',
+        'solid',
+        'angular',
+        'qwik',
+        'nextjs',
+        'nuxt',
+        'sveltekit',
+        'react-native',
+        'electron',
+      ].includes(stack.framework);
+      const isJsEquivalent =
+        isNodeFramework &&
         ((frameworkEntry.language === 'typescript' && stack.language === 'javascript') ||
-         (frameworkEntry.language === 'javascript' && stack.language === 'typescript'));
+          (frameworkEntry.language === 'javascript' && stack.language === 'typescript'));
 
       // Allow Kotlin as equivalent to Java for JVM frameworks
       const isJvmFramework = ['spring-boot', 'flutter'].includes(stack.framework);
-      const isJvmEquivalent = isJvmFramework &&
+      const isJvmEquivalent =
+        isJvmFramework &&
         ((frameworkEntry.language === 'java' && stack.language === 'kotlin') ||
-         (frameworkEntry.language === 'kotlin' && stack.language === 'java'));
+          (frameworkEntry.language === 'kotlin' && stack.language === 'java'));
 
       if (!isJsEquivalent && !isJvmEquivalent) {
-        violations.push(`Framework '${stack.framework}' requires language '${frameworkEntry.language}', got '${stack.language}'`);
+        violations.push(
+          `Framework '${stack.framework}' requires language '${frameworkEntry.language}', got '${stack.language}'`
+        );
       }
     }
   }
@@ -361,14 +555,16 @@ export function validateStack(stack: Partial<TechStack>): ConstraintValidation {
   if (stack.orm && stack.orm !== 'none' && stack.database && stack.language) {
     const compatibleOrms = getOrmsForStack(stack.database, stack.language);
     if (!compatibleOrms.includes(stack.orm)) {
-      violations.push(`ORM '${stack.orm}' is not compatible with database '${stack.database}' and language '${stack.language}'`);
+      violations.push(
+        `ORM '${stack.orm}' is not compatible with database '${stack.database}' and language '${stack.language}'`
+      );
     }
   }
 
   return {
     valid: violations.length === 0,
     violations,
-    appliedRules: violations.map((v) => v.split(':')[0]),
+    appliedRules: violations.map(v => v.split(':')[0]),
   };
 }
 
@@ -380,7 +576,7 @@ export function getValidOptions<K extends keyof TechStack>(
   currentStack: Partial<TechStack>,
   allOptions: readonly TechStack[K][]
 ): TechStack[K][] {
-  return allOptions.filter((option) => {
+  return allOptions.filter(option => {
     const testStack = { ...currentStack, [dimension]: option };
     const validation = validateStack(testStack);
     return validation.valid;
@@ -399,7 +595,7 @@ export function getValidLanguagesForArchetype(archetype: Archetype): Language[] 
  */
 export function getValidFrameworks(archetype: Archetype, language: Language): Framework[] {
   const frameworks = getCompatibleFrameworks(archetype, language);
-  return frameworks.map((f) => f.id);
+  return frameworks.map(f => f.id);
 }
 
 /**
@@ -493,8 +689,12 @@ export function validateConstraints(
   if (framework && language && framework !== 'none') {
     const frameworkEntry = FRAMEWORK_MAP.get(framework);
     if (frameworkEntry && frameworkEntry.language !== language) {
-      errors.push(`Framework '${framework}' requires language '${frameworkEntry.language}', not '${language}'`);
-      suggestions.push(`Either use --language ${frameworkEntry.language} or try a different framework`);
+      errors.push(
+        `Framework '${framework}' requires language '${frameworkEntry.language}', not '${language}'`
+      );
+      suggestions.push(
+        `Either use --language ${frameworkEntry.language} or try a different framework`
+      );
     }
   }
 
@@ -502,8 +702,12 @@ export function validateConstraints(
   if (framework && archetype && framework !== 'none') {
     const frameworkEntry = FRAMEWORK_MAP.get(framework);
     if (frameworkEntry && frameworkEntry.archetype !== archetype) {
-      errors.push(`Framework '${framework}' is for archetype '${frameworkEntry.archetype}', not '${archetype}'`);
-      suggestions.push(`Either use --archetype ${frameworkEntry.archetype} or choose a different framework`);
+      errors.push(
+        `Framework '${framework}' is for archetype '${frameworkEntry.archetype}', not '${archetype}'`
+      );
+      suggestions.push(
+        `Either use --archetype ${frameworkEntry.archetype} or choose a different framework`
+      );
     }
   }
 

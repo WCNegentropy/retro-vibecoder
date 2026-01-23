@@ -14,7 +14,7 @@ export const CppStrategy: GenerationStrategy = {
   name: 'C++ CMake Project',
   priority: 10,
 
-  matches: (stack) => stack.language === 'cpp',
+  matches: stack => stack.language === 'cpp',
 
   apply: async ({ files, projectName, stack }) => {
     const std = '20'; // Default to C++20
@@ -122,36 +122,40 @@ conan.lock
 `;
 
     // 6. CMakePresets.json for modern CMake workflow
-    files['CMakePresets.json'] = JSON.stringify({
-      version: 3,
-      configurePresets: [
-        {
-          name: "default",
-          binaryDir: "\${sourceDir}/build",
-          generator: "Ninja",
-          cacheVariables: {
-            CMAKE_BUILD_TYPE: "Release"
-          }
-        },
-        {
-          name: "debug",
-          inherits: "default",
-          cacheVariables: {
-            CMAKE_BUILD_TYPE: "Debug"
-          }
-        }
-      ],
-      buildPresets: [
-        {
-          name: "default",
-          configurePreset: "default"
-        },
-        {
-          name: "debug",
-          configurePreset: "debug"
-        }
-      ]
-    }, null, 2);
+    files['CMakePresets.json'] = JSON.stringify(
+      {
+        version: 3,
+        configurePresets: [
+          {
+            name: 'default',
+            binaryDir: '${sourceDir}/build',
+            generator: 'Ninja',
+            cacheVariables: {
+              CMAKE_BUILD_TYPE: 'Release',
+            },
+          },
+          {
+            name: 'debug',
+            inherits: 'default',
+            cacheVariables: {
+              CMAKE_BUILD_TYPE: 'Debug',
+            },
+          },
+        ],
+        buildPresets: [
+          {
+            name: 'default',
+            configurePreset: 'default',
+          },
+          {
+            name: 'debug',
+            configurePreset: 'debug',
+          },
+        ],
+      },
+      null,
+      2
+    );
 
     // 7. Makefile for convenience
     files['Makefile'] = `CMAKE := cmake

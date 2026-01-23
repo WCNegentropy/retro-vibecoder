@@ -14,10 +14,8 @@ export const FastAPIStrategy: GenerationStrategy = {
   name: 'FastAPI Backend',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'python' &&
-    stack.archetype === 'backend' &&
-    stack.framework === 'fastapi',
+  matches: stack =>
+    stack.language === 'python' && stack.archetype === 'backend' && stack.framework === 'fastapi',
 
   apply: async ({ files, projectName, stack }) => {
     // requirements.txt
@@ -186,18 +184,12 @@ export const FlaskStrategy: GenerationStrategy = {
   name: 'Flask Backend',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'python' &&
-    stack.archetype === 'backend' &&
-    stack.framework === 'flask',
+  matches: stack =>
+    stack.language === 'python' && stack.archetype === 'backend' && stack.framework === 'flask',
 
   apply: async ({ files, projectName, stack }) => {
     // requirements.txt
-    const requirements = [
-      'flask>=3.0.0',
-      'python-dotenv>=1.0.0',
-      'gunicorn>=21.0.0',
-    ];
+    const requirements = ['flask>=3.0.0', 'python-dotenv>=1.0.0', 'gunicorn>=21.0.0'];
 
     if (stack.database !== 'none' && stack.database !== 'mongodb') {
       requirements.push('flask-sqlalchemy>=3.1.0');
@@ -309,10 +301,8 @@ export const DjangoStrategy: GenerationStrategy = {
   name: 'Django Backend',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'python' &&
-    stack.archetype === 'backend' &&
-    stack.framework === 'django',
+  matches: stack =>
+    stack.language === 'python' && stack.archetype === 'backend' && stack.framework === 'django',
 
   apply: async ({ files, projectName }) => {
     const appName = projectName.replace(/-/g, '_');

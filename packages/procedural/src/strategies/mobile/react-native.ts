@@ -14,82 +14,89 @@ export const ExpoStrategy: GenerationStrategy = {
   name: 'Expo Mobile App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'mobile' && stack.framework === 'react-native',
+  matches: stack => stack.archetype === 'mobile' && stack.framework === 'react-native',
 
   apply: async ({ files, projectName }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
 
     // 1. package.json
-    files['package.json'] = JSON.stringify({
-      name: cleanName,
-      version: "1.0.0",
-      main: "expo-router/entry",
-      scripts: {
-        "start": "expo start",
-        "android": "expo start --android",
-        "ios": "expo start --ios",
-        "web": "expo start --web",
-        "lint": "eslint .",
-        "test": "jest"
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        version: '1.0.0',
+        main: 'expo-router/entry',
+        scripts: {
+          start: 'expo start',
+          android: 'expo start --android',
+          ios: 'expo start --ios',
+          web: 'expo start --web',
+          lint: 'eslint .',
+          test: 'jest',
+        },
+        dependencies: {
+          expo: '~50.0.0',
+          'expo-router': '~3.4.0',
+          'expo-status-bar': '~1.11.1',
+          react: '18.2.0',
+          'react-native': '0.73.2',
+          'react-native-safe-area-context': '4.8.2',
+          'react-native-screens': '~3.29.0',
+        },
+        devDependencies: {
+          '@babel/core': '^7.20.0',
+          '@types/react': '~18.2.45',
+          eslint: '^8.56.0',
+          'eslint-config-expo': '^7.0.0',
+          jest: '^29.7.0',
+          'jest-expo': '~50.0.0',
+          typescript: '^5.3.0',
+        },
+        jest: {
+          preset: 'jest-expo',
+        },
       },
-      dependencies: {
-        "expo": "~50.0.0",
-        "expo-router": "~3.4.0",
-        "expo-status-bar": "~1.11.1",
-        "react": "18.2.0",
-        "react-native": "0.73.2",
-        "react-native-safe-area-context": "4.8.2",
-        "react-native-screens": "~3.29.0"
-      },
-      devDependencies: {
-        "@babel/core": "^7.20.0",
-        "@types/react": "~18.2.45",
-        "eslint": "^8.56.0",
-        "eslint-config-expo": "^7.0.0",
-        "jest": "^29.7.0",
-        "jest-expo": "~50.0.0",
-        "typescript": "^5.3.0"
-      },
-      jest: {
-        preset: "jest-expo"
-      }
-    }, null, 2);
+      null,
+      2
+    );
 
     // 2. app.json
-    files['app.json'] = JSON.stringify({
-      expo: {
-        name: projectName,
-        slug: cleanName,
-        version: "1.0.0",
-        orientation: "portrait",
-        icon: "./assets/icon.png",
-        scheme: cleanName,
-        userInterfaceStyle: "automatic",
-        splash: {
-          image: "./assets/splash.png",
-          resizeMode: "contain",
-          backgroundColor: "#ffffff"
-        },
-        ios: {
-          supportsTablet: true,
-          bundleIdentifier: `com.example.${cleanName}`
-        },
-        android: {
-          adaptiveIcon: {
-            foregroundImage: "./assets/adaptive-icon.png",
-            backgroundColor: "#ffffff"
+    files['app.json'] = JSON.stringify(
+      {
+        expo: {
+          name: projectName,
+          slug: cleanName,
+          version: '1.0.0',
+          orientation: 'portrait',
+          icon: './assets/icon.png',
+          scheme: cleanName,
+          userInterfaceStyle: 'automatic',
+          splash: {
+            image: './assets/splash.png',
+            resizeMode: 'contain',
+            backgroundColor: '#ffffff',
           },
-          package: `com.example.${cleanName}`
+          ios: {
+            supportsTablet: true,
+            bundleIdentifier: `com.example.${cleanName}`,
+          },
+          android: {
+            adaptiveIcon: {
+              foregroundImage: './assets/adaptive-icon.png',
+              backgroundColor: '#ffffff',
+            },
+            package: `com.example.${cleanName}`,
+          },
+          web: {
+            bundler: 'metro',
+            output: 'static',
+            favicon: './assets/favicon.png',
+          },
+          plugins: ['expo-router'],
         },
-        web: {
-          bundler: "metro",
-          output: "static",
-          favicon: "./assets/favicon.png"
-        },
-        plugins: ["expo-router"]
-      }
-    }, null, 2);
+      },
+      null,
+      2
+    );
 
     // 3. Babel Config
     files['babel.config.js'] = `module.exports = function(api) {
@@ -101,17 +108,21 @@ export const ExpoStrategy: GenerationStrategy = {
 `;
 
     // 4. TypeScript Config
-    files['tsconfig.json'] = JSON.stringify({
-      extends: "expo/tsconfig.base",
-      compilerOptions: {
-        strict: true,
-        baseUrl: ".",
-        paths: {
-          "@/*": ["./*"]
-        }
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        extends: 'expo/tsconfig.base',
+        compilerOptions: {
+          strict: true,
+          baseUrl: '.',
+          paths: {
+            '@/*': ['./*'],
+          },
+        },
+        include: ['**/*.ts', '**/*.tsx', '.expo/types/**/*.ts', 'expo-env.d.ts'],
       },
-      include: ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
-    }, null, 2);
+      null,
+      2
+    );
 
     // 5. ESLint Config
     files['.eslintrc.js'] = `module.exports = {
@@ -362,10 +373,8 @@ export const SwiftUIStrategy: GenerationStrategy = {
   name: 'SwiftUI Mobile App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'mobile' &&
-    stack.language === 'swift' &&
-    stack.framework === 'swiftui',
+  matches: stack =>
+    stack.archetype === 'mobile' && stack.language === 'swift' && stack.framework === 'swiftui',
 
   apply: async ({ files, projectName }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9]/g, '');

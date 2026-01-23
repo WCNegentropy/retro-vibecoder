@@ -152,15 +152,15 @@ function SeedGalleryPage() {
   }, []);
 
   // Filter seeds
-  const filteredSeeds = seeds.filter((entry) => {
+  const filteredSeeds = seeds.filter(entry => {
     const matchesArchetype = filterArchetype === 'all' || entry.stack.archetype === filterArchetype;
     const matchesLanguage = filterLanguage === 'all' || entry.stack.language === filterLanguage;
     return matchesArchetype && matchesLanguage;
   });
 
   // Get unique values for filters
-  const archetypes = Array.from(new Set(seeds.map((s) => s.stack.archetype)));
-  const languages = Array.from(new Set(seeds.map((s) => s.stack.language)));
+  const archetypes = Array.from(new Set(seeds.map(s => s.stack.archetype)));
+  const languages = Array.from(new Set(seeds.map(s => s.stack.language)));
 
   const handleUseSeed = (seed: number) => {
     navigate(`/seed?seed=${seed}`);
@@ -187,11 +187,13 @@ function SeedGalleryPage() {
           <select
             className="form-select"
             value={filterArchetype}
-            onChange={(e) => setFilterArchetype(e.target.value as Archetype | 'all')}
+            onChange={e => setFilterArchetype(e.target.value as Archetype | 'all')}
           >
             <option value="all">All Archetypes</option>
-            {archetypes.map((arch) => (
-              <option key={arch} value={arch}>{arch}</option>
+            {archetypes.map(arch => (
+              <option key={arch} value={arch}>
+                {arch}
+              </option>
             ))}
           </select>
         </div>
@@ -200,11 +202,13 @@ function SeedGalleryPage() {
           <select
             className="form-select"
             value={filterLanguage}
-            onChange={(e) => setFilterLanguage(e.target.value as Language | 'all')}
+            onChange={e => setFilterLanguage(e.target.value as Language | 'all')}
           >
             <option value="all">All Languages</option>
-            {languages.map((lang) => (
-              <option key={lang} value={lang}>{lang}</option>
+            {languages.map(lang => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
             ))}
           </select>
         </div>
@@ -215,7 +219,7 @@ function SeedGalleryPage() {
 
       <div className="gallery-layout">
         <div className="seed-grid">
-          {filteredSeeds.map((entry) => (
+          {filteredSeeds.map(entry => (
             <SeedCard
               key={entry.seed}
               entry={entry}
@@ -265,8 +269,10 @@ function SeedGalleryPage() {
             <div className="files-list">
               <h3>Generated Files</h3>
               <ul className="file-tree">
-                {selectedSeed.files.map((file) => (
-                  <li key={file} className="file">{file}</li>
+                {selectedSeed.files.map(file => (
+                  <li key={file} className="file">
+                    {file}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -312,14 +318,16 @@ function SeedCard({
         <span className="framework">{entry.stack.framework}</span>
       </div>
       <div className="seed-tags">
-        {entry.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="tag">{tag}</span>
+        {entry.tags.slice(0, 3).map(tag => (
+          <span key={tag} className="tag">
+            {tag}
+          </span>
         ))}
       </div>
       <button
         type="button"
         className="btn btn-outline btn-sm"
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation();
           onUse();
         }}

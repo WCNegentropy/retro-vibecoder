@@ -90,7 +90,7 @@ export async function executeSidecar(
     let stdout = '';
     let stderr = '';
 
-    command.stdout.on('data', (data) => {
+    command.stdout.on('data', data => {
       stdout += data;
       onEvent?.({
         type: 'stdout',
@@ -99,7 +99,7 @@ export async function executeSidecar(
       });
     });
 
-    command.stderr.on('data', (data) => {
+    command.stderr.on('data', data => {
       stderr += data;
       onEvent?.({
         type: 'stderr',
@@ -145,7 +145,7 @@ async function mockSidecarExecution(
   const startTime = Date.now();
 
   // Simulate execution
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   const mockOutput = `[mock] Executing sidecar: ${config.name}\n[mock] Args: ${config.args.join(' ')}\n[mock] Completed successfully`;
 
@@ -250,7 +250,7 @@ export function createOutputAccumulator(): {
   let stderr = '';
 
   return {
-    handler: (event) => {
+    handler: event => {
       if (event.type === 'stdout') {
         stdout += event.data;
       } else if (event.type === 'stderr') {
@@ -267,6 +267,6 @@ export function createOutputAccumulator(): {
 export function formatOutput(output: string): string[] {
   return output
     .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
 }

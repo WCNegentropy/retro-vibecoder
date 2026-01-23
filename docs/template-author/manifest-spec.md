@@ -28,32 +28,32 @@ actions:
 
 ## Top-Level Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `apiVersion` | string | Yes | Schema version (`upg/v1`) |
-| `metadata` | object | Yes | Template metadata |
-| `template` | object | No | Template configuration |
-| `prompts` | array | Yes | Interactive prompts |
-| `actions` | array | Yes | Generation actions |
-| `hooks` | object | No | Lifecycle hooks |
-| `validation` | object | No | Custom validation |
-| `documentation` | object | No | Template documentation |
+| Field           | Type   | Required | Description               |
+| --------------- | ------ | -------- | ------------------------- |
+| `apiVersion`    | string | Yes      | Schema version (`upg/v1`) |
+| `metadata`      | object | Yes      | Template metadata         |
+| `template`      | object | No       | Template configuration    |
+| `prompts`       | array  | Yes      | Interactive prompts       |
+| `actions`       | array  | Yes      | Generation actions        |
+| `hooks`         | object | No       | Lifecycle hooks           |
+| `validation`    | object | No       | Custom validation         |
+| `documentation` | object | No       | Template documentation    |
 
 ## Metadata Section
 
 ```yaml
 metadata:
-  name: my-template          # Required: kebab-case identifier
-  version: 1.0.0             # Required: semver version
-  description: ...           # Required: description
-  title: My Template         # Optional: display title
-  tags: [react, frontend]    # Optional: categorization
-  icon: https://...          # Optional: icon URL
-  author: name               # Optional: author
-  license: MIT               # Optional: license
-  lifecycle: production      # Optional: experimental|production|deprecated
-  owner: team-name           # Optional: owner
-  repository:                # Optional: source repository
+  name: my-template # Required: kebab-case identifier
+  version: 1.0.0 # Required: semver version
+  description: ... # Required: description
+  title: My Template # Optional: display title
+  tags: [react, frontend] # Optional: categorization
+  icon: https://... # Optional: icon URL
+  author: name # Optional: author
+  license: MIT # Optional: license
+  lifecycle: production # Optional: experimental|production|deprecated
+  owner: team-name # Optional: owner
+  repository: # Optional: source repository
     type: git
     url: https://...
 ```
@@ -62,32 +62,32 @@ metadata:
 
 ### Prompt Types
 
-| Type | JSON Schema | UI Widget |
-|------|-------------|-----------|
-| `string` | string | text input |
-| `int` | integer | number input |
-| `float` | number | number input |
-| `boolean` | boolean | checkbox |
-| `select` | string (enum) | dropdown |
-| `multiselect` | array | checkboxes |
-| `secret` | string | password input |
+| Type          | JSON Schema   | UI Widget      |
+| ------------- | ------------- | -------------- |
+| `string`      | string        | text input     |
+| `int`         | integer       | number input   |
+| `float`       | number        | number input   |
+| `boolean`     | boolean       | checkbox       |
+| `select`      | string (enum) | dropdown       |
+| `multiselect` | array         | checkboxes     |
+| `secret`      | string        | password input |
 
 ### Prompt Properties
 
 ```yaml
 prompts:
-  - id: project_name         # Required: unique identifier
-    type: string             # Required: data type
-    message: Enter name      # Required: prompt text
-    title: Project Name      # Optional: short title
-    help: Additional help    # Optional: help text
-    default: my-app          # Optional: default value
-    required: true           # Optional: is required
-    hidden: false            # Optional: hide from UI
-    validator: ^[a-z]+$      # Optional: regex pattern
-    error_message: Invalid   # Optional: validation error
-    when: "other_field"      # Optional: conditional display
-    choices:                 # Required for select/multiselect
+  - id: project_name # Required: unique identifier
+    type: string # Required: data type
+    message: Enter name # Required: prompt text
+    title: Project Name # Optional: short title
+    help: Additional help # Optional: help text
+    default: my-app # Optional: default value
+    required: true # Optional: is required
+    hidden: false # Optional: hide from UI
+    validator: ^[a-z]+$ # Optional: regex pattern
+    error_message: Invalid # Optional: validation error
+    when: 'other_field' # Optional: conditional display
+    choices: # Required for select/multiselect
       - option1
       - option2
 ```
@@ -106,10 +106,11 @@ prompts:
     type: select
     message: Which database?
     choices: [postgres, mysql]
-    when: "use_database"  # Only shown if use_database is true
+    when: 'use_database' # Only shown if use_database is true
 ```
 
 Supported expressions:
+
 - `"field_name"` - truthy check
 - `"not field_name"` - falsy check
 - `"field == 'value'"` - equality
@@ -125,7 +126,7 @@ prompts:
     type: string
     message: Package name
     default: "{{ project_name | lower | replace('-', '_') }}"
-    hidden: true  # Computed field, hide from UI
+    hidden: true # Computed field, hide from UI
 ```
 
 ## Actions Section
@@ -136,12 +137,12 @@ Process template files with Jinja2:
 
 ```yaml
 - type: generate
-  src: template/           # Source directory
-  dest: ./                 # Destination directory
-  exclude:                 # Optional: patterns to exclude
-    - "*.test.ts"
-  variables:               # Optional: additional variables
-    key: "{{ value }}"
+  src: template/ # Source directory
+  dest: ./ # Destination directory
+  exclude: # Optional: patterns to exclude
+    - '*.test.ts'
+  variables: # Optional: additional variables
+    key: '{{ value }}'
 ```
 
 ### Copy Action
@@ -160,8 +161,8 @@ Conditionally exclude files:
 
 ```yaml
 - type: skip
-  path: "tests/**"
-  when: "not use_testing"
+  path: 'tests/**'
+  when: 'not use_testing'
 ```
 
 ### Command Action
@@ -172,8 +173,8 @@ Run shell commands:
 - type: command
   command: npm install
   description: Installing dependencies
-  when: "true"
-  on_error: warn  # fail|warn|ignore
+  when: 'true'
+  on_error: warn # fail|warn|ignore
 ```
 
 ### Create File Action
@@ -200,7 +201,7 @@ hooks:
   pre_migration:
     script: hooks/pre_migration.py
     description: Pre-update validation
-    when: "update"
+    when: 'update'
     on_error: fail
 ```
 
@@ -208,12 +209,12 @@ hooks:
 
 ```yaml
 template:
-  markers:                 # Files that identify this template
+  markers: # Files that identify this template
     - .upg-answers.yaml
     - package.json
 
-  breaking_changes:        # Document breaking changes
-    - version: "2.0.0"
+  breaking_changes: # Document breaking changes
+    - version: '2.0.0'
       changes:
         - Changed X to Y
       migration_notes: |
@@ -221,16 +222,16 @@ template:
 
   smart_update:
     enabled: true
-    preserve_files:        # Never overwrite
+    preserve_files: # Never overwrite
       - .env.local
-    regenerate_files:      # Always overwrite
+    regenerate_files: # Always overwrite
       - package.json
-    conflict_resolution: manual  # manual|auto-accept-template|auto-accept-user
+    conflict_resolution: manual # manual|auto-accept-template|auto-accept-user
 ```
 
 ## Documentation Section
 
-```yaml
+````yaml
 documentation:
   quickstart: |
     ```bash
@@ -245,4 +246,4 @@ documentation:
   faq:
     - question: How do I customize X?
       answer: Edit the config file...
-```
+````

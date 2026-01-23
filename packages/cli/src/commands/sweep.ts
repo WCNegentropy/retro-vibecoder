@@ -125,7 +125,9 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         // Additional helpful info
         if (options.archetype && !options.language) {
           const languages = getValidLanguagesForArchetype(options.archetype as any);
-          console.error(pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`));
+          console.error(
+            pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`)
+          );
         }
 
         process.exit(1);
@@ -268,15 +270,21 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
 
     // Output results
     if (options.format === 'json') {
-      console.log(JSON.stringify({
-        results,
-        duration,
-        successCount,
-        failCount,
-        startSeed,
-        dryRun: options.dryRun ?? false,
-        onlyValid: options.onlyValid ?? false,
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            results,
+            duration,
+            successCount,
+            failCount,
+            startSeed,
+            dryRun: options.dryRun ?? false,
+            onlyValid: options.onlyValid ?? false,
+          },
+          null,
+          2
+        )
+      );
     } else {
       console.log();
 
@@ -285,9 +293,21 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       const onlyValidIndicator = options.onlyValid ? pc.magenta('[ONLY-VALID] ') : '';
 
       if (failCount > 0 && !options.onlyValid) {
-        console.log(pc.bold(pc.yellow(`${modeIndicator}${onlyValidIndicator}✓ Generated ${successCount}/${count} project(s) in ${duration}ms (${failCount} failed)`)));
+        console.log(
+          pc.bold(
+            pc.yellow(
+              `${modeIndicator}${onlyValidIndicator}✓ Generated ${successCount}/${count} project(s) in ${duration}ms (${failCount} failed)`
+            )
+          )
+        );
       } else {
-        console.log(pc.bold(pc.green(`${modeIndicator}${onlyValidIndicator}✓ Generated ${successCount} project(s) in ${duration}ms`)));
+        console.log(
+          pc.bold(
+            pc.green(
+              `${modeIndicator}${onlyValidIndicator}✓ Generated ${successCount} project(s) in ${duration}ms`
+            )
+          )
+        );
       }
 
       if (options.onlyValid && attempts > count) {
@@ -301,20 +321,22 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
           console.log(pc.bold(pc.red(`Seed ${result.seed}: FAILED`)));
           if (options.verbose && result.error) {
             // Enhanced error message with stack context
-            const stackContext = result.stack.archetype !== 'unknown'
-              ? ` [${result.stack.archetype}/${result.stack.language}/${result.stack.framework}]`
-              : '';
+            const stackContext =
+              result.stack.archetype !== 'unknown'
+                ? ` [${result.stack.archetype}/${result.stack.language}/${result.stack.framework}]`
+                : '';
             console.log(pc.red(`  Error${stackContext}: ${result.error}`));
           }
           console.log();
           continue;
         }
 
-        const status = result.validated === undefined
-          ? ''
-          : result.validated
-            ? pc.green(' [VALID]')
-            : pc.red(' [INVALID]');
+        const status =
+          result.validated === undefined
+            ? ''
+            : result.validated
+              ? pc.green(' [VALID]')
+              : pc.red(' [INVALID]');
 
         const dryRunNote = options.dryRun ? pc.cyan(' (preview)') : '';
 
@@ -337,14 +359,16 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       }
 
       // Summary - only include successful results
-      const successfulResults = results.filter((r) => !r.failed);
-      const archetypes = new Set(successfulResults.map((r) => r.stack.archetype));
-      const languages = new Set(successfulResults.map((r) => r.stack.language));
-      const frameworks = new Set(successfulResults.map((r) => r.stack.framework));
+      const successfulResults = results.filter(r => !r.failed);
+      const archetypes = new Set(successfulResults.map(r => r.stack.archetype));
+      const languages = new Set(successfulResults.map(r => r.stack.language));
+      const frameworks = new Set(successfulResults.map(r => r.stack.framework));
 
       console.log(pc.dim('─'.repeat(50)));
       console.log(pc.bold('Summary:'));
-      console.log(`  Success rate: ${successCount}/${options.onlyValid ? attempts : count} (${Math.round((successCount / (options.onlyValid ? attempts : count)) * 100)}%)`);
+      console.log(
+        `  Success rate: ${successCount}/${options.onlyValid ? attempts : count} (${Math.round((successCount / (options.onlyValid ? attempts : count)) * 100)}%)`
+      );
       console.log(`  Seed range: ${startSeed} - ${currentSeed - 1}`);
       console.log(`  Archetypes: ${[...archetypes].join(', ')}`);
       console.log(`  Languages: ${[...languages].join(', ')}`);
@@ -363,12 +387,17 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       // Save to registry if requested (skip in dry-run mode)
       if (options.saveRegistry && !options.dryRun) {
         // Filter out failed and include only validated (or all successful if not validating)
-        const validResults = results.filter((r) => !r.failed && (r.validated === true || (r.validated === undefined && !options.validate)));
+        const validResults = results.filter(
+          r =>
+            !r.failed && (r.validated === true || (r.validated === undefined && !options.validate))
+        );
 
         if (validResults.length > 0) {
           const registryPath = await saveToRegistry(validResults, options.saveRegistry);
           console.log();
-          console.log(pc.green(`Registry saved: ${validResults.length} valid project(s) to ${registryPath}`));
+          console.log(
+            pc.green(`Registry saved: ${validResults.length} valid project(s) to ${registryPath}`)
+          );
         } else {
           console.log();
           console.log(pc.yellow('No valid projects to save to registry'));
@@ -417,7 +446,7 @@ async function saveToRegistry(
   }
 
   // Create new entries - all registry entries are MIT licensed
-  const newEntries: RegistryEntry[] = results.map((r) => ({
+  const newEntries: RegistryEntry[] = results.map(r => ({
     seed: r.seed,
     id: r.id,
     license: 'MIT' as const,
@@ -435,8 +464,8 @@ async function saveToRegistry(
   }));
 
   // Merge entries (deduplicate by seed)
-  const existingSeeds = new Set(existingManifest.entries.map((e) => e.seed));
-  const uniqueNewEntries = newEntries.filter((e) => !existingSeeds.has(e.seed));
+  const existingSeeds = new Set(existingManifest.entries.map(e => e.seed));
+  const uniqueNewEntries = newEntries.filter(e => !existingSeeds.has(e.seed));
 
   const allEntries = [...existingManifest.entries, ...uniqueNewEntries];
 
@@ -460,13 +489,16 @@ async function saveToRegistry(
 /**
  * Seed command - generate a single project from a seed
  */
-export async function seedAction(seedStr: string, options: {
-  output?: string;
-  verbose: boolean;
-  archetype?: string;
-  language?: string;
-  framework?: string;
-}): Promise<void> {
+export async function seedAction(
+  seedStr: string,
+  options: {
+    output?: string;
+    verbose: boolean;
+    archetype?: string;
+    language?: string;
+    framework?: string;
+  }
+): Promise<void> {
   const seed = parseInt(seedStr, 10);
 
   if (isNaN(seed) || seed < 1) {
@@ -508,11 +540,16 @@ export async function seedAction(seedStr: string, options: {
         // Additional helpful info
         if (options.archetype && !options.language) {
           const languages = getValidLanguagesForArchetype(options.archetype as any);
-          console.error(pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`));
+          console.error(
+            pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`)
+          );
         }
 
         if (options.archetype && options.language) {
-          const frameworks = getSuggestedFrameworks(options.archetype as any, options.language as any);
+          const frameworks = getSuggestedFrameworks(
+            options.archetype as any,
+            options.language as any
+          );
           if (frameworks.length > 0) {
             console.error(pc.dim(`Compatible frameworks: ${frameworks.join(', ')}`));
           }
@@ -585,7 +622,16 @@ export async function seedAction(seedStr: string, options: {
       console.log();
       console.log(pc.bold('File Previews:'));
 
-      const previewFiles = ['package.json', 'Cargo.toml', 'go.mod', 'requirements.txt', 'main.py', 'src/index.ts', 'src/main.rs', 'main.go'];
+      const previewFiles = [
+        'package.json',
+        'Cargo.toml',
+        'go.mod',
+        'requirements.txt',
+        'main.py',
+        'src/index.ts',
+        'src/main.rs',
+        'main.go',
+      ];
 
       for (const file of previewFiles) {
         if (project.files[file]) {
@@ -612,7 +658,9 @@ export async function seedAction(seedStr: string, options: {
       console.error(pc.yellow('Suggestions:'));
       console.error(pc.yellow('  → Try a different seed number'));
       console.error(pc.yellow('  → Use --archetype and --language to constrain generation'));
-      console.error(pc.yellow('  → Example: upg seed 42 --archetype backend --language typescript'));
+      console.error(
+        pc.yellow('  → Example: upg seed 42 --archetype backend --language typescript')
+      );
     }
 
     process.exit(1);

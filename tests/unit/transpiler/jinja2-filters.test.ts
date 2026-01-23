@@ -67,7 +67,9 @@ describe('Jinja2 Filters', () => {
   describe('String Transformation Filters', () => {
     describe('replace', () => {
       it('replaces all occurrences', () => {
-        expect(JINJA2_FILTERS.replace('hello world world', 'world', 'there')).toBe('hello there there');
+        expect(JINJA2_FILTERS.replace('hello world world', 'world', 'there')).toBe(
+          'hello there there'
+        );
       });
 
       it('handles no matches', () => {

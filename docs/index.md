@@ -107,6 +107,7 @@ upg generate react-starter
 ### Universal Manifest (upg.yaml)
 
 The manifest defines everything about a template:
+
 - **Metadata** - Name, version, description, tags
 - **Prompts** - Interactive questions for users
 - **Actions** - File generation, copying, commands
@@ -115,6 +116,7 @@ The manifest defines everything about a template:
 ### JSON Schema Transpilation
 
 Manifests are transpiled to JSON Schema for:
+
 - Runtime form validation
 - Dynamic UI generation with RJSF
 - Conditional logic handling
@@ -122,6 +124,7 @@ Manifests are transpiled to JSON Schema for:
 ### Sidecar Pattern
 
 External tools (Copier, Yeoman) are bundled as sidecars:
+
 - Leverage existing templating ecosystems
 - Isolate execution from the main process
 - Enable future tool support without core changes

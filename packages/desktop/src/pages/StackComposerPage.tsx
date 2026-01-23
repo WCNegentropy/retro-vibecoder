@@ -37,7 +37,11 @@ const ARCHETYPES: { id: Archetype; name: string; icon: string; description: stri
 ];
 
 const LANGUAGES: { id: Language; name: string; archetypes: Archetype[] }[] = [
-  { id: 'typescript', name: 'TypeScript', archetypes: ['backend', 'web', 'cli', 'library', 'desktop'] },
+  {
+    id: 'typescript',
+    name: 'TypeScript',
+    archetypes: ['backend', 'web', 'cli', 'library', 'desktop'],
+  },
   { id: 'python', name: 'Python', archetypes: ['backend', 'cli', 'library'] },
   { id: 'rust', name: 'Rust', archetypes: ['backend', 'cli', 'library', 'desktop'] },
   { id: 'go', name: 'Go', archetypes: ['backend', 'cli', 'library'] },
@@ -124,25 +128,29 @@ function StackComposerPage() {
   // Filter languages based on selected archetype
   const availableLanguages = useMemo(() => {
     if (!archetype) return [];
-    return LANGUAGES.filter((lang) => lang.archetypes.includes(archetype));
+    return LANGUAGES.filter(lang => lang.archetypes.includes(archetype));
   }, [archetype]);
 
   // Filter frameworks based on archetype + language
   const availableFrameworks = useMemo(() => {
     if (!archetype || !language) return [];
-    return FRAMEWORKS.filter(
-      (fw) => fw.archetype === archetype && fw.language === language
-    );
+    return FRAMEWORKS.filter(fw => fw.archetype === archetype && fw.language === language);
   }, [archetype, language]);
 
   const canProceed = useCallback((): boolean => {
     switch (currentStep) {
-      case 0: return archetype !== null;
-      case 1: return language !== null;
-      case 2: return framework !== null;
-      case 3: return true;
-      case 4: return true;
-      default: return false;
+      case 0:
+        return archetype !== null;
+      case 1:
+        return language !== null;
+      case 2:
+        return framework !== null;
+      case 3:
+        return true;
+      case 4:
+        return true;
+      default:
+        return false;
     }
   }, [currentStep, archetype, language, framework]);
 
@@ -208,7 +216,7 @@ function StackComposerPage() {
 
           {currentStep === 0 && (
             <div className="option-grid">
-              {ARCHETYPES.map((arch) => (
+              {ARCHETYPES.map(arch => (
                 <button
                   key={arch.id}
                   type="button"
@@ -229,7 +237,7 @@ function StackComposerPage() {
 
           {currentStep === 1 && (
             <div className="option-grid">
-              {availableLanguages.map((lang) => (
+              {availableLanguages.map(lang => (
                 <button
                   key={lang.id}
                   type="button"
@@ -247,7 +255,7 @@ function StackComposerPage() {
 
           {currentStep === 2 && (
             <div className="option-grid">
-              {availableFrameworks.map((fw) => (
+              {availableFrameworks.map(fw => (
                 <button
                   key={fw.id}
                   type="button"
@@ -270,10 +278,12 @@ function StackComposerPage() {
                 <select
                   className="form-select"
                   value={database}
-                  onChange={(e) => setDatabase(e.target.value as Database)}
+                  onChange={e => setDatabase(e.target.value as Database)}
                 >
-                  {DATABASES.map((db) => (
-                    <option key={db.id} value={db.id}>{db.name}</option>
+                  {DATABASES.map(db => (
+                    <option key={db.id} value={db.id}>
+                      {db.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -282,10 +292,12 @@ function StackComposerPage() {
                 <select
                   className="form-select"
                   value={cicd}
-                  onChange={(e) => setCicd(e.target.value as CICD)}
+                  onChange={e => setCicd(e.target.value as CICD)}
                 >
-                  {CICD_OPTIONS.map((opt) => (
-                    <option key={opt.id} value={opt.id}>{opt.name}</option>
+                  {CICD_OPTIONS.map(opt => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -294,10 +306,12 @@ function StackComposerPage() {
                 <select
                   className="form-select"
                   value={packaging}
-                  onChange={(e) => setPackaging(e.target.value as Packaging)}
+                  onChange={e => setPackaging(e.target.value as Packaging)}
                 >
-                  {PACKAGING_OPTIONS.map((opt) => (
-                    <option key={opt.id} value={opt.id}>{opt.name}</option>
+                  {PACKAGING_OPTIONS.map(opt => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -347,7 +361,7 @@ function StackComposerPage() {
                   type="text"
                   className="form-input"
                   value={outputPath}
-                  onChange={(e) => setOutputPath(e.target.value)}
+                  onChange={e => setOutputPath(e.target.value)}
                 />
               </div>
             </div>

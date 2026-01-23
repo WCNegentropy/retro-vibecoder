@@ -69,7 +69,11 @@ export function detectBuildSteps(stack: TechStack): BuildStep[] {
 
     case 'python':
       steps.push(
-        { command: 'python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt', timeout: 120000 },
+        {
+          command:
+            'python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt',
+          timeout: 120000,
+        },
         { command: 'source .venv/bin/activate && ruff check .', timeout: 60000 },
         { command: 'source .venv/bin/activate && mypy .', timeout: 60000 },
         { command: 'source .venv/bin/activate && pytest', timeout: 120000 }
@@ -161,14 +165,14 @@ export class Sweeper {
         }
       }
 
-      const success = stepResults.every((r) => r.success);
+      const success = stepResults.every(r => r.success);
 
       return {
         success,
         project,
         steps: stepResults,
         durationMs: Date.now() - startTime,
-        error: success ? undefined : stepResults.find((r) => !r.success)?.stderr,
+        error: success ? undefined : stepResults.find(r => !r.success)?.stderr,
       };
     } catch (error) {
       return {
