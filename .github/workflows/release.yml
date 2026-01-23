@@ -1,0 +1,285 @@
+name: Release Desktop App
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on version tags (e.g., v0.1.0, v1.0.0)
+  workflow_dispatch: # Allow manual trigger for testing
+    inputs:
+      skip_release:
+        description: 'Skip creating GitHub release (for testing builds)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Build Tauri app for each platform
+  build-tauri:
+    name: Build Tauri (${{ matrix.settings.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          # Windows x64
+          - platform: windows-latest
+            rust_target: x86_64-pc-windows-msvc
+            tauri_args: ''
+            artifact_suffix: windows-x64
+
+          # macOS x64 (Intel)
+          - platform: macos-13
+            rust_target: x86_64-apple-darwin
+            tauri_args: '--target x86_64-apple-darwin'
+            artifact_suffix: macos-x64
+
+          # macOS ARM64 (Apple Silicon)
+          - platform: macos-latest
+            rust_target: aarch64-apple-darwin
+            tauri_args: '--target aarch64-apple-darwin'
+            artifact_suffix: macos-arm64
+
+          # Linux x64
+          - platform: ubuntu-22.04
+            rust_target: x86_64-unknown-linux-gnu
+            tauri_args: ''
+            artifact_suffix: linux-x64
+
+    runs-on: ${{ matrix.settings.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Linux-specific dependencies for Tauri/WebKit
+      - name: Install Linux dependencies
+        if: matrix.settings.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev
+
+      # Setup Node.js and pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      # Setup Rust toolchain
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.settings.rust_target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/desktop/src-tauri -> target
+          cache-on-failure: true
+
+      # Install Node dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build all workspace packages (core, procedural, shared, etc.)
+      - name: Build workspace packages
+        run: pnpm build
+
+      # Setup Python and build copier-cli sidecar
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build copier-cli sidecar
+        shell: bash
+        run: |
+          # Install copier and PyInstaller
+          pip install copier pyinstaller
+
+          # Create binaries directory in src-tauri
+          mkdir -p packages/desktop/src-tauri/binaries
+
+          # Get the target triple for Tauri sidecar naming convention
+          TARGET="${{ matrix.settings.rust_target }}"
+
+          # Find copier's __main__.py entry point
+          COPIER_MAIN=$(python -c "import copier; import os; print(os.path.join(os.path.dirname(copier.__file__), '__main__.py'))")
+
+          # Build standalone executable with PyInstaller
+          # Tauri sidecar naming: <binary>-<target>[.exe]
+          echo "Building copier-cli sidecar for target: $TARGET"
+
+          if [[ "${{ matrix.settings.platform }}" == "windows-latest" ]]; then
+            pyinstaller --onefile --name "copier-cli-${TARGET}" "$COPIER_MAIN"
+            mv dist/copier-cli-${TARGET}.exe packages/desktop/src-tauri/binaries/
+          else
+            pyinstaller --onefile --name "copier-cli-${TARGET}" "$COPIER_MAIN"
+            mv dist/copier-cli-${TARGET} packages/desktop/src-tauri/binaries/
+            chmod +x "packages/desktop/src-tauri/binaries/copier-cli-${TARGET}"
+          fi
+
+          # Verify sidecar was created
+          echo "Sidecar binaries:"
+          ls -la packages/desktop/src-tauri/binaries/
+
+      # Build Tauri application
+      - name: Build Tauri App
+        working-directory: packages/desktop
+        run: pnpm tauri build ${{ matrix.settings.tauri_args }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload Windows artifacts (MSI + NSIS installer)
+      - name: Upload Windows artifacts
+        if: matrix.settings.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.settings.artifact_suffix }}
+          path: |
+            packages/desktop/src-tauri/target/release/bundle/msi/*.msi
+            packages/desktop/src-tauri/target/release/bundle/nsis/*.exe
+          retention-days: 7
+          if-no-files-found: error
+
+      # Upload macOS artifacts (DMG)
+      - name: Upload macOS artifacts
+        if: startsWith(matrix.settings.platform, 'macos')
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.settings.artifact_suffix }}
+          path: |
+            packages/desktop/src-tauri/target/${{ matrix.settings.rust_target }}/release/bundle/dmg/*.dmg
+          retention-days: 7
+          if-no-files-found: error
+
+      # Upload Linux artifacts (DEB, RPM, AppImage)
+      - name: Upload Linux artifacts
+        if: matrix.settings.platform == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.settings.artifact_suffix }}
+          path: |
+            packages/desktop/src-tauri/target/release/bundle/deb/*.deb
+            packages/desktop/src-tauri/target/release/bundle/appimage/*.AppImage
+          retention-days: 7
+          if-no-files-found: error
+
+  # Create GitHub Release with all artifacts
+  create-release:
+    name: Create Release
+    needs: build-tauri
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') && github.event.inputs.skip_release != 'true'
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: app-*
+          merge-multiple: false
+
+      - name: Display artifacts structure
+        run: find artifacts -type f | head -50
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-files
+
+          # Flatten all platform artifacts into release-files/
+          find artifacts -type f \( \
+            -name "*.msi" -o \
+            -name "*.exe" -o \
+            -name "*.dmg" -o \
+            -name "*.deb" -o \
+            -name "*.AppImage" \
+          \) -exec cp {} release-files/ \;
+
+          echo "Release files:"
+          ls -la release-files/
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Generate release notes
+        run: |
+          cat << 'EOF' > release-notes.md
+          ## UPG Desktop ${{ steps.version.outputs.version }}
+
+          Universal Project Generator - Desktop Application
+
+          ### Downloads
+
+          | Platform | Architecture | Format | Notes |
+          |----------|--------------|--------|-------|
+          | Windows | x64 | `.msi`, `.exe` | MSI for enterprise, EXE for personal |
+          | macOS | Intel (x64) | `.dmg` | For Intel-based Macs |
+          | macOS | Apple Silicon | `.dmg` | For M1/M2/M3 Macs |
+          | Linux | x64 | `.deb`, `.AppImage` | DEB for Debian/Ubuntu, AppImage for all distros |
+
+          ### Installation
+
+          **Windows:**
+          - Download the `.msi` installer for standard installation
+          - Or download the `.exe` (NSIS installer) and run it
+
+          **macOS:**
+          - Download the `.dmg` for your architecture
+          - Open the DMG and drag UPG Desktop to Applications
+          - On first run, right-click and select "Open" to bypass Gatekeeper
+
+          **Linux:**
+          - **Debian/Ubuntu:** `sudo dpkg -i upg-desktop_*.deb`
+          - **AppImage:** `chmod +x UPG*.AppImage && ./UPG*.AppImage`
+
+          ### Features
+
+          - **Procedural Generation:** Generate unique project configurations from numeric seeds
+          - **Stack Composer:** Manually select your tech stack components
+          - **Seed Gallery:** Browse pre-validated seed configurations
+          - **Template Mode:** Use Copier-based templates for standardized projects
+
+          ### Requirements
+
+          - **Windows:** Windows 10 or later
+          - **macOS:** macOS 10.15 (Catalina) or later
+          - **Linux:** Modern distribution with GTK 3 and WebKit2GTK
+
+          ---
+
+          **Full Changelog:** https://github.com/${{ github.repository }}/compare/...v${{ steps.version.outputs.version }}
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: UPG Desktop ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
+          files: release-files/*
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
