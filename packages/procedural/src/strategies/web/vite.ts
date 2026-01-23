@@ -1194,3 +1194,1120 @@ export default {
     }
   },
 };
+
+/**
+ * Angular Strategy - Angular CLI + TypeScript
+ */
+export const AngularStrategy: GenerationStrategy = {
+  id: 'web-angular',
+  name: 'Angular Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'angular',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        version: '0.1.0',
+        scripts: {
+          start: 'ng serve',
+          build: 'ng build',
+          watch: 'ng build --watch --configuration development',
+          test: 'ng test',
+          lint: 'ng lint',
+        },
+        dependencies: {
+          '@angular/animations': '^17.0.0',
+          '@angular/common': '^17.0.0',
+          '@angular/compiler': '^17.0.0',
+          '@angular/core': '^17.0.0',
+          '@angular/forms': '^17.0.0',
+          '@angular/platform-browser': '^17.0.0',
+          '@angular/platform-browser-dynamic': '^17.0.0',
+          '@angular/router': '^17.0.0',
+          rxjs: '~7.8.0',
+          tslib: '^2.3.0',
+          'zone.js': '~0.14.0',
+        },
+        devDependencies: {
+          '@angular-devkit/build-angular': '^17.0.0',
+          '@angular/cli': '^17.0.0',
+          '@angular/compiler-cli': '^17.0.0',
+          '@types/jasmine': '~5.1.0',
+          jasmine: '~5.1.0',
+          'jasmine-core': '~5.1.0',
+          karma: '~6.4.0',
+          'karma-chrome-launcher': '~3.2.0',
+          'karma-coverage': '~2.2.0',
+          'karma-jasmine': '~5.1.0',
+          'karma-jasmine-html-reporter': '~2.1.0',
+          typescript: '~5.2.0',
+        },
+      },
+      null,
+      2
+    );
+
+    // angular.json
+    files['angular.json'] = JSON.stringify(
+      {
+        $schema: './node_modules/@angular/cli/lib/config/schema.json',
+        version: 1,
+        newProjectRoot: 'projects',
+        projects: {
+          [cleanName]: {
+            projectType: 'application',
+            root: '',
+            sourceRoot: 'src',
+            prefix: 'app',
+            architect: {
+              build: {
+                builder: '@angular-devkit/build-angular:application',
+                options: {
+                  outputPath: 'dist',
+                  index: 'src/index.html',
+                  browser: 'src/main.ts',
+                  polyfills: ['zone.js'],
+                  tsConfig: 'tsconfig.app.json',
+                  assets: ['src/favicon.ico', 'src/assets'],
+                  styles: ['src/styles.css'],
+                  scripts: [],
+                },
+                configurations: {
+                  production: {
+                    budgets: [
+                      { type: 'initial', maximumWarning: '500kb', maximumError: '1mb' },
+                      { type: 'anyComponentStyle', maximumWarning: '2kb', maximumError: '4kb' },
+                    ],
+                    outputHashing: 'all',
+                  },
+                  development: {
+                    optimization: false,
+                    extractLicenses: false,
+                    sourceMap: true,
+                  },
+                },
+                defaultConfiguration: 'production',
+              },
+              serve: {
+                builder: '@angular-devkit/build-angular:dev-server',
+                configurations: {
+                  production: { buildTarget: cleanName + ':build:production' },
+                  development: { buildTarget: cleanName + ':build:development' },
+                },
+                defaultConfiguration: 'development',
+              },
+              test: {
+                builder: '@angular-devkit/build-angular:karma',
+                options: {
+                  polyfills: ['zone.js', 'zone.js/testing'],
+                  tsConfig: 'tsconfig.spec.json',
+                  assets: ['src/favicon.ico', 'src/assets'],
+                  styles: ['src/styles.css'],
+                  scripts: [],
+                },
+              },
+            },
+          },
+        },
+      },
+      null,
+      2
+    );
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        compileOnSave: false,
+        compilerOptions: {
+          outDir: './dist/out-tsc',
+          forceConsistentCasingInFileNames: true,
+          strict: true,
+          noImplicitOverride: true,
+          noPropertyAccessFromIndexSignature: true,
+          noImplicitReturns: true,
+          noFallthroughCasesInSwitch: true,
+          esModuleInterop: true,
+          sourceMap: true,
+          declaration: false,
+          downlevelIteration: true,
+          experimentalDecorators: true,
+          moduleResolution: 'bundler',
+          importHelpers: true,
+          target: 'ES2022',
+          module: 'ES2022',
+          lib: ['ES2022', 'dom'],
+        },
+        angularCompilerOptions: {
+          enableI18nLegacyMessageIdFormat: false,
+          strictInjectionParameters: true,
+          strictInputAccessModifiers: true,
+          strictTemplates: true,
+        },
+      },
+      null,
+      2
+    );
+
+    // tsconfig.app.json
+    files['tsconfig.app.json'] = JSON.stringify(
+      {
+        extends: './tsconfig.json',
+        compilerOptions: { outDir: './out-tsc/app', types: [] },
+        files: ['src/main.ts'],
+        include: ['src/**/*.d.ts'],
+      },
+      null,
+      2
+    );
+
+    // tsconfig.spec.json
+    files['tsconfig.spec.json'] = JSON.stringify(
+      {
+        extends: './tsconfig.json',
+        compilerOptions: { outDir: './out-tsc/spec', types: ['jasmine'] },
+        include: ['src/**/*.spec.ts', 'src/**/*.d.ts'],
+      },
+      null,
+      2
+    );
+
+    // index.html
+    files['src/index.html'] = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${projectName}</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+`;
+
+    // main.ts
+    files['src/main.ts'] = `import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routes';
+
+bootstrapApplication(AppComponent, {
+  providers: [provideRouter(routes)]
+}).catch(err => console.error(err));
+`;
+
+    // App component
+    files['src/app/app.component.ts'] = `import { Component } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet, RouterLink],
+  template: \`
+    <div class="app">
+      <nav class="nav">
+        <a routerLink="/">Home</a>
+        <a routerLink="/about">About</a>
+      </nav>
+      <main>
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  \`,
+  styles: [\`
+    .app { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+    .nav a { color: #dd0031; text-decoration: none; font-weight: 500; }
+    .nav a:hover { text-decoration: underline; }
+  \`]
+})
+export class AppComponent {
+  title = '${projectName}';
+}
+`;
+
+    // Routes
+    files['src/app/app.routes.ts'] = `import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { AboutComponent } from './about/about.component';
+
+export const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'about', component: AboutComponent },
+];
+`;
+
+    // Home component
+    files['src/app/home/home.component.ts'] = `import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-home',
+  standalone: true,
+  template: \`
+    <div class="home">
+      <h1>Welcome to ${projectName}</h1>
+      <p>Generated by Retro Vibecoder UPG</p>
+    </div>
+  \`,
+  styles: [\`
+    .home { text-align: center; padding: 2rem; }
+    h1 { color: #dd0031; }
+  \`]
+})
+export class HomeComponent {}
+`;
+
+    // About component
+    files['src/app/about/about.component.ts'] = `import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-about',
+  standalone: true,
+  template: \`
+    <div class="about">
+      <h1>About</h1>
+      <p>An Angular application built with Angular 17 and TypeScript.</p>
+    </div>
+  \`,
+  styles: [\`
+    .about { text-align: center; padding: 2rem; }
+  \`]
+})
+export class AboutComponent {}
+`;
+
+    // Global styles
+    files['src/styles.css'] = generateBaseStyles(stack.styling);
+  },
+};
+
+/**
+ * Next.js Strategy - React + Next.js + TypeScript
+ */
+export const NextJSStrategy: GenerationStrategy = {
+  id: 'web-nextjs',
+  name: 'Next.js Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'nextjs',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        version: '0.1.0',
+        private: true,
+        scripts: {
+          dev: 'next dev',
+          build: 'next build',
+          start: 'next start',
+          lint: 'next lint',
+          test: 'vitest',
+        },
+        dependencies: {
+          next: '^14.1.0',
+          react: '^18.2.0',
+          'react-dom': '^18.2.0',
+          ...stylingDeps.deps,
+        },
+        devDependencies: {
+          '@types/node': '^20.11.0',
+          '@types/react': '^18.2.55',
+          '@types/react-dom': '^18.2.19',
+          typescript: '^5.3.3',
+          eslint: '^8.56.0',
+          'eslint-config-next': '^14.1.0',
+          vitest: '^1.2.2',
+          ...stylingDeps.devDeps,
+        },
+      },
+      null,
+      2
+    );
+
+    // next.config.js
+    files['next.config.js'] = `/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+};
+
+module.exports = nextConfig;
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          lib: ['dom', 'dom.iterable', 'esnext'],
+          allowJs: true,
+          skipLibCheck: true,
+          strict: true,
+          noEmit: true,
+          esModuleInterop: true,
+          module: 'esnext',
+          moduleResolution: 'bundler',
+          resolveJsonModule: true,
+          isolatedModules: true,
+          jsx: 'preserve',
+          incremental: true,
+          plugins: [{ name: 'next' }],
+          paths: { '@/*': ['./src/*'] },
+        },
+        include: ['next-env.d.ts', '**/*.ts', '**/*.tsx', '.next/types/**/*.ts'],
+        exclude: ['node_modules'],
+      },
+      null,
+      2
+    );
+
+    // App layout
+    files['src/app/layout.tsx'] = `import type { Metadata } from 'next';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: '${projectName}',
+  description: 'Generated by Retro Vibecoder UPG',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+`;
+
+    // Home page
+    files['src/app/page.tsx'] = `import Link from 'next/link';
+
+export default function Home() {
+  return (
+    <main className="main">
+      <h1>Welcome to ${projectName}</h1>
+      <p>Generated by Retro Vibecoder UPG</p>
+      <Link href="/about">Learn More</Link>
+    </main>
+  );
+}
+`;
+
+    // About page
+    files['src/app/about/page.tsx'] = `import Link from 'next/link';
+
+export default function About() {
+  return (
+    <main className="main">
+      <h1>About</h1>
+      <p>A Next.js application built with React and TypeScript.</p>
+      <Link href="/">Back to Home</Link>
+    </main>
+  );
+}
+`;
+
+    // Global styles
+    files['src/app/globals.css'] = generateBaseStyles(stack.styling);
+
+    // Tailwind config if needed
+    if (stack.styling === 'tailwind') {
+      files['tailwind.config.ts'] = `import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+export default config;
+`;
+      files['postcss.config.js'] = `module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+`;
+    }
+
+    // ESLint config
+    files['.eslintrc.json'] = JSON.stringify(
+      { extends: 'next/core-web-vitals' },
+      null,
+      2
+    );
+  },
+};
+
+/**
+ * Nuxt Strategy - Vue + Nuxt 3 + TypeScript
+ */
+export const NuxtStrategy: GenerationStrategy = {
+  id: 'web-nuxt',
+  name: 'Nuxt Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'nuxt',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        version: '0.1.0',
+        private: true,
+        scripts: {
+          build: 'nuxt build',
+          dev: 'nuxt dev',
+          generate: 'nuxt generate',
+          preview: 'nuxt preview',
+          postinstall: 'nuxt prepare',
+          lint: 'eslint .',
+          test: 'vitest',
+        },
+        dependencies: {
+          nuxt: '^3.10.0',
+          vue: '^3.4.0',
+          'vue-router': '^4.2.5',
+          ...stylingDeps.deps,
+        },
+        devDependencies: {
+          '@nuxt/eslint-config': '^0.2.0',
+          eslint: '^8.56.0',
+          typescript: '^5.3.3',
+          vitest: '^1.2.2',
+          ...stylingDeps.devDeps,
+        },
+      },
+      null,
+      2
+    );
+
+    // nuxt.config.ts
+    files['nuxt.config.ts'] = `export default defineNuxtConfig({
+  devtools: { enabled: true },
+  typescript: {
+    strict: true,
+  },
+  modules: [],
+});
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      { extends: './.nuxt/tsconfig.json' },
+      null,
+      2
+    );
+
+    // App layout
+    files['app.vue'] = `<template>
+  <div>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
+</template>
+`;
+
+    // Default layout
+    files['layouts/default.vue'] = `<template>
+  <div class="app">
+    <nav class="nav">
+      <NuxtLink to="/">Home</NuxtLink>
+      <NuxtLink to="/about">About</NuxtLink>
+    </nav>
+    <main>
+      <slot />
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.nav a {
+  color: #00dc82;
+  text-decoration: none;
+  font-weight: 500;
+}
+.nav a:hover {
+  text-decoration: underline;
+}
+</style>
+`;
+
+    // Home page
+    files['pages/index.vue'] = `<template>
+  <div class="home">
+    <h1>Welcome to ${projectName}</h1>
+    <p>Generated by Retro Vibecoder UPG</p>
+  </div>
+</template>
+
+<style scoped>
+.home {
+  text-align: center;
+  padding: 2rem;
+}
+h1 {
+  color: #00dc82;
+}
+</style>
+`;
+
+    // About page
+    files['pages/about.vue'] = `<template>
+  <div class="about">
+    <h1>About</h1>
+    <p>A Nuxt 3 application built with Vue 3 and TypeScript.</p>
+  </div>
+</template>
+
+<style scoped>
+.about {
+  text-align: center;
+  padding: 2rem;
+}
+</style>
+`;
+  },
+};
+
+/**
+ * SvelteKit Strategy - Svelte + SvelteKit + TypeScript
+ */
+export const SvelteKitStrategy: GenerationStrategy = {
+  id: 'web-sveltekit',
+  name: 'SvelteKit Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'sveltekit',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        version: '0.1.0',
+        private: true,
+        scripts: {
+          dev: 'vite dev',
+          build: 'vite build',
+          preview: 'vite preview',
+          check: 'svelte-kit sync && svelte-check --tsconfig ./tsconfig.json',
+          'check:watch': 'svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch',
+          lint: 'eslint .',
+          test: 'vitest',
+        },
+        devDependencies: {
+          '@sveltejs/adapter-auto': '^3.0.0',
+          '@sveltejs/kit': '^2.0.0',
+          '@sveltejs/vite-plugin-svelte': '^3.0.0',
+          svelte: '^4.2.9',
+          'svelte-check': '^3.6.0',
+          typescript: '^5.3.3',
+          vite: '^5.1.0',
+          vitest: '^1.2.2',
+          tslib: '^2.6.2',
+          eslint: '^8.56.0',
+          ...stylingDeps.devDeps,
+        },
+        dependencies: {
+          ...stylingDeps.deps,
+        },
+        type: 'module',
+      },
+      null,
+      2
+    );
+
+    // svelte.config.js
+    files['svelte.config.js'] = `import adapter from '@sveltejs/adapter-auto';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+  preprocess: vitePreprocess(),
+  kit: {
+    adapter: adapter(),
+  },
+};
+
+export default config;
+`;
+
+    // vite.config.ts
+    files['vite.config.ts'] = `import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [sveltekit()],
+});
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        extends: './.svelte-kit/tsconfig.json',
+        compilerOptions: {
+          allowJs: true,
+          checkJs: true,
+          esModuleInterop: true,
+          forceConsistentCasingInFileNames: true,
+          resolveJsonModule: true,
+          skipLibCheck: true,
+          sourceMap: true,
+          strict: true,
+          moduleResolution: 'bundler',
+        },
+      },
+      null,
+      2
+    );
+
+    // Root layout
+    files['src/routes/+layout.svelte'] = `<script lang="ts">
+  import '../app.css';
+</script>
+
+<div class="app">
+  <nav class="nav">
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+  </nav>
+  <main>
+    <slot />
+  </main>
+</div>
+
+<style>
+  .app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  .nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .nav a {
+    color: #ff3e00;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .nav a:hover {
+    text-decoration: underline;
+  }
+</style>
+`;
+
+    // Home page
+    files['src/routes/+page.svelte'] = `<script lang="ts">
+  let count = 0;
+</script>
+
+<svelte:head>
+  <title>Home | ${projectName}</title>
+</svelte:head>
+
+<div class="home">
+  <h1>Welcome to ${projectName}</h1>
+  <p>Generated by Retro Vibecoder UPG</p>
+
+  <div class="counter">
+    <button on:click={() => count--}>-</button>
+    <span>{count}</span>
+    <button on:click={() => count++}>+</button>
+  </div>
+</div>
+
+<style>
+  .home {
+    text-align: center;
+    padding: 2rem;
+  }
+  h1 {
+    color: #ff3e00;
+  }
+  .counter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .counter button {
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+  }
+  .counter span {
+    font-size: 2rem;
+    min-width: 3rem;
+  }
+</style>
+`;
+
+    // About page
+    files['src/routes/about/+page.svelte'] = `<svelte:head>
+  <title>About | ${projectName}</title>
+</svelte:head>
+
+<div class="about">
+  <h1>About</h1>
+  <p>A SvelteKit application built with Svelte and TypeScript.</p>
+</div>
+
+<style>
+  .about {
+    text-align: center;
+    padding: 2rem;
+  }
+</style>
+`;
+
+    // Global styles
+    files['src/app.css'] = generateBaseStyles(stack.styling);
+
+    // app.html
+    files['src/app.html'] = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>
+`;
+
+    // Tailwind config if needed
+    if (stack.styling === 'tailwind') {
+      files['tailwind.config.js'] = `/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./src/**/*.{html,js,svelte,ts}'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+`;
+      files['postcss.config.js'] = `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+`;
+    }
+  },
+};
+
+/**
+ * Qwik Strategy - Qwik + TypeScript
+ */
+export const QwikStrategy: GenerationStrategy = {
+  id: 'web-qwik',
+  name: 'Qwik Web App',
+  priority: 10,
+
+  matches: (stack) =>
+    stack.archetype === 'web' &&
+    stack.language === 'typescript' &&
+    stack.framework === 'qwik',
+
+  apply: async ({ files, projectName, stack }) => {
+    const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+    const stylingDeps = getStylingDeps(stack.styling);
+
+    // package.json
+    files['package.json'] = JSON.stringify(
+      {
+        name: cleanName,
+        version: '0.1.0',
+        private: true,
+        scripts: {
+          build: 'qwik build',
+          'build.client': 'vite build',
+          'build.preview': 'vite build --ssr src/entry.preview.tsx',
+          'build.types': 'tsc --incremental --noEmit',
+          dev: 'vite --mode ssr',
+          'dev.debug': 'node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force',
+          fmt: 'prettier --write .',
+          'fmt.check': 'prettier --check .',
+          lint: 'eslint "src/**/*.ts*"',
+          preview: 'qwik build preview && vite preview --open',
+          start: 'vite --open --mode ssr',
+          qwik: 'qwik',
+          test: 'vitest',
+        },
+        devDependencies: {
+          '@builder.io/qwik': '^1.4.0',
+          '@builder.io/qwik-city': '^1.4.0',
+          '@types/node': '^20.11.0',
+          typescript: '^5.3.3',
+          vite: '^5.1.0',
+          vitest: '^1.2.2',
+          eslint: '^8.56.0',
+          prettier: '^3.2.0',
+          ...stylingDeps.devDeps,
+        },
+        dependencies: {
+          ...stylingDeps.deps,
+        },
+      },
+      null,
+      2
+    );
+
+    // vite.config.ts
+    files['vite.config.ts'] = `import { defineConfig } from 'vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+
+export default defineConfig(() => {
+  return {
+    plugins: [qwikCity(), qwikVite()],
+    server: {
+      port: 5173,
+    },
+    preview: {
+      port: 4173,
+    },
+  };
+});
+`;
+
+    // tsconfig.json
+    files['tsconfig.json'] = JSON.stringify(
+      {
+        compilerOptions: {
+          allowJs: true,
+          target: 'ES2021',
+          module: 'ES2020',
+          lib: ['ES2021', 'DOM', 'DOM.Iterable'],
+          jsx: 'react-jsx',
+          jsxImportSource: '@builder.io/qwik',
+          strict: true,
+          forceConsistentCasingInFileNames: true,
+          resolveJsonModule: true,
+          moduleResolution: 'bundler',
+          esModuleInterop: true,
+          skipLibCheck: true,
+          incremental: true,
+          isolatedModules: true,
+          noEmit: true,
+          types: ['node', 'vite/client'],
+          paths: { '~/*': ['./src/*'] },
+        },
+        include: ['src'],
+      },
+      null,
+      2
+    );
+
+    // Root layout
+    files['src/routes/layout.tsx'] = `import { component$, Slot } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  return (
+    <div class="app">
+      <nav class="nav">
+        <Link href="/">Home</Link>
+        <Link href="/about">About</Link>
+      </nav>
+      <main>
+        <Slot />
+      </main>
+    </div>
+  );
+});
+`;
+
+    // Home page
+    files['src/routes/index.tsx'] = `import { component$, useSignal } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <div class="home">
+      <h1>Welcome to ${projectName}</h1>
+      <p>Generated by Retro Vibecoder UPG</p>
+
+      <div class="counter">
+        <button onClick$={() => count.value--}>-</button>
+        <span>{count.value}</span>
+        <button onClick$={() => count.value++}>+</button>
+      </div>
+    </div>
+  );
+});
+
+export const head: DocumentHead = {
+  title: '${projectName}',
+  meta: [
+    {
+      name: 'description',
+      content: 'Generated by Retro Vibecoder UPG',
+    },
+  ],
+};
+`;
+
+    // About page
+    files['src/routes/about/index.tsx'] = `import { component$ } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  return (
+    <div class="about">
+      <h1>About</h1>
+      <p>A Qwik application built with TypeScript.</p>
+    </div>
+  );
+});
+
+export const head: DocumentHead = {
+  title: 'About | ${projectName}',
+};
+`;
+
+    // Entry file
+    files['src/entry.preview.tsx'] = `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
+import qwikCityPlan from '@qwik-city-plan';
+import render from './entry.ssr';
+
+export default createQwikCity({ render, qwikCityPlan });
+`;
+
+    // SSR entry
+    files['src/entry.ssr.tsx'] = `import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
+import { manifest } from '@qwik-client-manifest';
+import Root from './root';
+
+export default function (opts: RenderToStreamOptions) {
+  return renderToStream(<Root />, {
+    manifest,
+    ...opts,
+    containerAttributes: {
+      lang: 'en',
+      ...opts.containerAttributes,
+    },
+  });
+}
+`;
+
+    // Root component
+    files['src/root.tsx'] = `import { component$ } from '@builder.io/qwik';
+import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
+import { RouterHead } from './components/router-head/router-head';
+import './global.css';
+
+export default component$(() => {
+  return (
+    <QwikCityProvider>
+      <head>
+        <meta charSet="utf-8" />
+        <link rel="manifest" href="/manifest.json" />
+        <RouterHead />
+        <ServiceWorkerRegister />
+      </head>
+      <body lang="en">
+        <RouterOutlet />
+      </body>
+    </QwikCityProvider>
+  );
+});
+`;
+
+    // Router head component
+    files['src/components/router-head/router-head.tsx'] = `import { component$ } from '@builder.io/qwik';
+import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+
+export const RouterHead = component$(() => {
+  const head = useDocumentHead();
+  const loc = useLocation();
+
+  return (
+    <>
+      <title>{head.title}</title>
+
+      <link rel="canonical" href={loc.url.href} />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+      {head.meta.map((m) => (
+        <meta key={m.key} {...m} />
+      ))}
+
+      {head.links.map((l) => (
+        <link key={l.key} {...l} />
+      ))}
+
+      {head.styles.map((s) => (
+        <style key={s.key} {...s.props} dangerouslySetInnerHTML={s.style} />
+      ))}
+    </>
+  );
+});
+`;
+
+    // Global styles
+    files['src/global.css'] = generateBaseStyles(stack.styling);
+  },
+};

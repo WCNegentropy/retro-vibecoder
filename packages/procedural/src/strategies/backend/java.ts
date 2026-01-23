@@ -1,13 +1,14 @@
 /**
- * Java Backend Strategies
+ * Java/Kotlin Backend Strategies
  *
- * Generates Java Spring Boot backend projects.
+ * Generates Java or Kotlin Spring Boot backend projects.
  */
 
 import type { GenerationStrategy } from '../../types.js';
 
 /**
  * Spring Boot backend strategy
+ * Supports both Java and Kotlin
  */
 export const JavaSpringStrategy: GenerationStrategy = {
   id: 'java-spring',
@@ -15,21 +16,28 @@ export const JavaSpringStrategy: GenerationStrategy = {
   priority: 10,
 
   matches: (stack) =>
-    stack.language === 'java' &&
+    (stack.language === 'java' || stack.language === 'kotlin') &&
     stack.archetype === 'backend' &&
     stack.framework === 'spring-boot',
 
   apply: async ({ files, projectName, stack }) => {
+    const isKotlin = stack.language === 'kotlin';
     const group = 'com.example';
     const artifact = projectName.replace(/-/g, '').toLowerCase();
-    const pkgPath = `src/main/java/${group.replace(/\./g, '/')}/${artifact}`;
-    const testPkgPath = `src/test/java/${group.replace(/\./g, '/')}/${artifact}`;
+    const langDir = isKotlin ? 'kotlin' : 'java';
+    const pkgPath = `src/main/${langDir}/${group.replace(/\./g, '/')}/${artifact}`;
+    const testPkgPath = `src/test/${langDir}/${group.replace(/\./g, '/')}/${artifact}`;
 
     // 1. build.gradle.kts (Kotlin DSL)
     const dependencies = [
       'implementation("org.springframework.boot:spring-boot-starter-web")',
       'testImplementation("org.springframework.boot:spring-boot-starter-test")',
     ];
+
+    if (isKotlin) {
+      dependencies.push('implementation("com.fasterxml.jackson.module:jackson-module-kotlin")');
+      dependencies.push('implementation("org.jetbrains.kotlin:kotlin-reflect")');
+    }
 
     if (stack.database === 'postgres') {
       dependencies.push('implementation("org.springframework.boot:spring-boot-starter-data-jpa")');
@@ -41,7 +49,41 @@ export const JavaSpringStrategy: GenerationStrategy = {
       dependencies.push('implementation("org.springframework.boot:spring-boot-starter-data-mongodb")');
     }
 
-    files['build.gradle.kts'] = `plugins {
+    if (isKotlin) {
+      files['build.gradle.kts'] = `plugins {
+    id("org.springframework.boot") version "3.2.1"
+    id("io.spring.dependency-management") version "1.1.4"
+    kotlin("jvm") version "1.9.22"
+    kotlin("plugin.spring") version "1.9.22"
+}
+
+group = "${group}"
+version = "0.0.1-SNAPSHOT"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+${dependencies.map(d => `    ${d}`).join('\n')}
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+`;
+    } else {
+      files['build.gradle.kts'] = `plugins {
     java
     id("org.springframework.boot") version "3.2.1"
     id("io.spring.dependency-management") version "1.1.4"
@@ -66,6 +108,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 `;
+    }
 
     // 2. Settings
     files['settings.gradle.kts'] = `rootProject.name = "${projectName}"
@@ -86,7 +129,42 @@ zipStorePath=wrapper/dists
 `;
 
     // 5. Application Class
-    files[`${pkgPath}/Application.java`] = `package ${group}.${artifact};
+    if (isKotlin) {
+      files[`${pkgPath}/Application.kt`] = `package ${group}.${artifact}
+
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
+
+@SpringBootApplication
+class Application
+
+fun main(args: Array<String>) {
+    runApplication<Application>(*args)
+}
+`;
+
+      // 6. Health Controller (Kotlin)
+      files[`${pkgPath}/controller/HealthController.kt`] = `package ${group}.${artifact}.controller
+
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
+
+@RestController
+class HealthController {
+
+    @GetMapping("/health")
+    fun health() = mapOf(
+        "status" to "ok",
+        "timestamp" to Instant.now().toString()
+    )
+
+    @GetMapping("/api")
+    fun api() = mapOf("message" to "Welcome to ${projectName} API")
+}
+`;
+    } else {
+      files[`${pkgPath}/Application.java`] = `package ${group}.${artifact};
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -100,8 +178,8 @@ public class Application {
 }
 `;
 
-    // 6. Health Controller
-    files[`${pkgPath}/controller/HealthController.java`] = `package ${group}.${artifact}.controller;
+      // 6. Health Controller (Java)
+      files[`${pkgPath}/controller/HealthController.java`] = `package ${group}.${artifact}.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -126,6 +204,7 @@ public class HealthController {
     }
 }
 `;
+    }
 
     // 7. Application properties
     let appProps = `server.port=8080
@@ -160,7 +239,22 @@ spring.data.mongodb.uri=mongodb://localhost:27017/${artifact}
     files['src/main/resources/application.properties'] = appProps;
 
     // 8. Test class
-    files[`${testPkgPath}/ApplicationTests.java`] = `package ${group}.${artifact};
+    if (isKotlin) {
+      files[`${testPkgPath}/ApplicationTests.kt`] = `package ${group}.${artifact}
+
+import org.junit.jupiter.api.Test
+import org.springframework.boot.test.context.SpringBootTest
+
+@SpringBootTest
+class ApplicationTests {
+
+    @Test
+    fun contextLoads() {
+    }
+}
+`;
+    } else {
+      files[`${testPkgPath}/ApplicationTests.java`] = `package ${group}.${artifact};
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -173,6 +267,7 @@ class ApplicationTests {
     }
 }
 `;
+    }
 
     // 9. .gitignore
     files['.gitignore'] = `# Compiled class files

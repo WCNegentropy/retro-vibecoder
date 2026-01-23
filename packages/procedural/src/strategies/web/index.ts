@@ -9,6 +9,11 @@ export {
   VueStrategy,
   SvelteStrategy,
   SolidStrategy,
+  AngularStrategy,
+  NextJSStrategy,
+  NuxtStrategy,
+  SvelteKitStrategy,
+  QwikStrategy,
 } from './vite.js';
 
 import {
@@ -16,6 +21,11 @@ import {
   VueStrategy,
   SvelteStrategy,
   SolidStrategy,
+  AngularStrategy,
+  NextJSStrategy,
+  NuxtStrategy,
+  SvelteKitStrategy,
+  QwikStrategy,
 } from './vite.js';
 import type { GenerationStrategy } from '../../types.js';
 
@@ -27,4 +37,9 @@ export const WebStrategies: GenerationStrategy[] = [
   VueStrategy,
   SvelteStrategy,
   SolidStrategy,
+  AngularStrategy,
+  NextJSStrategy,
+  NuxtStrategy,
+  SvelteKitStrategy,
+  QwikStrategy,
 ];

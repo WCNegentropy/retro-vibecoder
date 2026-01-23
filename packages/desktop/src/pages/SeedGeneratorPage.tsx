@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import Preview from '../components/Preview';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
-import type { TechStack, GeneratedProject } from '../types';
+import type { TechStack } from '../types';
 
 /**
  * Seed Generator Page

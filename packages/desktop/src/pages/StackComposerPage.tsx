@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from 'react';
-import Preview from '../components/Preview';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import type { TechStack, Archetype, Language, Database, CICD, Packaging } from '../types';
 

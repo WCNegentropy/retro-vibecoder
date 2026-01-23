@@ -143,4 +143,21 @@ export function createCli(): Command {
 
 // Run CLI if this is the main module
 const program = createCli();
+
+// Handle unknown option errors that might be negative numbers
+program.configureOutput({
+  outputError: (str, write) => {
+    // Check if this is a "seed" command with a negative number
+    if (str.includes("unknown option") && str.includes("'-")) {
+      const match = str.match(/'-(\d+)'/);
+      if (match && process.argv.includes('seed')) {
+        write(pc.red(`Error: Seed must be a positive integer (got -${match[1]})\n`));
+        write(pc.yellow(`Hint: Seeds are positive integers, e.g., 'upg seed 42'\n`));
+        return;
+      }
+    }
+    write(str);
+  },
+});
+
 program.parse();

@@ -122,7 +122,8 @@ export type BuildTool =
   | 'gradle'
   | 'msbuild'
   | 'cmake'
-  | 'make';
+  | 'make'
+  | 'xcodebuild';
 
 /** Styling solutions */
 export type Styling = 'tailwind' | 'css-modules' | 'styled-components' | 'scss' | 'vanilla' | 'none';
@@ -138,7 +139,8 @@ export type TestingFramework =
   | 'junit'
   | 'xunit'
   | 'rspec'
-  | 'phpunit';
+  | 'phpunit'
+  | 'xctest';
 
 // ============================================================================
 // Tech Stack Configuration
