@@ -411,11 +411,7 @@ export async function getProceduralConstraintOptions(): Promise<{
   languages: string[];
   frameworks: string[];
 }> {
-  const {
-    ARCHETYPE_IDS,
-    LANGUAGE_IDS,
-    FRAMEWORKS,
-  } = await import('@retro-vibecoder/procedural');
+  const { ARCHETYPE_IDS, LANGUAGE_IDS, FRAMEWORKS } = await import('@retro-vibecoder/procedural');
 
   return {
     archetypes: [...ARCHETYPE_IDS],
