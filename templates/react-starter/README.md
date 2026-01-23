@@ -28,16 +28,16 @@ upg generate react-starter \
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `project_name` | string | my-react-app | Project name |
-| `description` | string | A React application | Project description |
-| `author_name` | string | (from env) | Author name |
-| `use_typescript` | boolean | true | Include TypeScript |
-| `eslint_style` | select | standard | ESLint configuration |
-| `use_testing` | boolean | true | Include testing setup |
-| `use_docker` | boolean | false | Include Docker files |
-| `use_ci` | boolean | true | Include GitHub Actions |
+| Option           | Type    | Default             | Description            |
+| ---------------- | ------- | ------------------- | ---------------------- |
+| `project_name`   | string  | my-react-app        | Project name           |
+| `description`    | string  | A React application | Project description    |
+| `author_name`    | string  | (from env)          | Author name            |
+| `use_typescript` | boolean | true                | Include TypeScript     |
+| `eslint_style`   | select  | standard            | ESLint configuration   |
+| `use_testing`    | boolean | true                | Include testing setup  |
+| `use_docker`     | boolean | false               | Include Docker files   |
+| `use_ci`         | boolean | true                | Include GitHub Actions |
 
 ## After Generation
 

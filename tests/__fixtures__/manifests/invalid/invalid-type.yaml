@@ -8,7 +8,7 @@ metadata:
 
 prompts:
   - id: project_name
-    type: invalid_type  # This is not a valid type
+    type: invalid_type # This is not a valid type
     message: What is your project name?
 
 actions:

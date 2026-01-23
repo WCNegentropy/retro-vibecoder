@@ -15,7 +15,7 @@ export const JavaSpringStrategy: GenerationStrategy = {
   name: 'Spring Boot Backend',
   priority: 10,
 
-  matches: (stack) =>
+  matches: stack =>
     (stack.language === 'java' || stack.language === 'kotlin') &&
     stack.archetype === 'backend' &&
     stack.framework === 'spring-boot',
@@ -46,7 +46,9 @@ export const JavaSpringStrategy: GenerationStrategy = {
       dependencies.push('implementation("org.springframework.boot:spring-boot-starter-data-jpa")');
       dependencies.push('runtimeOnly("com.mysql:mysql-connector-j")');
     } else if (stack.database === 'mongodb') {
-      dependencies.push('implementation("org.springframework.boot:spring-boot-starter-data-mongodb")');
+      dependencies.push(
+        'implementation("org.springframework.boot:spring-boot-starter-data-mongodb")'
+      );
     }
 
     if (isKotlin) {
@@ -179,7 +181,8 @@ public class Application {
 `;
 
       // 6. Health Controller (Java)
-      files[`${pkgPath}/controller/HealthController.java`] = `package ${group}.${artifact}.controller;
+      files[`${pkgPath}/controller/HealthController.java`] =
+        `package ${group}.${artifact}.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

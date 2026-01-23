@@ -489,10 +489,8 @@ export const ReactStrategy: GenerationStrategy = {
   name: 'React Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'react',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'react',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -684,10 +682,8 @@ export const VueStrategy: GenerationStrategy = {
   name: 'Vue Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'vue',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'vue',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -899,10 +895,8 @@ export const SvelteStrategy: GenerationStrategy = {
   name: 'Svelte Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'svelte',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'svelte',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -1062,10 +1056,8 @@ export const SolidStrategy: GenerationStrategy = {
   name: 'Solid Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'solid',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'solid',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -1203,10 +1195,8 @@ export const AngularStrategy: GenerationStrategy = {
   name: 'Angular Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'angular',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'angular',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -1500,10 +1490,8 @@ export const NextJSStrategy: GenerationStrategy = {
   name: 'Next.js Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'nextjs',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'nextjs',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -1659,11 +1647,7 @@ export default config;
     }
 
     // ESLint config
-    files['.eslintrc.json'] = JSON.stringify(
-      { extends: 'next/core-web-vitals' },
-      null,
-      2
-    );
+    files['.eslintrc.json'] = JSON.stringify({ extends: 'next/core-web-vitals' }, null, 2);
   },
 };
 
@@ -1675,10 +1659,8 @@ export const NuxtStrategy: GenerationStrategy = {
   name: 'Nuxt Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'nuxt',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'nuxt',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -1728,11 +1710,7 @@ export const NuxtStrategy: GenerationStrategy = {
 `;
 
     // tsconfig.json
-    files['tsconfig.json'] = JSON.stringify(
-      { extends: './.nuxt/tsconfig.json' },
-      null,
-      2
-    );
+    files['tsconfig.json'] = JSON.stringify({ extends: './.nuxt/tsconfig.json' }, null, 2);
 
     // App layout
     files['app.vue'] = `<template>
@@ -1824,10 +1802,8 @@ export const SvelteKitStrategy: GenerationStrategy = {
   name: 'SvelteKit Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'sveltekit',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'sveltekit',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -2063,10 +2039,8 @@ export const QwikStrategy: GenerationStrategy = {
   name: 'Qwik Web App',
   priority: 10,
 
-  matches: (stack) =>
-    stack.archetype === 'web' &&
-    stack.language === 'typescript' &&
-    stack.framework === 'qwik',
+  matches: stack =>
+    stack.archetype === 'web' && stack.language === 'typescript' && stack.framework === 'qwik',
 
   apply: async ({ files, projectName, stack }) => {
     const cleanName = projectName.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
@@ -2228,7 +2202,8 @@ export const head: DocumentHead = {
 `;
 
     // Entry file
-    files['src/entry.preview.tsx'] = `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
+    files['src/entry.preview.tsx'] =
+      `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
 
@@ -2236,7 +2211,8 @@ export default createQwikCity({ render, qwikCityPlan });
 `;
 
     // SSR entry
-    files['src/entry.ssr.tsx'] = `import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
+    files['src/entry.ssr.tsx'] =
+      `import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
 import { manifest } from '@qwik-client-manifest';
 import Root from './root';
 
@@ -2276,7 +2252,8 @@ export default component$(() => {
 `;
 
     // Router head component
-    files['src/components/router-head/router-head.tsx'] = `import { component$ } from '@builder.io/qwik';
+    files['src/components/router-head/router-head.tsx'] =
+      `import { component$ } from '@builder.io/qwik';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
 
 export const RouterHead = component$(() => {

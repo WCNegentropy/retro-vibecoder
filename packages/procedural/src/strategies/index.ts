@@ -5,7 +5,13 @@
  */
 
 // Common strategies
-export { CommonStrategies, GitStrategy, DockerStrategy, CIStrategy, ReadmeStrategy } from './common/index.js';
+export {
+  CommonStrategies,
+  GitStrategy,
+  DockerStrategy,
+  CIStrategy,
+  ReadmeStrategy,
+} from './common/index.js';
 
 // API/Backend strategies
 export {
@@ -76,13 +82,22 @@ export const AllStrategies: GenerationStrategy[] = [
 export function getTier1Strategies(): GenerationStrategy[] {
   // Tier 1: Node/TS, Python, Rust
   const tier1Ids = [
-    'git', 'docker', 'ci', 'readme', // Common
-    'express', 'fastify', 'nestjs', // Node/TS
-    'fastapi', 'flask', 'django', // Python
-    'axum', 'actix', 'clap', // Rust
+    'git',
+    'docker',
+    'ci',
+    'readme', // Common
+    'express',
+    'fastify',
+    'nestjs', // Node/TS
+    'fastapi',
+    'flask',
+    'django', // Python
+    'axum',
+    'actix',
+    'clap', // Rust
   ];
 
-  return AllStrategies.filter((s) => tier1Ids.includes(s.id));
+  return AllStrategies.filter(s => tier1Ids.includes(s.id));
 }
 
 /**
@@ -92,7 +107,7 @@ export function getTier2Strategies(): GenerationStrategy[] {
   // Tier 2: Go, C++
   const tier2Ids = ['gin', 'echo', 'cobra', 'cpp-cmake'];
 
-  return [...getTier1Strategies(), ...AllStrategies.filter((s) => tier2Ids.includes(s.id))];
+  return [...getTier1Strategies(), ...AllStrategies.filter(s => tier2Ids.includes(s.id))];
 }
 
 /**
@@ -102,7 +117,7 @@ export function getTier3Strategies(): GenerationStrategy[] {
   // Tier 3: Enterprise (Java Spring, C# .NET)
   const tier3Ids = ['java-spring', 'csharp-dotnet'];
 
-  return [...getTier2Strategies(), ...AllStrategies.filter((s) => tier3Ids.includes(s.id))];
+  return [...getTier2Strategies(), ...AllStrategies.filter(s => tier3Ids.includes(s.id))];
 }
 
 /**
@@ -112,7 +127,7 @@ export function getTier4Strategies(): GenerationStrategy[] {
   // Tier 4: Mobile (Expo/React Native)
   const tier4Ids = ['mobile-expo'];
 
-  return [...getTier3Strategies(), ...AllStrategies.filter((s) => tier4Ids.includes(s.id))];
+  return [...getTier3Strategies(), ...AllStrategies.filter(s => tier4Ids.includes(s.id))];
 }
 
 /**
@@ -122,7 +137,7 @@ export function getTier5Strategies(): GenerationStrategy[] {
   // Tier 5: Web Frontend (React, Vue, Svelte, Solid)
   const tier5Ids = ['web-react', 'web-vue', 'web-svelte', 'web-solid'];
 
-  return [...getTier4Strategies(), ...AllStrategies.filter((s) => tier5Ids.includes(s.id))];
+  return [...getTier4Strategies(), ...AllStrategies.filter(s => tier5Ids.includes(s.id))];
 }
 
 /**
@@ -130,5 +145,5 @@ export function getTier5Strategies(): GenerationStrategy[] {
  */
 export function getWebStrategies(): GenerationStrategy[] {
   const webIds = ['web-react', 'web-vue', 'web-svelte', 'web-solid'];
-  return AllStrategies.filter((s) => webIds.includes(s.id));
+  return AllStrategies.filter(s => webIds.includes(s.id));
 }

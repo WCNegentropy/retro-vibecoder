@@ -12,24 +12,36 @@ function Layout() {
           <span className="version">v0.1.0</span>
         </div>
         <nav className="nav">
-          <NavLink to="/" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          <NavLink to="/" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             Home
           </NavLink>
           <div className="nav-section">
             <span className="nav-section-title">Procedural Mode</span>
-            <NavLink to="/seed" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <NavLink
+              to="/seed"
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
               Seed Generator
             </NavLink>
-            <NavLink to="/compose" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <NavLink
+              to="/compose"
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
               Stack Composer
             </NavLink>
-            <NavLink to="/gallery" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <NavLink
+              to="/gallery"
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
               Seed Gallery
             </NavLink>
           </div>
           <div className="nav-section">
             <span className="nav-section-title">Manifest Mode</span>
-            <NavLink to="/templates" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <NavLink
+              to="/templates"
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
               Template Selector
             </NavLink>
           </div>

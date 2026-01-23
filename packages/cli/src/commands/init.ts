@@ -96,7 +96,9 @@ export async function initAction(options: InitOptions): Promise<void> {
   try {
     // Determine template name
     const cwd = process.cwd();
-    const defaultName = basename(cwd).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const defaultName = basename(cwd)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-');
     const name = options.name || defaultName;
 
     // Check if manifest already exists

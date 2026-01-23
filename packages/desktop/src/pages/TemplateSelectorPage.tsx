@@ -76,26 +76,23 @@ function TemplateSelectorPage() {
   }, []);
 
   // Get all unique tags
-  const allTags = Array.from(new Set(templates.flatMap((t) => t.tags)));
+  const allTags = Array.from(new Set(templates.flatMap(t => t.tags)));
 
   // Filter templates
-  const filteredTemplates = templates.filter((template) => {
+  const filteredTemplates = templates.filter(template => {
     const matchesSearch =
       searchQuery === '' ||
       template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesTags =
-      selectedTags.length === 0 ||
-      selectedTags.every((tag) => template.tags.includes(tag));
+      selectedTags.length === 0 || selectedTags.every(tag => template.tags.includes(tag));
 
     return matchesSearch && matchesTags;
   });
 
   const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+    setSelectedTags(prev => (prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]));
   };
 
   const handleSelectTemplate = (template: TemplateEntry) => {
@@ -125,14 +122,14 @@ function TemplateSelectorPage() {
               className="form-input"
               placeholder="Search templates..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
 
           <div className="tag-filters">
             <h3>Filter by Tags</h3>
             <div className="tag-list">
-              {allTags.map((tag) => (
+              {allTags.map(tag => (
                 <button
                   key={tag}
                   type="button"
@@ -151,7 +148,7 @@ function TemplateSelectorPage() {
             <div className="no-results">No templates match your criteria</div>
           ) : (
             <div className="template-grid">
-              {filteredTemplates.map((template) => (
+              {filteredTemplates.map(template => (
                 <TemplateCard
                   key={template.name}
                   template={template}
@@ -183,8 +180,10 @@ function TemplateSelectorPage() {
               </div>
             </div>
             <div className="details-tags">
-              {selectedTemplate.tags.map((tag) => (
-                <span key={tag} className="tag">{tag}</span>
+              {selectedTemplate.tags.map(tag => (
+                <span key={tag} className="tag">
+                  {tag}
+                </span>
               ))}
             </div>
             <div className="details-actions">
@@ -222,19 +221,17 @@ function TemplateCard({
     >
       <div className="card-header">
         <span className="template-icon">{template.icon}</span>
-        <span className={`lifecycle-badge ${template.lifecycle}`}>
-          {template.lifecycle}
-        </span>
+        <span className={`lifecycle-badge ${template.lifecycle}`}>{template.lifecycle}</span>
       </div>
       <h3 className="template-title">{template.title}</h3>
       <p className="template-description">{template.description}</p>
       <div className="template-tags">
-        {template.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="tag">{tag}</span>
+        {template.tags.slice(0, 3).map(tag => (
+          <span key={tag} className="tag">
+            {tag}
+          </span>
         ))}
-        {template.tags.length > 3 && (
-          <span className="tag-more">+{template.tags.length - 3}</span>
-        )}
+        {template.tags.length > 3 && <span className="tag-more">+{template.tags.length - 3}</span>}
       </div>
     </button>
   );

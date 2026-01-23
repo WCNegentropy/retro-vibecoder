@@ -285,7 +285,7 @@ export const CIStrategy: GenerationStrategy = {
   name: 'CI/CD Configuration',
   priority: 95, // Run very late
 
-  matches: (stack) => stack.cicd !== 'none',
+  matches: stack => stack.cicd !== 'none',
 
   apply: async ({ stack, files }) => {
     switch (stack.cicd) {

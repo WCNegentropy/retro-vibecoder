@@ -11,7 +11,13 @@ describe('Conditional Logic Transpiler', () => {
     it('creates dependencies for simple boolean when clause', () => {
       const prompts: ManifestPrompt[] = [
         { id: 'use_db', type: 'boolean', message: 'Use database?' },
-        { id: 'db_type', type: 'select', message: 'DB type?', choices: ['pg', 'mysql'], when: 'use_db' },
+        {
+          id: 'db_type',
+          type: 'select',
+          message: 'DB type?',
+          choices: ['pg', 'mysql'],
+          when: 'use_db',
+        },
       ];
 
       const result = transpileConditionalLogic(prompts);
@@ -23,7 +29,13 @@ describe('Conditional Logic Transpiler', () => {
     it('creates dependencies for equality when clause', () => {
       const prompts: ManifestPrompt[] = [
         { id: 'framework', type: 'select', message: 'Framework?', choices: ['react', 'vue'] },
-        { id: 'react_version', type: 'select', message: 'React version?', choices: ['17', '18'], when: "framework == 'react'" },
+        {
+          id: 'react_version',
+          type: 'select',
+          message: 'React version?',
+          choices: ['17', '18'],
+          when: "framework == 'react'",
+        },
       ];
 
       const result = transpileConditionalLogic(prompts);
@@ -46,7 +58,13 @@ describe('Conditional Logic Transpiler', () => {
     it('handles multiple conditional prompts', () => {
       const prompts: ManifestPrompt[] = [
         { id: 'use_auth', type: 'boolean', message: 'Auth?' },
-        { id: 'auth_type', type: 'select', message: 'Auth type?', choices: ['jwt', 'oauth'], when: 'use_auth' },
+        {
+          id: 'auth_type',
+          type: 'select',
+          message: 'Auth type?',
+          choices: ['jwt', 'oauth'],
+          when: 'use_auth',
+        },
         { id: 'auth_config', type: 'string', message: 'Auth config?', when: 'use_auth' },
       ];
 

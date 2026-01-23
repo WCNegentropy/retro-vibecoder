@@ -16,13 +16,13 @@ The Universal Procedural Generator (UPG) CLI tool was thoroughly tested across a
 
 ### Key Metrics
 
-| Metric | Value |
-|--------|-------|
-| Random Seed Success Rate | 68-70% |
-| Constrained Generation Success Rate | 100% |
-| Generation Speed | ~6,600 projects/second |
-| 10,000 Projects Generation Time | 1.5 seconds |
-| File Output (100 projects) | 1.6 seconds |
+| Metric                              | Value                  |
+| ----------------------------------- | ---------------------- |
+| Random Seed Success Rate            | 68-70%                 |
+| Constrained Generation Success Rate | 100%                   |
+| Generation Speed                    | ~6,600 projects/second |
+| 10,000 Projects Generation Time     | 1.5 seconds            |
+| File Output (100 projects)          | 1.6 seconds            |
 
 ---
 
@@ -47,6 +47,7 @@ pnpm build: 18.8s (4 packages)
 ```
 
 All packages built successfully:
+
 - @retro-vibecoder/shared
 - @retro-vibecoder/core
 - @retro-vibecoder/procedural
@@ -64,17 +65,17 @@ node packages/cli/dist/bin/upg.js seed 82910 --verbose
 
 **Tested Seeds:**
 
-| Seed | Result | Stack |
-|------|--------|-------|
-| 1 | SUCCESS | typescript-yargs (CLI) |
-| 5 | SUCCESS | go-cobra (CLI) |
-| 7 | SUCCESS | typescript-nestjs (Backend) |
-| 99123 | SUCCESS | go-echo (Backend) |
-| 5000 | SUCCESS | python-fastapi (Backend) |
-| 10455 | SUCCESS | ruby-rails (Backend) |
-| 10 | FAIL | Invalid: express requires typescript, got javascript |
-| 11 | FAIL | Invalid: express requires typescript, got javascript |
-| 33411 | FAIL | Invalid: express requires typescript, got javascript |
+| Seed  | Result  | Stack                                                |
+| ----- | ------- | ---------------------------------------------------- |
+| 1     | SUCCESS | typescript-yargs (CLI)                               |
+| 5     | SUCCESS | go-cobra (CLI)                                       |
+| 7     | SUCCESS | typescript-nestjs (Backend)                          |
+| 99123 | SUCCESS | go-echo (Backend)                                    |
+| 5000  | SUCCESS | python-fastapi (Backend)                             |
+| 10455 | SUCCESS | ruby-rails (Backend)                                 |
+| 10    | FAIL    | Invalid: express requires typescript, got javascript |
+| 11    | FAIL    | Invalid: express requires typescript, got javascript |
+| 33411 | FAIL    | Invalid: express requires typescript, got javascript |
 
 **Success Rate across 100 seeds:** 70/100 (70%)
 
@@ -86,14 +87,14 @@ node packages/cli/dist/bin/upg.js seed 82910 --verbose
 
 **Post-Fix Results:**
 
-| Count | Success | Fail | Rate | Duration |
-|-------|---------|------|------|----------|
-| 20 | 15 | 5 | 75% | 10ms |
-| 100 | 70 | 30 | 70% | ~30ms |
-| 500 | 343 | 157 | 69% | ~200ms |
-| 1,000 | 680 | 320 | 68% | 95ms |
-| 5,000 | 3,431 | 1,569 | 69% | 1.2s |
-| 10,000 | 6,867 | 3,133 | 69% | 1.5s |
+| Count  | Success | Fail  | Rate | Duration |
+| ------ | ------- | ----- | ---- | -------- |
+| 20     | 15      | 5     | 75%  | 10ms     |
+| 100    | 70      | 30    | 70%  | ~30ms    |
+| 500    | 343     | 157   | 69%  | ~200ms   |
+| 1,000  | 680     | 320   | 68%  | 95ms     |
+| 5,000  | 3,431   | 1,569 | 69%  | 1.2s     |
+| 10,000 | 6,867   | 3,133 | 69%  | 1.5s     |
 
 ### 4. Constrained Generation Testing
 
@@ -101,16 +102,16 @@ node packages/cli/dist/bin/upg.js seed 82910 --verbose
 
 Using constraints (--archetype, --language, --framework) significantly improves success rates by avoiding incompatible combinations.
 
-| Constraint | Count | Success | Rate |
-|------------|-------|---------|------|
-| --language typescript | 30 | 30 | 100% |
-| --language python | 20 | 14 | 70% |
-| --language rust | 20 | 15 | 75% |
-| --language go | 20 | 14 | 70% |
-| --archetype backend | 30 | 24 | 80% |
-| --archetype backend --language python | 20 | 20 | 100% |
-| --archetype web --language typescript | 20 | 20 | 100% |
-| --archetype cli --language rust | 20 | 20 | 100% |
+| Constraint                            | Count | Success | Rate |
+| ------------------------------------- | ----- | ------- | ---- |
+| --language typescript                 | 30    | 30      | 100% |
+| --language python                     | 20    | 14      | 70%  |
+| --language rust                       | 20    | 15      | 75%  |
+| --language go                         | 20    | 14      | 70%  |
+| --archetype backend                   | 30    | 24      | 80%  |
+| --archetype backend --language python | 20    | 20      | 100% |
+| --archetype web --language typescript | 20    | 20      | 100% |
+| --archetype cli --language rust       | 20    | 20      | 100% |
 
 **Key Finding:** Compatible archetype + language combinations achieve 100% success rate.
 
@@ -125,6 +126,7 @@ node packages/cli/dist/bin/upg.js sweep --count 15 \
 ```
 
 Registry correctly saves:
+
 - Seed numbers for reproducibility
 - Complete stack configurations
 - Generated file lists
@@ -139,6 +141,7 @@ Registry correctly saves:
 Writing 100 projects to disk: 1.6 seconds
 
 Generated files are production-ready with:
+
 - Proper package.json with modern dependencies
 - Working source code files
 - Test scaffolding
@@ -171,6 +174,7 @@ Generated files are production-ready with:
 **Description:** When `getValidFrameworks()` returns no valid frameworks for an archetype/language combination, the fallback logic defaults to 'express', which requires TypeScript. This causes failures for languages like JavaScript, C++, Kotlin, Swift, etc.
 
 **Root Cause:** In `assembler.ts:pickFramework()`:
+
 ```typescript
 const defaults: Partial<Record<Language, Framework>> = {
   typescript: 'express',
@@ -178,12 +182,13 @@ const defaults: Partial<Record<Language, Framework>> = {
   go: 'gin',
   rust: 'axum',
 };
-return defaults[language] ?? 'express';  // Falls back to express!
+return defaults[language] ?? 'express'; // Falls back to express!
 ```
 
 **Affected Languages:** javascript, cpp, kotlin, swift, java (partial), csharp (partial), php, ruby
 
 **Fix Applied:**
+
 1. ✅ Added default frameworks for ALL 12 languages in `assembler.ts:pickFramework()`
 2. ✅ Added `'none'` as a valid Framework type for languages without framework support
 3. ✅ Languages now map to appropriate defaults:
@@ -197,6 +202,7 @@ return defaults[language] ?? 'express';  // Falls back to express!
    - `php` → `laravel`
 
 **Files Modified:**
+
 - `packages/procedural/src/engine/assembler.ts`
 - `packages/procedural/src/types.ts`
 
@@ -206,12 +212,12 @@ return defaults[language] ?? 'express';  // Falls back to express!
 
 ### Generation Speed
 
-| Projects | Time | Rate |
-|----------|------|------|
-| 100 | ~30ms | ~3,300/s |
-| 1,000 | 95ms | ~10,500/s |
-| 5,000 | 1.2s | ~4,200/s |
-| 10,000 | 1.5s | ~6,600/s |
+| Projects | Time  | Rate      |
+| -------- | ----- | --------- |
+| 100      | ~30ms | ~3,300/s  |
+| 1,000    | 95ms  | ~10,500/s |
+| 5,000    | 1.2s  | ~4,200/s  |
+| 10,000   | 1.5s  | ~6,600/s  |
 
 **Note:** Larger batches show better throughput due to reduced per-batch overhead.
 
@@ -229,32 +235,32 @@ Writing 100 projects to disk adds ~1.5s overhead compared to in-memory generatio
 
 ### Archetypes Tested
 
-| Archetype | Coverage | Notes |
-|-----------|----------|-------|
-| web | Full | React, Vue, Svelte, Solid, Angular, Qwik, Next.js, Nuxt, SvelteKit |
-| backend | Full | Express, Fastify, NestJS, FastAPI, Flask, Django, Gin, Echo, Axum, Actix, Spring Boot, ASP.NET |
-| cli | Full | Commander, Yargs, Clap, Cobra, Click, Argparse |
-| mobile | Partial | Expo/React Native only |
-| desktop | Partial | Electron, Tauri |
-| library | Partial | Basic scaffolding |
-| game | Not Tested | No framework strategies implemented |
+| Archetype | Coverage   | Notes                                                                                          |
+| --------- | ---------- | ---------------------------------------------------------------------------------------------- |
+| web       | Full       | React, Vue, Svelte, Solid, Angular, Qwik, Next.js, Nuxt, SvelteKit                             |
+| backend   | Full       | Express, Fastify, NestJS, FastAPI, Flask, Django, Gin, Echo, Axum, Actix, Spring Boot, ASP.NET |
+| cli       | Full       | Commander, Yargs, Clap, Cobra, Click, Argparse                                                 |
+| mobile    | Partial    | Expo/React Native only                                                                         |
+| desktop   | Partial    | Electron, Tauri                                                                                |
+| library   | Partial    | Basic scaffolding                                                                              |
+| game      | Not Tested | No framework strategies implemented                                                            |
 
 ### Languages Tested
 
-| Language | Status | Notes |
-|----------|--------|-------|
-| TypeScript | Full Support | 100% success rate |
-| Python | Full Support | 70% success (archetype limitations) |
-| Go | Full Support | 70% success (archetype limitations) |
-| Rust | Full Support | 75% success |
-| Java | Partial | Spring Boot only |
-| C# | Partial | ASP.NET Core only |
-| Ruby | Partial | Rails only |
-| PHP | Partial | Laravel only |
-| JavaScript | ✅ Fixed | Now defaults to express (same as TypeScript) |
-| C++ | Partial | CMake strategy exists, defaults to 'none' framework |
-| Kotlin | Limited | Spring Boot support added |
-| Swift | Limited | Defaults to 'none' framework (no backend support) |
+| Language   | Status       | Notes                                               |
+| ---------- | ------------ | --------------------------------------------------- |
+| TypeScript | Full Support | 100% success rate                                   |
+| Python     | Full Support | 70% success (archetype limitations)                 |
+| Go         | Full Support | 70% success (archetype limitations)                 |
+| Rust       | Full Support | 75% success                                         |
+| Java       | Partial      | Spring Boot only                                    |
+| C#         | Partial      | ASP.NET Core only                                   |
+| Ruby       | Partial      | Rails only                                          |
+| PHP        | Partial      | Laravel only                                        |
+| JavaScript | ✅ Fixed     | Now defaults to express (same as TypeScript)        |
+| C++        | Partial      | CMake strategy exists, defaults to 'none' framework |
+| Kotlin     | Limited      | Spring Boot support added                           |
+| Swift      | Limited      | Defaults to 'none' framework (no backend support)   |
 
 ---
 
@@ -263,36 +269,41 @@ Writing 100 projects to disk adds ~1.5s overhead compared to in-memory generatio
 The following seeds were validated as producing working tech stacks:
 
 ### TypeScript Backend
-| Seed | Framework | Database | ORM |
-|------|-----------|----------|-----|
-| 1 | express | sqlite | sequelize |
-| 7 | nestjs | sqlite | drizzle |
-| 12 | nestjs | postgres | typeorm |
-| 100 | nestjs | sqlite | typeorm |
+
+| Seed | Framework | Database | ORM       |
+| ---- | --------- | -------- | --------- |
+| 1    | express   | sqlite   | sequelize |
+| 7    | nestjs    | sqlite   | drizzle   |
+| 12   | nestjs    | postgres | typeorm   |
+| 100  | nestjs    | sqlite   | typeorm   |
 
 ### Python Backend
-| Seed | Framework | Database | ORM |
-|------|-----------|----------|-----|
-| 5000 | fastapi | postgres | sqlalchemy |
-| 10 | django | postgres | sqlalchemy |
+
+| Seed | Framework | Database | ORM        |
+| ---- | --------- | -------- | ---------- |
+| 5000 | fastapi   | postgres | sqlalchemy |
+| 10   | django    | postgres | sqlalchemy |
 
 ### Go Backend
-| Seed | Framework | Database | ORM |
-|------|-----------|----------|-----|
-| 99123 | echo | postgres | gorm |
-| 5 | cobra (cli) | none | none |
+
+| Seed  | Framework   | Database | ORM  |
+| ----- | ----------- | -------- | ---- |
+| 99123 | echo        | postgres | gorm |
+| 5     | cobra (cli) | none     | none |
 
 ### Rust Backend
-| Seed | Framework | Database | ORM |
-|------|-----------|----------|-----|
-| 8 | actix | sqlite | diesel |
+
+| Seed | Framework | Database | ORM    |
+| ---- | --------- | -------- | ------ |
+| 8    | actix     | sqlite   | diesel |
 
 ### Web Frontend (TypeScript)
-| Seed | Framework | Styling |
-|------|-----------|---------|
-| 6 | vue | tailwind |
-| 21 | svelte | css-modules |
-| 27 | react | tailwind |
+
+| Seed | Framework | Styling     |
+| ---- | --------- | ----------- |
+| 6    | vue       | tailwind    |
+| 21   | svelte    | css-modules |
+| 27   | react     | tailwind    |
 
 ---
 
@@ -357,11 +368,11 @@ The following seeds were validated as producing working tech stacks:
 
 ### Sweep Command
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `--start-seed <n>` | Starting seed number | `--start-seed 100` |
-| `--dry-run` | Preview stacks without files | `--dry-run` |
-| `--only-valid` | Retry until N valid found | `--only-valid` |
+| Option             | Description                  | Example            |
+| ------------------ | ---------------------------- | ------------------ |
+| `--start-seed <n>` | Starting seed number         | `--start-seed 100` |
+| `--dry-run`        | Preview stacks without files | `--dry-run`        |
+| `--only-valid`     | Retry until N valid found    | `--only-valid`     |
 
 ### Usage Examples
 
@@ -398,19 +409,20 @@ The tool successfully demonstrates the "integers to software" paradigm, generati
 
 All major recommendations have been implemented:
 
-| Task | Status |
-|------|--------|
-| BUG-002: Framework-Language Fallback | ✅ COMPLETED |
-| JavaScript Language Support | ✅ COMPLETED |
-| Constraint Validation | ✅ COMPLETED |
-| --start-seed Option | ✅ COMPLETED |
-| Improved Error Messages | ✅ COMPLETED |
-| --dry-run Option | ✅ COMPLETED |
-| --only-valid Option | ✅ COMPLETED |
-| Progress Indicator | ✅ COMPLETED |
-| Parallel Generation | Not Implemented (not needed) |
+| Task                                 | Status                       |
+| ------------------------------------ | ---------------------------- |
+| BUG-002: Framework-Language Fallback | ✅ COMPLETED                 |
+| JavaScript Language Support          | ✅ COMPLETED                 |
+| Constraint Validation                | ✅ COMPLETED                 |
+| --start-seed Option                  | ✅ COMPLETED                 |
+| Improved Error Messages              | ✅ COMPLETED                 |
+| --dry-run Option                     | ✅ COMPLETED                 |
+| --only-valid Option                  | ✅ COMPLETED                 |
+| Progress Indicator                   | ✅ COMPLETED                 |
+| Parallel Generation                  | Not Implemented (not needed) |
 
 **Files Modified:**
+
 - `packages/procedural/src/engine/assembler.ts` - Framework defaults fix
 - `packages/procedural/src/engine/constraints.ts` - Validation helpers
 - `packages/procedural/src/engine/index.ts` - Export new functions
@@ -421,5 +433,5 @@ All major recommendations have been implemented:
 
 ---
 
-*Report generated by automated testing session*
-*Updated: 2026-01-22 with implementation completion status*
+_Report generated by automated testing session_
+_Updated: 2026-01-22 with implementation completion status_

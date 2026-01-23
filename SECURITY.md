@@ -7,6 +7,7 @@
 Please report security issues privately to: security@retro-vibecoder.dev
 
 Include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -26,11 +27,13 @@ We will acknowledge receipt within 48 hours and provide a timeline for the fix.
 ### Template Execution
 
 UPG templates can execute arbitrary code through:
+
 - Post-generation hooks (Python/JS scripts)
 - Command actions in manifests
 - Sidecar binaries (Copier, Yeoman)
 
 **Mitigations:**
+
 - Review template code before generation
 - Use trusted registries only
 - Consider sandboxed execution (future)
@@ -38,6 +41,7 @@ UPG templates can execute arbitrary code through:
 ### Manifest Validation
 
 All manifests are validated against a JSON Schema before execution:
+
 - Type checking on all fields
 - Pattern validation for names and versions
 - Size limits to prevent DoS
@@ -45,6 +49,7 @@ All manifests are validated against a JSON Schema before execution:
 ### Registry Security
 
 When using third-party registries:
+
 - Verify the registry source
 - Review templates before use
 - Keep registries updated
@@ -86,6 +91,7 @@ When using third-party registries:
 ## Security Audits
 
 We conduct periodic security reviews of:
+
 - Core validation logic
 - Sidecar execution paths
 - Registry synchronization

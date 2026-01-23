@@ -16,21 +16,54 @@ export const DATABASES: readonly DatabaseEntry[] = [
     name: 'PostgreSQL',
     type: 'sql',
     defaultPort: 5432,
-    compatibleOrms: ['prisma', 'drizzle', 'typeorm', 'sequelize', 'sqlalchemy', 'gorm', 'diesel', 'entity-framework', 'activerecord', 'eloquent'],
+    compatibleOrms: [
+      'prisma',
+      'drizzle',
+      'typeorm',
+      'sequelize',
+      'sqlalchemy',
+      'gorm',
+      'diesel',
+      'entity-framework',
+      'activerecord',
+      'eloquent',
+    ],
   },
   {
     id: 'mysql',
     name: 'MySQL',
     type: 'sql',
     defaultPort: 3306,
-    compatibleOrms: ['prisma', 'drizzle', 'typeorm', 'sequelize', 'sqlalchemy', 'gorm', 'diesel', 'entity-framework', 'activerecord', 'eloquent'],
+    compatibleOrms: [
+      'prisma',
+      'drizzle',
+      'typeorm',
+      'sequelize',
+      'sqlalchemy',
+      'gorm',
+      'diesel',
+      'entity-framework',
+      'activerecord',
+      'eloquent',
+    ],
   },
   {
     id: 'sqlite',
     name: 'SQLite',
     type: 'sql',
     defaultPort: 0,
-    compatibleOrms: ['prisma', 'drizzle', 'typeorm', 'sequelize', 'sqlalchemy', 'gorm', 'diesel', 'entity-framework', 'activerecord', 'eloquent'],
+    compatibleOrms: [
+      'prisma',
+      'drizzle',
+      'typeorm',
+      'sequelize',
+      'sqlalchemy',
+      'gorm',
+      'diesel',
+      'entity-framework',
+      'activerecord',
+      'eloquent',
+    ],
   },
   {
     id: 'mongodb',
@@ -73,13 +106,13 @@ export const DATABASES: readonly DatabaseEntry[] = [
  * Map of database IDs to their entries
  */
 export const DATABASE_MAP: ReadonlyMap<Database, DatabaseEntry> = new Map(
-  DATABASES.map((db) => [db.id, db])
+  DATABASES.map(db => [db.id, db])
 );
 
 /**
  * List of all database IDs
  */
-export const DATABASE_IDS: readonly Database[] = DATABASES.map((db) => db.id);
+export const DATABASE_IDS: readonly Database[] = DATABASES.map(db => db.id);
 
 /**
  * SQL databases
@@ -121,7 +154,7 @@ export function getCompatibleOrms(database: Database): ORM[] {
  */
 export function getOrmsForStack(database: Database, language: Language): ORM[] {
   const dbOrms = getCompatibleOrms(database);
-  return dbOrms.filter((orm) => {
+  return dbOrms.filter(orm => {
     const supportedLangs = ORM_LANGUAGE_MAP[orm];
     return supportedLangs.length === 0 || supportedLangs.includes(language);
   });

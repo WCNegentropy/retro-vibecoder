@@ -265,7 +265,7 @@ export const DockerStrategy: GenerationStrategy = {
   name: 'Docker Configuration',
   priority: 90, // Run late
 
-  matches: (stack) => stack.packaging === 'docker',
+  matches: stack => stack.packaging === 'docker',
 
   apply: async ({ stack, files, projectName }) => {
     files['Dockerfile'] = generateDockerfile(stack, projectName);

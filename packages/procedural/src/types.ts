@@ -126,7 +126,13 @@ export type BuildTool =
   | 'xcodebuild';
 
 /** Styling solutions */
-export type Styling = 'tailwind' | 'css-modules' | 'styled-components' | 'scss' | 'vanilla' | 'none';
+export type Styling =
+  | 'tailwind'
+  | 'css-modules'
+  | 'styled-components'
+  | 'scss'
+  | 'vanilla'
+  | 'none';
 
 /** Testing frameworks */
 export type TestingFramework =

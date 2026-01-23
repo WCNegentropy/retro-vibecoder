@@ -15,7 +15,7 @@ export const ExpressStrategy: GenerationStrategy = {
   name: 'Express Backend',
   priority: 10,
 
-  matches: (stack) =>
+  matches: stack =>
     (stack.language === 'typescript' || stack.language === 'javascript') &&
     stack.archetype === 'backend' &&
     stack.framework === 'express',
@@ -223,7 +223,7 @@ export const FastifyStrategy: GenerationStrategy = {
   name: 'Fastify Backend',
   priority: 10,
 
-  matches: (stack) =>
+  matches: stack =>
     (stack.language === 'typescript' || stack.language === 'javascript') &&
     stack.archetype === 'backend' &&
     stack.framework === 'fastify',
@@ -423,7 +423,12 @@ describe('API', () => {
 /**
  * Add Prisma setup to project files
  */
-function addPrismaSetup(files: Record<string, string>, _projectName: string, database: string, _isTypeScript: boolean = true): void {
+function addPrismaSetup(
+  files: Record<string, string>,
+  _projectName: string,
+  database: string,
+  _isTypeScript: boolean = true
+): void {
   // Add prisma dependencies to package.json
   const pkg = JSON.parse(files['package.json']);
   pkg.dependencies['@prisma/client'] = '^5.8.0';
@@ -480,7 +485,7 @@ export const NestJSStrategy: GenerationStrategy = {
   name: 'NestJS Backend',
   priority: 10,
 
-  matches: (stack) =>
+  matches: stack =>
     stack.language === 'typescript' &&
     stack.archetype === 'backend' &&
     stack.framework === 'nestjs',

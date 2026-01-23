@@ -36,9 +36,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/copier-cli"
-    ]
+    "externalBin": ["binaries/copier-cli"]
   },
   "plugins": {
     "shell": {

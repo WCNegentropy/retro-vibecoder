@@ -14,10 +14,8 @@ export const GinStrategy: GenerationStrategy = {
   name: 'Gin Backend',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'go' &&
-    stack.archetype === 'backend' &&
-    stack.framework === 'gin',
+  matches: stack =>
+    stack.language === 'go' && stack.archetype === 'backend' && stack.framework === 'gin',
 
   apply: async ({ files, projectName, stack }) => {
     // go.mod
@@ -166,10 +164,8 @@ export const EchoStrategy: GenerationStrategy = {
   name: 'Echo Backend',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'go' &&
-    stack.archetype === 'backend' &&
-    stack.framework === 'echo',
+  matches: stack =>
+    stack.language === 'go' && stack.archetype === 'backend' && stack.framework === 'echo',
 
   apply: async ({ files, projectName, stack }) => {
     // go.mod
@@ -310,10 +306,8 @@ export const CobraStrategy: GenerationStrategy = {
   name: 'Cobra CLI',
   priority: 10,
 
-  matches: (stack) =>
-    stack.language === 'go' &&
-    stack.archetype === 'cli' &&
-    stack.framework === 'cobra',
+  matches: stack =>
+    stack.language === 'go' && stack.archetype === 'cli' && stack.framework === 'cobra',
 
   apply: async ({ files, projectName }) => {
     // go.mod
@@ -458,7 +452,9 @@ function addGormSetup(files: Record<string, string>, database: string, _projectN
 
   // Update go.mod
   const goMod = files['go.mod'];
-  files['go.mod'] = goMod + `
+  files['go.mod'] =
+    goMod +
+    `
 require (
 	gorm.io/gorm v1.25.5
 	gorm.io/driver/${driver} v1.5.4

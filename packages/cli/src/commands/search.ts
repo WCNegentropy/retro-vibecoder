@@ -15,10 +15,7 @@ interface SearchOptions {
 /**
  * Execute the search command
  */
-export async function searchAction(
-  query: string,
-  options: SearchOptions
-): Promise<void> {
+export async function searchAction(query: string, options: SearchOptions): Promise<void> {
   console.log(pc.cyan('Registry search is not yet implemented (Phase 3)'));
   console.log('');
   console.log(`Search query: ${pc.bold(query)}`);

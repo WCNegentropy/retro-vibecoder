@@ -53,13 +53,13 @@ pnpm --filter @retro-vibecoder/cli sweep --count 100 --validate --save-registry 
 
 The Universal Matrix defines the possibility space of modern software:
 
-| Dimension | Options |
-|-----------|---------|
-| **Archetype** | web, backend, cli, mobile, desktop, game, library |
-| **Language** | TypeScript, Python, Go, Rust, Java, C#, C++, Swift, Kotlin |
+| Dimension     | Options                                                       |
+| ------------- | ------------------------------------------------------------- |
+| **Archetype** | web, backend, cli, mobile, desktop, game, library             |
+| **Language**  | TypeScript, Python, Go, Rust, Java, C#, C++, Swift, Kotlin    |
 | **Framework** | React, Vue, Svelte, Express, FastAPI, Axum, Spring Boot, .NET |
-| **Database** | PostgreSQL, MySQL, SQLite, MongoDB, Redis, Neo4j |
-| **Runtime** | Node, Deno, Bun, JVM, .NET, Native, Browser |
+| **Database**  | PostgreSQL, MySQL, SQLite, MongoDB, Redis, Neo4j              |
+| **Runtime**   | Node, Deno, Bun, JVM, .NET, Native, Browser                   |
 
 ### Procedural Engine
 
@@ -92,24 +92,29 @@ The Universal Matrix defines the possibility space of modern software:
 ## Supported Stacks
 
 ### Tier 1: Web Technologies
+
 - **TypeScript/JavaScript**: Express, Fastify, NestJS (both TS and JS supported)
 - **Python**: FastAPI, Flask, Django
 - **Rust**: Axum, Actix, Clap (CLI)
 
 ### Tier 2: Systems & Go
+
 - **Go**: Gin, Echo, Cobra (CLI)
 - **C++**: CMake projects
 
 ### Tier 3: Enterprise
+
 - **Java/Kotlin**: Spring Boot (both Java and Kotlin supported)
 - **C#**: .NET Core / ASP.NET
 
 ### Tier 4: Mobile
+
 - **React Native**: Expo (TypeScript)
 - **SwiftUI**: Native iOS/macOS apps (Swift)
 - **Jetpack Compose**: Native Android apps (Kotlin)
 
 ### Tier 5: Web Frontend
+
 - **React**: Vite + TypeScript
 - **Vue**: Vite + Vue 3 + Pinia
 - **Svelte**: Vite + SvelteKit
@@ -131,6 +136,7 @@ upg seed 12345 --output ./my-project --verbose
 ```
 
 Options:
+
 - `-o, --output <path>` - Output directory
 - `-v, --verbose` - Show file previews
 - `--archetype <type>` - Force archetype
@@ -146,6 +152,7 @@ upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.
 ```
 
 Options:
+
 - `-c, --count <n>` - Number of projects (default: 5)
 - `--validate` - Validate generated projects
 - `-o, --output <path>` - Output directory
@@ -204,25 +211,26 @@ retro-vibecoder-upg/
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm build` | Build all packages |
-| `pnpm dev` | Start development mode |
-| `pnpm test` | Run all tests |
-| `pnpm lint` | Lint all packages |
-| `pnpm format` | Format all files |
+| Command          | Description             |
+| ---------------- | ----------------------- |
+| `pnpm build`     | Build all packages      |
+| `pnpm dev`       | Start development mode  |
+| `pnpm test`      | Run all tests           |
+| `pnpm lint`      | Lint all packages       |
+| `pnpm format`    | Format all files        |
 | `pnpm typecheck` | Type check all packages |
 
 ### Adding a New Strategy
 
 1. Create a strategy file in the appropriate directory:
+
    ```typescript
    // packages/procedural/src/strategies/web/my-framework.ts
    export const MyFrameworkStrategy: GenerationStrategy = {
      id: 'web-myframework',
      name: 'My Framework',
      priority: 10,
-     matches: (stack) => stack.framework === 'myframework',
+     matches: stack => stack.framework === 'myframework',
      apply: async ({ files, projectName }) => {
        files['package.json'] = '...';
        // Generate files
@@ -231,6 +239,7 @@ retro-vibecoder-upg/
    ```
 
 2. Export from the category index:
+
    ```typescript
    // packages/procedural/src/strategies/web/index.ts
    export { MyFrameworkStrategy } from './my-framework.js';
@@ -248,6 +257,7 @@ upg sweep --count 1000 --validate --save-registry ./registry/manifests/generated
 ```
 
 Registry entries include:
+
 - Seed number for reproducibility
 - Complete tech stack configuration
 - List of generated files
@@ -258,6 +268,7 @@ Registry entries include:
 > "We have built a machine that turns integers into software."
 
 The Universal Procedural Generator represents a shift from:
+
 - **Imperative scripting** → **Declarative generation**
 - **Template copying** → **Constraint-based assembly**
 - **Manual configuration** → **Seed-based discovery**

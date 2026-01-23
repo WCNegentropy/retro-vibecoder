@@ -94,6 +94,7 @@ to prevent infinite loops during validation.
 ## Pull Request Process
 
 1. **Create a feature branch**
+
    ```bash
    git checkout -b feat/my-feature
    ```
@@ -108,6 +109,7 @@ to prevent infinite loops during validation.
    - Keep commits focused and atomic
 
 4. **Push and create PR**
+
    ```bash
    git push origin feat/my-feature
    ```

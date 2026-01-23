@@ -13,18 +13,12 @@ function isTauri(): boolean {
  */
 async function mockGenerate(request: GenerationRequest): Promise<GenerationResult> {
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   return {
     success: true,
     message: `Mock generation for seed ${request.seed} completed`,
-    files_generated: [
-      'package.json',
-      'tsconfig.json',
-      'src/index.ts',
-      '.gitignore',
-      'README.md',
-    ],
+    files_generated: ['package.json', 'tsconfig.json', 'src/index.ts', '.gitignore', 'README.md'],
     output_path: request.output_path,
     duration_ms: 150,
   };
@@ -34,7 +28,7 @@ async function mockGenerate(request: GenerationRequest): Promise<GenerationResul
  * Mock preview for development outside Tauri
  */
 async function mockPreview(request: GenerationRequest): Promise<PreviewResult> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   // Generate deterministic mock based on seed
   const seed = request.seed || 0;
@@ -81,32 +75,35 @@ export function useTauriGenerate() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerationResult | null>(null);
 
-  const generate = useCallback(async (request: GenerationRequest): Promise<GenerationResult | null> => {
-    setIsLoading(true);
-    setError(null);
+  const generate = useCallback(
+    async (request: GenerationRequest): Promise<GenerationResult | null> => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      let generationResult: GenerationResult;
+      try {
+        let generationResult: GenerationResult;
 
-      if (isTauri()) {
-        // Use Tauri invoke
-        const { invoke } = await import('@tauri-apps/api/core');
-        generationResult = await invoke<GenerationResult>('generate_project', { request });
-      } else {
-        // Use mock implementation
-        generationResult = await mockGenerate(request);
+        if (isTauri()) {
+          // Use Tauri invoke
+          const { invoke } = await import('@tauri-apps/api/core');
+          generationResult = await invoke<GenerationResult>('generate_project', { request });
+        } else {
+          // Use mock implementation
+          generationResult = await mockGenerate(request);
+        }
+
+        setResult(generationResult);
+        return generationResult;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Generation failed';
+        setError(message);
+        return null;
+      } finally {
+        setIsLoading(false);
       }
-
-      setResult(generationResult);
-      return generationResult;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Generation failed';
-      setError(message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const preview = useCallback(async (request: GenerationRequest): Promise<PreviewResult | null> => {
     setIsLoading(true);

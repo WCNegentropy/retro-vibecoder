@@ -77,12 +77,8 @@ describe('Schema Validator', () => {
           version: '1.0.0',
           description: 'A template without tags',
         },
-        prompts: [
-          { id: 'name', type: 'string', message: 'Name?' },
-        ],
-        actions: [
-          { type: 'generate', src: 'template/', dest: './' },
-        ],
+        prompts: [{ id: 'name', type: 'string', message: 'Name?' }],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
       };
 
       const result = validateManifest(manifest, { includeWarnings: true });
@@ -100,12 +96,8 @@ describe('Schema Validator', () => {
           description: 'A deprecated template',
           lifecycle: 'deprecated',
         },
-        prompts: [
-          { id: 'name', type: 'string', message: 'Name?' },
-        ],
-        actions: [
-          { type: 'generate', src: 'template/', dest: './' },
-        ],
+        prompts: [{ id: 'name', type: 'string', message: 'Name?' }],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
       };
 
       const result = validateManifest(manifest, { includeWarnings: true });

@@ -141,10 +141,14 @@ export const ReadmeStrategy: GenerationStrategy = {
     const techBadges: string[] = [];
     techBadges.push(`![${languageName}](https://img.shields.io/badge/${languageName}-blue)`);
     if (stack.framework) {
-      techBadges.push(`![${stack.framework}](https://img.shields.io/badge/${stack.framework}-green)`);
+      techBadges.push(
+        `![${stack.framework}](https://img.shields.io/badge/${stack.framework}-green)`
+      );
     }
     if (stack.database !== 'none') {
-      techBadges.push(`![${stack.database}](https://img.shields.io/badge/${stack.database}-orange)`);
+      techBadges.push(
+        `![${stack.database}](https://img.shields.io/badge/${stack.database}-orange)`
+      );
     }
 
     const content = `# ${projectName}

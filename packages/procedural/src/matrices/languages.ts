@@ -113,13 +113,13 @@ export const LANGUAGES: readonly LanguageEntry[] = [
  * Map of language IDs to their entries for quick lookup
  */
 export const LANGUAGE_MAP: ReadonlyMap<Language, LanguageEntry> = new Map(
-  LANGUAGES.map((lang) => [lang.id, lang])
+  LANGUAGES.map(lang => [lang.id, lang])
 );
 
 /**
  * List of all supported language IDs
  */
-export const LANGUAGE_IDS: readonly Language[] = LANGUAGES.map((l) => l.id);
+export const LANGUAGE_IDS: readonly Language[] = LANGUAGES.map(l => l.id);
 
 /**
  * Languages that compile to native code

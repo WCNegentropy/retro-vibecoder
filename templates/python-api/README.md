@@ -27,17 +27,17 @@ upg generate python-api --use-database --database-type postgres
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `project_name` | string | my-api | Project name |
-| `description` | string | A Python REST API | Project description |
-| `author_name` | string | (from env) | Author name |
-| `framework` | select | fastapi | Web framework |
-| `use_database` | boolean | true | Include database |
-| `database_type` | select | postgres | Database type |
-| `use_docker` | boolean | true | Include Docker |
-| `use_testing` | boolean | true | Include testing |
-| `python_version` | select | 3.11 | Python version |
+| Option           | Type    | Default           | Description         |
+| ---------------- | ------- | ----------------- | ------------------- |
+| `project_name`   | string  | my-api            | Project name        |
+| `description`    | string  | A Python REST API | Project description |
+| `author_name`    | string  | (from env)        | Author name         |
+| `framework`      | select  | fastapi           | Web framework       |
+| `use_database`   | boolean | true              | Include database    |
+| `database_type`  | select  | postgres          | Database type       |
+| `use_docker`     | boolean | true              | Include Docker      |
+| `use_testing`    | boolean | true              | Include testing     |
+| `python_version` | select  | 3.11              | Python version      |
 
 ## After Generation
 
@@ -50,6 +50,7 @@ upg generate python-api --use-database --database-type postgres
 ## API Documentation
 
 FastAPI automatically generates API docs at:
+
 - `/docs` - Swagger UI
 - `/redoc` - ReDoc
 
