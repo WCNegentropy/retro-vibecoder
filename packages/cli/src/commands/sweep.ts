@@ -100,7 +100,6 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       runUniversalSweep,
       validateConstraints,
       getValidLanguagesForArchetype,
-      getSuggestedFrameworks,
     } = await import('@retro-vibecoder/procedural');
 
     // Early validation of user constraints
@@ -397,7 +396,7 @@ async function saveToRegistry(
   registryPath: string
 ): Promise<string> {
   const { writeFile, readFile, mkdir } = await import('node:fs/promises');
-  const { dirname, join } = await import('node:path');
+  const { dirname } = await import('node:path');
 
   // Ensure registry directory exists
   await mkdir(dirname(registryPath), { recursive: true });
