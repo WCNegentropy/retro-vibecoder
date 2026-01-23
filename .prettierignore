@@ -22,3 +22,6 @@ templates/**/*.jinja2
 
 # Tauri (Phase 2)
 src-tauri/target/
+
+# Test reports (generated)
+E2E_SMOKETEST_REPORT.md
