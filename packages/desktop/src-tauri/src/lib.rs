@@ -4,6 +4,7 @@
 //! It implements the Sidecar Pattern for orchestrating external generation tools.
 
 use serde::{Deserialize, Serialize};
+use std::process::Command;
 use tauri::Manager;
 
 /// Generation mode for projects
@@ -21,9 +22,9 @@ pub enum GenerationMode {
 /// Tech stack configuration for procedural generation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TechStackConfig {
-    pub archetype: String,
-    pub language: String,
-    pub framework: String,
+    pub archetype: Option<String>,
+    pub language: Option<String>,
+    pub framework: Option<String>,
     pub database: Option<String>,
     pub packaging: Option<String>,
     pub cicd: Option<String>,
@@ -55,35 +56,159 @@ pub struct GenerationResult {
     pub duration_ms: u64,
 }
 
+/// Response from procedural bridge script
+#[derive(Debug, Clone, Deserialize)]
+struct BridgeResponse {
+    success: bool,
+    data: Option<serde_json::Value>,
+    error: Option<String>,
+    #[serde(rename = "durationMs")]
+    duration_ms: Option<u64>,
+}
+
+/// Get the path to the procedural bridge script
+fn get_bridge_script_path() -> String {
+    // In development, use the script from the source directory
+    // In production, this would be bundled with the app
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    format!("{}/scripts/procedural-bridge.mjs", manifest_dir.replace("/src-tauri", ""))
+}
+
+/// Build command arguments for the procedural bridge
+fn build_bridge_args(action: &str, seed: u64, output_path: Option<&str>, stack: &Option<TechStackConfig>) -> Vec<String> {
+    let mut args = vec![action.to_string(), seed.to_string()];
+
+    // Add output path for generate action
+    if let Some(path) = output_path {
+        args.push(path.to_string());
+    }
+
+    // Add stack constraints if provided
+    if let Some(ref config) = stack {
+        if let Some(ref archetype) = config.archetype {
+            args.push("--archetype".to_string());
+            args.push(archetype.clone());
+        }
+        if let Some(ref language) = config.language {
+            args.push("--language".to_string());
+            args.push(language.clone());
+        }
+        if let Some(ref framework) = config.framework {
+            args.push("--framework".to_string());
+            args.push(framework.clone());
+        }
+    }
+
+    args
+}
+
+/// Execute the procedural bridge script
+fn execute_bridge(args: Vec<String>) -> Result<BridgeResponse, String> {
+    let script_path = get_bridge_script_path();
+
+    let output = Command::new("node")
+        .arg(&script_path)
+        .args(&args)
+        .output()
+        .map_err(|e| format!("Failed to execute procedural bridge: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Try to parse JSON from stdout
+    if !stdout.is_empty() {
+        serde_json::from_str::<BridgeResponse>(&stdout)
+            .map_err(|e| format!("Failed to parse bridge response: {}. stdout: {}, stderr: {}", e, stdout, stderr))
+    } else if !stderr.is_empty() {
+        // Try to parse error from stderr
+        serde_json::from_str::<BridgeResponse>(&stderr)
+            .map_err(|e| format!("Bridge failed. stderr: {}, parse error: {}", stderr, e))
+    } else {
+        Err(format!("Bridge returned empty output. Exit code: {:?}", output.status.code()))
+    }
+}
+
 /// Generate a project using the specified mode
 #[tauri::command]
 async fn generate_project(request: GenerationRequest) -> Result<GenerationResult, String> {
     let start = std::time::Instant::now();
 
-    // TODO: Implement actual generation logic
-    // For now, return a placeholder result
-    let result = GenerationResult {
-        success: true,
-        message: format!("Generation request received: {:?}", request.mode),
-        files_generated: vec![],
-        output_path: request.output_path,
-        duration_ms: start.elapsed().as_millis() as u64,
-    };
+    match request.mode {
+        GenerationMode::Procedural => {
+            let seed = request.seed.ok_or("Seed is required for procedural generation")?;
 
-    Ok(result)
+            let args = build_bridge_args("generate", seed, Some(&request.output_path), &request.stack);
+            let response = execute_bridge(args)?;
+
+            if response.success {
+                let data = response.data.ok_or("Missing data in successful response")?;
+
+                let files_generated: Vec<String> = data
+                    .get("files_generated")
+                    .and_then(|v| v.as_array())
+                    .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                    .unwrap_or_default();
+
+                let message = data
+                    .get("message")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Generation completed")
+                    .to_string();
+
+                Ok(GenerationResult {
+                    success: true,
+                    message,
+                    files_generated,
+                    output_path: request.output_path,
+                    duration_ms: response.duration_ms.unwrap_or(start.elapsed().as_millis() as u64),
+                })
+            } else {
+                let error = response.error.unwrap_or_else(|| "Unknown error".to_string());
+                Ok(GenerationResult {
+                    success: false,
+                    message: error,
+                    files_generated: vec![],
+                    output_path: request.output_path,
+                    duration_ms: start.elapsed().as_millis() as u64,
+                })
+            }
+        }
+        GenerationMode::Manifest => {
+            // TODO: Implement manifest-based generation via Copier sidecar
+            Ok(GenerationResult {
+                success: false,
+                message: "Manifest mode not yet implemented in Rust backend. Use sidecar.ts for Copier integration.".to_string(),
+                files_generated: vec![],
+                output_path: request.output_path,
+                duration_ms: start.elapsed().as_millis() as u64,
+            })
+        }
+        GenerationMode::Hybrid => {
+            // TODO: Implement hybrid mode
+            Ok(GenerationResult {
+                success: false,
+                message: "Hybrid mode not yet implemented".to_string(),
+                files_generated: vec![],
+                output_path: request.output_path,
+                duration_ms: start.elapsed().as_millis() as u64,
+            })
+        }
+    }
 }
 
 /// Get available templates from the registry
 #[tauri::command]
 async fn get_templates() -> Result<Vec<serde_json::Value>, String> {
     // TODO: Read from registry
+    // For now, return empty list - templates will be loaded from the filesystem
     Ok(vec![])
 }
 
 /// Validate a UPG manifest file
 #[tauri::command]
 async fn validate_manifest(path: String) -> Result<serde_json::Value, String> {
-    // TODO: Call validator
+    // TODO: Implement validation via core package
+    // For now, return a basic validation result
     Ok(serde_json::json!({
         "valid": true,
         "path": path,
@@ -92,15 +217,61 @@ async fn validate_manifest(path: String) -> Result<serde_json::Value, String> {
     }))
 }
 
+/// Preview result structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreviewResult {
+    pub files: std::collections::HashMap<String, String>,
+    pub stack: Option<serde_json::Value>,
+    pub seed: Option<u64>,
+}
+
 /// Preview generated files without writing to disk
 #[tauri::command]
-async fn preview_generation(request: GenerationRequest) -> Result<serde_json::Value, String> {
-    // TODO: Generate in-memory preview
-    Ok(serde_json::json!({
-        "files": {},
-        "stack": request.stack,
-        "seed": request.seed
-    }))
+async fn preview_generation(request: GenerationRequest) -> Result<PreviewResult, String> {
+    match request.mode {
+        GenerationMode::Procedural => {
+            let seed = request.seed.ok_or("Seed is required for procedural preview")?;
+
+            let args = build_bridge_args("preview", seed, None, &request.stack);
+            let response = execute_bridge(args)?;
+
+            if response.success {
+                let data = response.data.ok_or("Missing data in successful response")?;
+
+                // Extract files from response
+                let files: std::collections::HashMap<String, String> = data
+                    .get("files")
+                    .and_then(|v| v.as_object())
+                    .map(|obj| {
+                        obj.iter()
+                            .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+
+                // Extract stack from response
+                let stack = data.get("stack").cloned();
+
+                Ok(PreviewResult {
+                    files,
+                    stack,
+                    seed: Some(seed),
+                })
+            } else {
+                let error = response.error.unwrap_or_else(|| "Unknown error".to_string());
+                Err(error)
+            }
+        }
+        GenerationMode::Manifest => {
+            // For manifest mode, we would need to process the template
+            // without writing files. This is more complex and requires
+            // the Copier sidecar or template processing.
+            Err("Manifest preview not yet implemented in Rust backend".to_string())
+        }
+        GenerationMode::Hybrid => {
+            Err("Hybrid preview not yet implemented".to_string())
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

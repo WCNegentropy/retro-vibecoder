@@ -52,7 +52,7 @@ tmp/
 temp/
 
 # Tauri (Phase 2)
-src-tauri/target/
+**/src-tauri/target/
 
 # Sidecar binaries (Phase 2)
 binaries/copier-cli/dist/
