@@ -127,7 +127,7 @@ conan.lock
       configurePresets: [
         {
           name: "default",
-          binaryDir: "\${sourceDir}/build",
+          binaryDir: "${sourceDir}/build",
           generator: "Ninja",
           cacheVariables: {
             CMAKE_BUILD_TYPE: "Release"
