@@ -41,7 +41,7 @@ export { JavaSpringStrategy } from './backend/java.js';
 export { CSharpApiStrategy } from './backend/csharp.js';
 
 // Mobile strategies
-export { ExpoStrategy } from './mobile/react-native.js';
+export { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 
 import { CommonStrategies } from './common/index.js';
 import { ApiStrategies } from './api/index.js';
@@ -49,7 +49,7 @@ import { WebStrategies } from './web/index.js';
 import { CppStrategy } from './systems/cpp.js';
 import { JavaSpringStrategy } from './backend/java.js';
 import { CSharpApiStrategy } from './backend/csharp.js';
-import { ExpoStrategy } from './mobile/react-native.js';
+import { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 import type { GenerationStrategy } from '../types.js';
 
 /**
@@ -67,6 +67,7 @@ export const AllStrategies: GenerationStrategy[] = [
   CSharpApiStrategy,
   // Tier 4: Mobile
   ExpoStrategy,
+  SwiftUIStrategy,
 ];
 
 /**

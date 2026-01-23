@@ -11,7 +11,8 @@
  * - The Sidecars: Bundled binaries (Copier, Node tools) for actual generation
  */
 
-import type { GenerationRequest, GenerationResult, PreviewResult } from '../types';
+// Types available in '../types' if needed:
+// GenerationRequest, GenerationResult, PreviewResult
 
 /**
  * Sidecar execution status

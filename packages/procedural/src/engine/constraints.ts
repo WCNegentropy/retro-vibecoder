@@ -115,11 +115,13 @@ export const REQUIREMENT_RULES: readonly RequirementRule[] = [
     requires: { language: 'php' },
     reason: 'Laravel is a PHP framework',
   },
-  // Spring Boot requires Java/Kotlin
+  // Spring Boot requires Java or Kotlin (JVM languages)
+  // Note: Kotlin support is handled via validateStack's JVM equivalence check
+  // This rule is kept for Java as the primary language
   {
     when: { framework: 'spring-boot' },
     requires: { language: 'java' },
-    reason: 'Spring Boot is a JVM framework',
+    reason: 'Spring Boot is a JVM framework (Java or Kotlin)',
   },
   // ASP.NET requires C#
   {
@@ -253,6 +255,31 @@ export function checkIncompatibilities(stack: Partial<TechStack>): string[] {
 }
 
 /**
+ * Check if two languages are equivalent (e.g., TypeScript/JavaScript, Java/Kotlin)
+ */
+function areLanguagesEquivalent(lang1: string, lang2: string, framework?: string): boolean {
+  // JavaScript and TypeScript are interchangeable for Node.js frameworks
+  const nodeFrameworks = ['express', 'fastify', 'nestjs', 'commander', 'yargs', 'react', 'vue', 'svelte', 'solid', 'angular', 'qwik', 'nextjs', 'nuxt', 'sveltekit', 'react-native', 'electron'];
+  if (nodeFrameworks.includes(framework ?? '')) {
+    if ((lang1 === 'typescript' && lang2 === 'javascript') ||
+        (lang1 === 'javascript' && lang2 === 'typescript')) {
+      return true;
+    }
+  }
+
+  // Java and Kotlin are interchangeable for JVM frameworks
+  const jvmFrameworks = ['spring-boot', 'flutter'];
+  if (jvmFrameworks.includes(framework ?? '')) {
+    if ((lang1 === 'java' && lang2 === 'kotlin') ||
+        (lang1 === 'kotlin' && lang2 === 'java')) {
+      return true;
+    }
+  }
+
+  return lang1 === lang2;
+}
+
+/**
  * Check if a partial stack satisfies all requirement rules
  */
 export function checkRequirements(stack: Partial<TechStack>): string[] {
@@ -268,8 +295,16 @@ export function checkRequirements(stack: Partial<TechStack>): string[] {
       // Check if required values are present
       for (const [key, requiredValue] of Object.entries(rule.requires)) {
         const currentValue = stack[key as keyof TechStack];
-        if (currentValue && currentValue !== requiredValue) {
-          violations.push(`${rule.reason}: requires ${key}='${requiredValue}', got '${currentValue}'`);
+        if (currentValue) {
+          // Special handling for language equivalence
+          if (key === 'language') {
+            const framework = stack.framework;
+            if (!areLanguagesEquivalent(currentValue as string, requiredValue as string, framework)) {
+              violations.push(`${rule.reason}: requires ${key}='${requiredValue}', got '${currentValue}'`);
+            }
+          } else if (currentValue !== requiredValue) {
+            violations.push(`${rule.reason}: requires ${key}='${requiredValue}', got '${currentValue}'`);
+          }
         }
       }
     }
@@ -304,7 +339,21 @@ export function validateStack(stack: Partial<TechStack>): ConstraintValidation {
   if (stack.framework && stack.language) {
     const frameworkEntry = FRAMEWORK_MAP.get(stack.framework);
     if (frameworkEntry && frameworkEntry.language !== stack.language) {
-      violations.push(`Framework '${stack.framework}' requires language '${frameworkEntry.language}', got '${stack.language}'`);
+      // Allow JavaScript as equivalent to TypeScript for Node.js frameworks
+      const isNodeFramework = ['express', 'fastify', 'nestjs', 'commander', 'yargs', 'react', 'vue', 'svelte', 'solid', 'angular', 'qwik', 'nextjs', 'nuxt', 'sveltekit', 'react-native', 'electron'].includes(stack.framework);
+      const isJsEquivalent = isNodeFramework &&
+        ((frameworkEntry.language === 'typescript' && stack.language === 'javascript') ||
+         (frameworkEntry.language === 'javascript' && stack.language === 'typescript'));
+
+      // Allow Kotlin as equivalent to Java for JVM frameworks
+      const isJvmFramework = ['spring-boot', 'flutter'].includes(stack.framework);
+      const isJvmEquivalent = isJvmFramework &&
+        ((frameworkEntry.language === 'java' && stack.language === 'kotlin') ||
+         (frameworkEntry.language === 'kotlin' && stack.language === 'java'));
+
+      if (!isJsEquivalent && !isJvmEquivalent) {
+        violations.push(`Framework '${stack.framework}' requires language '${frameworkEntry.language}', got '${stack.language}'`);
+      }
     }
   }
 

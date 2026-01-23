@@ -10,16 +10,23 @@ We have moved beyond simple "templating" (copy-pasting files) into **generative 
 
 ### The "Minecraft" Effect
 
-Just as Minecraft uses Perlin noise to generate terrain, we use Mulberry32 noise to generate tech stacks:
+Just as Minecraft uses Perlin noise to generate terrain, we use Mulberry32 noise to generate tech stacks. Each seed produces a deterministic output, and you can constrain generation to specific archetypes or languages:
 
-| Seed | Generated Project |
-|------|-------------------|
-| 82910 | Rust (Axum) + Postgres + Docker API |
-| 10455 | Go (Cobra) CLI tool |
-| 99123 | Python (FastAPI) + MongoDB service |
-| 33411 | React Native (Expo) mobile app |
-| 55782 | React + Vite + TypeScript web app |
-| 44128 | Java Spring Boot + MySQL backend |
+```bash
+# Generate from a seed (unconstrained - result depends on RNG)
+upg seed 42
+
+# Constrained generation (100% success rate)
+upg seed 42 --archetype backend --language typescript  # Express/Fastify/NestJS
+upg seed 42 --archetype backend --language python      # FastAPI/Flask/Django
+upg seed 42 --archetype backend --language rust        # Axum/Actix
+upg seed 42 --archetype backend --language go          # Gin/Echo
+upg seed 42 --archetype cli --language rust            # Clap CLI
+upg seed 42 --archetype web --language typescript      # React/Vue/Svelte/etc.
+upg seed 42 --archetype mobile --language swift        # SwiftUI app
+```
+
+**Note:** Unconstrained generation explores the full possibility space, which may produce invalid combinations. Use `--archetype` and `--language` flags for reliable results.
 
 ## Quick Start
 
@@ -85,7 +92,7 @@ The Universal Matrix defines the possibility space of modern software:
 ## Supported Stacks
 
 ### Tier 1: Web Technologies
-- **TypeScript/Node.js**: Express, Fastify, NestJS
+- **TypeScript/JavaScript**: Express, Fastify, NestJS (both TS and JS supported)
 - **Python**: FastAPI, Flask, Django
 - **Rust**: Axum, Actix, Clap (CLI)
 
@@ -94,17 +101,24 @@ The Universal Matrix defines the possibility space of modern software:
 - **C++**: CMake projects
 
 ### Tier 3: Enterprise
-- **Java**: Spring Boot
+- **Java/Kotlin**: Spring Boot (both Java and Kotlin supported)
 - **C#**: .NET Core / ASP.NET
 
 ### Tier 4: Mobile
-- **React Native**: Expo
+- **React Native**: Expo (TypeScript)
+- **SwiftUI**: Native iOS/macOS apps (Swift)
+- **Jetpack Compose**: Native Android apps (Kotlin)
 
 ### Tier 5: Web Frontend
 - **React**: Vite + TypeScript
 - **Vue**: Vite + Vue 3 + Pinia
 - **Svelte**: Vite + SvelteKit
 - **Solid**: Vite + Solid
+- **Angular**: Angular 17 + TypeScript
+- **Next.js**: React + SSR/SSG
+- **Nuxt**: Vue 3 + SSR/SSG
+- **SvelteKit**: Svelte + SSR/SSG
+- **Qwik**: Resumable framework
 
 ## CLI Commands
 

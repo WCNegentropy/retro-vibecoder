@@ -308,6 +308,22 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
     defaultBuildTool: 'gradle',
     defaultTesting: 'junit',
   },
+  {
+    id: 'swiftui',
+    name: 'SwiftUI',
+    language: 'swift',
+    archetype: 'mobile',
+    defaultBuildTool: 'xcodebuild',
+    defaultTesting: 'xctest',
+  },
+  {
+    id: 'jetpack-compose',
+    name: 'Jetpack Compose',
+    language: 'kotlin',
+    archetype: 'mobile',
+    defaultBuildTool: 'gradle',
+    defaultTesting: 'junit',
+  },
 ] as const;
 
 /**

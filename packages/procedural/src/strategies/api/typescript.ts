@@ -8,6 +8,7 @@ import type { GenerationStrategy } from '../../types.js';
 
 /**
  * Express.js backend strategy
+ * Supports both TypeScript and JavaScript
  */
 export const ExpressStrategy: GenerationStrategy = {
   id: 'express',
@@ -15,69 +16,82 @@ export const ExpressStrategy: GenerationStrategy = {
   priority: 10,
 
   matches: (stack) =>
-    stack.language === 'typescript' &&
+    (stack.language === 'typescript' || stack.language === 'javascript') &&
     stack.archetype === 'backend' &&
     stack.framework === 'express',
 
   apply: async ({ files, projectName, stack }) => {
-    // package.json
-    files['package.json'] = JSON.stringify(
-      {
-        name: projectName,
-        version: '0.1.0',
-        type: 'module',
-        scripts: {
-          dev: 'tsx watch src/index.ts',
-          build: 'tsup',
-          start: 'node dist/index.js',
-          test: 'vitest',
-          lint: 'eslint src/',
-          typecheck: 'tsc --noEmit',
-        },
-        dependencies: {
-          express: '^4.18.2',
-          cors: '^2.8.5',
-          helmet: '^7.1.0',
-          'express-async-errors': '^3.1.1',
-        },
-        devDependencies: {
-          '@types/express': '^4.17.21',
-          '@types/cors': '^2.8.17',
-          '@types/node': '^20.11.0',
-          tsup: '^8.0.0',
-          tsx: '^4.7.0',
-          typescript: '^5.3.0',
-          vitest: '^1.2.0',
-          eslint: '^8.56.0',
-        },
-      },
-      null,
-      2
-    );
+    const isTypeScript = stack.language === 'typescript';
 
-    // tsconfig.json
-    files['tsconfig.json'] = JSON.stringify(
-      {
-        compilerOptions: {
-          target: 'ES2022',
-          module: 'NodeNext',
-          moduleResolution: 'NodeNext',
-          strict: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          outDir: 'dist',
-          rootDir: 'src',
-          declaration: true,
-        },
-        include: ['src/**/*'],
-        exclude: ['node_modules', 'dist'],
+    // package.json - different for TS vs JS
+    const pkg: Record<string, unknown> = {
+      name: projectName,
+      version: '0.1.0',
+      type: 'module',
+      scripts: isTypeScript
+        ? {
+            dev: 'tsx watch src/index.ts',
+            build: 'tsup',
+            start: 'node dist/index.js',
+            test: 'vitest',
+            lint: 'eslint src/',
+            typecheck: 'tsc --noEmit',
+          }
+        : {
+            dev: 'node --watch src/index.mjs',
+            start: 'node src/index.mjs',
+            test: 'vitest',
+            lint: 'eslint src/',
+          },
+      dependencies: {
+        express: '^4.18.2',
+        cors: '^2.8.5',
+        helmet: '^7.1.0',
+        'express-async-errors': '^3.1.1',
       },
-      null,
-      2
-    );
+      devDependencies: isTypeScript
+        ? {
+            '@types/express': '^4.17.21',
+            '@types/cors': '^2.8.17',
+            '@types/node': '^20.11.0',
+            tsup: '^8.0.0',
+            tsx: '^4.7.0',
+            typescript: '^5.3.0',
+            vitest: '^1.2.0',
+            eslint: '^8.56.0',
+          }
+        : {
+            vitest: '^1.2.0',
+            eslint: '^8.56.0',
+          },
+    };
+    files['package.json'] = JSON.stringify(pkg, null, 2);
 
-    // tsup.config.ts
-    files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
+    // TypeScript-specific files
+    if (isTypeScript) {
+      // tsconfig.json
+      files['tsconfig.json'] = JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'NodeNext',
+            moduleResolution: 'NodeNext',
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            outDir: 'dist',
+            rootDir: 'src',
+            declaration: true,
+          },
+          include: ['src/**/*'],
+          exclude: ['node_modules', 'dist'],
+        },
+        null,
+        2
+      );
+
+      // tsup.config.ts
+      files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -88,8 +102,8 @@ export default defineConfig({
 });
 `;
 
-    // Main entry
-    files['src/index.ts'] = `import 'express-async-errors';
+      // Main entry (TypeScript)
+      files['src/index.ts'] = `import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -124,15 +138,71 @@ app.listen(PORT, () => {
 
 export { app };
 `;
+    } else {
+      // JavaScript version
+      files['src/index.mjs'] = `import 'express-async-errors';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API routes
+app.get('/api', (req, res) => {
+  res.json({ message: 'Welcome to ${projectName} API' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+app.listen(PORT, () => {
+  console.log(\`Server running on port \${PORT}\`);
+});
+
+export { app };
+`;
+
+      // jsconfig.json for better IDE support
+      files['jsconfig.json'] = JSON.stringify(
+        {
+          compilerOptions: {
+            module: 'NodeNext',
+            moduleResolution: 'NodeNext',
+            target: 'ES2022',
+            checkJs: true,
+          },
+          include: ['src/**/*'],
+          exclude: ['node_modules'],
+        },
+        null,
+        2
+      );
+    }
 
     // Add database setup if needed
     if (stack.orm === 'prisma' && stack.database !== 'none') {
-      addPrismaSetup(files, projectName, stack.database);
+      addPrismaSetup(files, projectName, stack.database, isTypeScript);
     }
 
     // Basic test
-    files['src/index.test.ts'] = `import { describe, it, expect } from 'vitest';
-import { app } from './index.js';
+    const testExt = isTypeScript ? 'ts' : 'mjs';
+    const importExt = isTypeScript ? 'js' : 'mjs';
+    files[`src/index.test.${testExt}`] = `import { describe, it, expect } from 'vitest';
+import { app } from './index.${importExt}';
 
 describe('API', () => {
   it('should respond to health check', async () => {
@@ -146,6 +216,7 @@ describe('API', () => {
 
 /**
  * Fastify backend strategy
+ * Supports both TypeScript and JavaScript
  */
 export const FastifyStrategy: GenerationStrategy = {
   id: 'fastify',
@@ -153,66 +224,78 @@ export const FastifyStrategy: GenerationStrategy = {
   priority: 10,
 
   matches: (stack) =>
-    stack.language === 'typescript' &&
+    (stack.language === 'typescript' || stack.language === 'javascript') &&
     stack.archetype === 'backend' &&
     stack.framework === 'fastify',
 
   apply: async ({ files, projectName, stack }) => {
+    const isTypeScript = stack.language === 'typescript';
+
     // package.json
-    files['package.json'] = JSON.stringify(
-      {
-        name: projectName,
-        version: '0.1.0',
-        type: 'module',
-        scripts: {
-          dev: 'tsx watch src/index.ts',
-          build: 'tsup',
-          start: 'node dist/index.js',
-          test: 'vitest',
-          lint: 'eslint src/',
-          typecheck: 'tsc --noEmit',
-        },
-        dependencies: {
-          fastify: '^4.25.0',
-          '@fastify/cors': '^8.5.0',
-          '@fastify/helmet': '^11.1.1',
-        },
-        devDependencies: {
-          '@types/node': '^20.11.0',
-          tsup: '^8.0.0',
-          tsx: '^4.7.0',
-          typescript: '^5.3.0',
-          vitest: '^1.2.0',
-          eslint: '^8.56.0',
-        },
+    const pkg: Record<string, unknown> = {
+      name: projectName,
+      version: '0.1.0',
+      type: 'module',
+      scripts: isTypeScript
+        ? {
+            dev: 'tsx watch src/index.ts',
+            build: 'tsup',
+            start: 'node dist/index.js',
+            test: 'vitest',
+            lint: 'eslint src/',
+            typecheck: 'tsc --noEmit',
+          }
+        : {
+            dev: 'node --watch src/index.mjs',
+            start: 'node src/index.mjs',
+            test: 'vitest',
+            lint: 'eslint src/',
+          },
+      dependencies: {
+        fastify: '^4.25.0',
+        '@fastify/cors': '^8.5.0',
+        '@fastify/helmet': '^11.1.1',
       },
-      null,
-      2
-    );
+      devDependencies: isTypeScript
+        ? {
+            '@types/node': '^20.11.0',
+            tsup: '^8.0.0',
+            tsx: '^4.7.0',
+            typescript: '^5.3.0',
+            vitest: '^1.2.0',
+            eslint: '^8.56.0',
+          }
+        : {
+            vitest: '^1.2.0',
+            eslint: '^8.56.0',
+          },
+    };
+    files['package.json'] = JSON.stringify(pkg, null, 2);
 
-    // tsconfig.json
-    files['tsconfig.json'] = JSON.stringify(
-      {
-        compilerOptions: {
-          target: 'ES2022',
-          module: 'NodeNext',
-          moduleResolution: 'NodeNext',
-          strict: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          outDir: 'dist',
-          rootDir: 'src',
-          declaration: true,
+    if (isTypeScript) {
+      // tsconfig.json
+      files['tsconfig.json'] = JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'NodeNext',
+            moduleResolution: 'NodeNext',
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            outDir: 'dist',
+            rootDir: 'src',
+            declaration: true,
+          },
+          include: ['src/**/*'],
+          exclude: ['node_modules', 'dist'],
         },
-        include: ['src/**/*'],
-        exclude: ['node_modules', 'dist'],
-      },
-      null,
-      2
-    );
+        null,
+        2
+      );
 
-    // tsup.config.ts
-    files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
+      // tsup.config.ts
+      files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -223,8 +306,8 @@ export default defineConfig({
 });
 `;
 
-    // Main entry
-    files['src/index.ts'] = `import Fastify from 'fastify';
+      // Main entry (TypeScript)
+      files['src/index.ts'] = `import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 
@@ -261,15 +344,72 @@ start();
 
 export { fastify };
 `;
+    } else {
+      // JavaScript version
+      files['jsconfig.json'] = JSON.stringify(
+        {
+          compilerOptions: {
+            module: 'NodeNext',
+            moduleResolution: 'NodeNext',
+            target: 'ES2022',
+            checkJs: true,
+          },
+          include: ['src/**/*'],
+          exclude: ['node_modules'],
+        },
+        null,
+        2
+      );
+
+      files['src/index.mjs'] = `import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+
+const fastify = Fastify({
+  logger: true,
+});
+
+// Register plugins
+await fastify.register(cors);
+await fastify.register(helmet);
+
+// Health check
+fastify.get('/health', async () => {
+  return { status: 'ok', timestamp: new Date().toISOString() };
+});
+
+// API routes
+fastify.get('/api', async () => {
+  return { message: 'Welcome to ${projectName} API' };
+});
+
+// Start server
+const start = async () => {
+  try {
+    const port = Number(process.env.PORT) || 3000;
+    await fastify.listen({ port, host: '0.0.0.0' });
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
+
+export { fastify };
+`;
+    }
 
     // Add database setup if needed
     if (stack.orm === 'prisma' && stack.database !== 'none') {
-      addPrismaSetup(files, projectName, stack.database);
+      addPrismaSetup(files, projectName, stack.database, isTypeScript);
     }
 
     // Basic test
-    files['src/index.test.ts'] = `import { describe, it, expect } from 'vitest';
-import { fastify } from './index.js';
+    const testExt = isTypeScript ? 'ts' : 'mjs';
+    const importExt = isTypeScript ? 'js' : 'mjs';
+    files[`src/index.test.${testExt}`] = `import { describe, it, expect } from 'vitest';
+import { fastify } from './index.${importExt}';
 
 describe('API', () => {
   it('should respond to health check', async () => {
@@ -283,7 +423,7 @@ describe('API', () => {
 /**
  * Add Prisma setup to project files
  */
-function addPrismaSetup(files: Record<string, string>, _projectName: string, database: string): void {
+function addPrismaSetup(files: Record<string, string>, _projectName: string, database: string, _isTypeScript: boolean = true): void {
   // Add prisma dependencies to package.json
   const pkg = JSON.parse(files['package.json']);
   pkg.dependencies['@prisma/client'] = '^5.8.0';
