@@ -270,3 +270,171 @@ export function formatOutput(output: string): string[] {
     .map(line => line.trim())
     .filter(line => line.length > 0);
 }
+
+// ============================================================================
+// Procedural Generation Support
+// ============================================================================
+
+/**
+ * Stack constraints for procedural generation
+ */
+export interface ProceduralConstraints {
+  archetype?: string;
+  language?: string;
+  framework?: string;
+}
+
+/**
+ * Procedural preview result
+ */
+export interface ProceduralPreviewResult {
+  files: Record<string, string>;
+  stack: {
+    archetype: string;
+    language: string;
+    runtime: string;
+    framework: string;
+    database: string;
+    orm: string;
+    transport: string;
+    packaging: string;
+    cicd: string;
+    buildTool: string;
+    styling: string;
+    testing: string;
+  };
+  seed: number;
+  projectId: string;
+  projectName: string;
+}
+
+/**
+ * Procedural generation result
+ */
+export interface ProceduralGenerationResult {
+  success: boolean;
+  message: string;
+  filesGenerated: string[];
+  outputPath: string;
+  stack?: ProceduralPreviewResult['stack'];
+  projectId?: string;
+  projectName?: string;
+  durationMs: number;
+}
+
+/**
+ * Execute procedural preview using the procedural package directly
+ *
+ * This is used in development mode when Tauri is not available.
+ * In production, the Tauri backend handles this via the bridge script.
+ */
+export async function executeProceduralPreview(
+  seed: number,
+  constraints?: ProceduralConstraints
+): Promise<ProceduralPreviewResult> {
+  // Dynamic import to avoid bundling issues
+  const { ProjectAssembler, AllStrategies } = await import('@retro-vibecoder/procedural');
+
+  const options: Record<string, unknown> = {};
+  if (constraints?.archetype) options.archetype = constraints.archetype;
+  if (constraints?.language) options.language = constraints.language;
+  if (constraints?.framework) options.framework = constraints.framework;
+
+  const assembler = new ProjectAssembler(seed, options);
+  assembler.registerStrategies(AllStrategies);
+
+  const project = await assembler.generate();
+
+  return {
+    files: project.files,
+    stack: {
+      archetype: project.stack.archetype,
+      language: project.stack.language,
+      runtime: project.stack.runtime,
+      framework: project.stack.framework,
+      database: project.stack.database,
+      orm: project.stack.orm,
+      transport: project.stack.transport,
+      packaging: project.stack.packaging,
+      cicd: project.stack.cicd,
+      buildTool: project.stack.buildTool,
+      styling: project.stack.styling,
+      testing: project.stack.testing,
+    },
+    seed,
+    projectId: project.id,
+    projectName: project.name,
+  };
+}
+
+/**
+ * Execute procedural generation using the procedural package directly
+ *
+ * Note: In browser context, this returns the files but cannot write to disk.
+ * Writing to disk requires the Tauri backend or a server-side process.
+ */
+export async function executeProceduralGeneration(
+  seed: number,
+  constraints?: ProceduralConstraints
+): Promise<ProceduralGenerationResult> {
+  const startTime = Date.now();
+
+  try {
+    const preview = await executeProceduralPreview(seed, constraints);
+
+    return {
+      success: true,
+      message: `Generated ${Object.keys(preview.files).length} files for ${preview.projectId}`,
+      filesGenerated: Object.keys(preview.files),
+      outputPath: '', // Cannot write to disk in browser
+      stack: preview.stack,
+      projectId: preview.projectId,
+      projectName: preview.projectName,
+      durationMs: Date.now() - startTime,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Generation failed',
+      filesGenerated: [],
+      outputPath: '',
+      durationMs: Date.now() - startTime,
+    };
+  }
+}
+
+/**
+ * Get available constraint options from the procedural engine
+ */
+export async function getProceduralConstraintOptions(): Promise<{
+  archetypes: string[];
+  languages: string[];
+  frameworks: string[];
+}> {
+  const {
+    ARCHETYPE_IDS,
+    LANGUAGE_IDS,
+    FRAMEWORKS,
+  } = await import('@retro-vibecoder/procedural');
+
+  return {
+    archetypes: [...ARCHETYPE_IDS],
+    languages: [...LANGUAGE_IDS],
+    frameworks: FRAMEWORKS.map(f => f.id),
+  };
+}
+
+/**
+ * Validate constraint combination before generation
+ */
+export async function validateProceduralConstraints(
+  constraints: ProceduralConstraints
+): Promise<{ valid: boolean; errors: string[]; suggestions: string[] }> {
+  const { validateConstraints } = await import('@retro-vibecoder/procedural');
+
+  return validateConstraints(
+    constraints.archetype as any,
+    constraints.language as any,
+    constraints.framework as any
+  );
+}
