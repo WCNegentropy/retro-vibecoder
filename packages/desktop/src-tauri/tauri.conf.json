@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Universal Project Generator",
         "width": 1200,
         "height": 800,
@@ -23,7 +24,8 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "capabilities": ["default"]
     }
   },
   "bundle": {
@@ -41,14 +43,7 @@
   },
   "plugins": {
     "shell": {
-      "open": true,
-      "scope": [
-        {
-          "name": "binaries/copier-cli",
-          "cmd": "binaries/copier-cli",
-          "args": true
-        }
-      ]
+      "open": true
     }
   }
 }

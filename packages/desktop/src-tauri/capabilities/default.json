@@ -1,0 +1,28 @@
+{
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "default",
+    "description": "Default capability for the main window",
+    "windows": [
+        "main"
+    ],
+    "permissions": [
+        "core:default",
+        "shell:allow-open",
+        {
+            "identifier": "shell:allow-execute",
+            "allow": [
+                {
+                    "name": "binaries/copier-cli",
+                    "cmd": "binaries/copier-cli",
+                    "args": true,
+                    "sidecar": true
+                },
+                {
+                    "name": "node",
+                    "cmd": "node",
+                    "args": true
+                }
+            ]
+        }
+    ]
+}
