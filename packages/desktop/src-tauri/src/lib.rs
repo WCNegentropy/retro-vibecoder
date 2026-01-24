@@ -68,11 +68,23 @@ struct BridgeResponse {
 }
 
 /// Get the path to the procedural bridge script
-fn get_bridge_script_path() -> String {
-    // In development, use the script from the source directory
-    // In production, this would be bundled with the app
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    format!("{}/scripts/procedural-bridge.mjs", manifest_dir.replace("/src-tauri", ""))
+fn get_bridge_script_path(app: &tauri::AppHandle) -> Result<String, String> {
+    #[cfg(debug_assertions)]
+    {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        Ok(format!("{}/scripts/procedural-bridge.mjs", manifest_dir.replace("/src-tauri", "")))
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        use tauri::Manager;
+        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+        // In release, we expect the script to be at the root of the resource directory
+        // or effectively where we told Tauri to put it. 
+        // We will configure tauri.conf.json to bundle it.
+        // Let's assume it ends up at `procedural-bridge.mjs` in the resource folder.
+        let path = resource_dir.join("procedural-bridge.mjs");
+        Ok(path.to_string_lossy().to_string())
+    }
 }
 
 /// Build command arguments for the procedural bridge
@@ -104,8 +116,7 @@ fn build_bridge_args(action: &str, seed: u64, output_path: Option<&str>, stack: 
 }
 
 /// Execute the procedural bridge script
-fn execute_bridge(args: Vec<String>) -> Result<BridgeResponse, String> {
-    let script_path = get_bridge_script_path();
+fn execute_bridge(script_path: String, args: Vec<String>) -> Result<BridgeResponse, String> {
 
     let output = Command::new("node")
         .arg(&script_path)
@@ -131,7 +142,7 @@ fn execute_bridge(args: Vec<String>) -> Result<BridgeResponse, String> {
 
 /// Generate a project using the specified mode
 #[tauri::command]
-async fn generate_project(request: GenerationRequest) -> Result<GenerationResult, String> {
+async fn generate_project(app: tauri::AppHandle, request: GenerationRequest) -> Result<GenerationResult, String> {
     let start = std::time::Instant::now();
 
     match request.mode {
@@ -139,7 +150,8 @@ async fn generate_project(request: GenerationRequest) -> Result<GenerationResult
             let seed = request.seed.ok_or("Seed is required for procedural generation")?;
 
             let args = build_bridge_args("generate", seed, Some(&request.output_path), &request.stack);
-            let response = execute_bridge(args)?;
+            let script_path = get_bridge_script_path(&app)?;
+            let response = execute_bridge(script_path, args)?;
 
             if response.success {
                 let data = response.data.ok_or("Missing data in successful response")?;
@@ -228,13 +240,14 @@ pub struct PreviewResult {
 
 /// Preview generated files without writing to disk
 #[tauri::command]
-async fn preview_generation(request: GenerationRequest) -> Result<PreviewResult, String> {
+async fn preview_generation(app: tauri::AppHandle, request: GenerationRequest) -> Result<PreviewResult, String> {
     match request.mode {
         GenerationMode::Procedural => {
             let seed = request.seed.ok_or("Seed is required for procedural preview")?;
 
             let args = build_bridge_args("preview", seed, None, &request.stack);
-            let response = execute_bridge(args)?;
+            let script_path = get_bridge_script_path(&app)?;
+            let response = execute_bridge(script_path, args)?;
 
             if response.success {
                 let data = response.data.ok_or("Missing data in successful response")?;
