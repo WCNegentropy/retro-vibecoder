@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Preview from '../components/Preview';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import type { TechStack } from '../types';
@@ -13,12 +14,21 @@ import type { TechStack } from '../types';
  * 4. Generate the project to a selected output directory
  */
 function SeedGeneratorPage() {
+  const [searchParams] = useSearchParams();
   const [seed, setSeed] = useState<string>('82910');
   const [outputPath, setOutputPath] = useState<string>('./generated-project');
   const [previewStack, setPreviewStack] = useState<TechStack | null>(null);
   const [previewFiles, setPreviewFiles] = useState<Record<string, string>>({});
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
+
+  // Handle seed from URL query param
+  useEffect(() => {
+    const seedParam = searchParams.get('seed');
+    if (seedParam) {
+      setSeed(seedParam);
+    }
+  }, [searchParams]);
 
   const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -60,91 +70,106 @@ function SeedGeneratorPage() {
       </header>
 
       <div className="grid-2">
-        <section className="generator-form card">
-          <h2 className="card-title">Configuration</h2>
+        {/* Configuration Panel */}
+        <section className="win95-window">
+          <div className="win95-window-title">
+            <span className="win95-window-title-icon">#</span>
+            Configuration
+          </div>
+          <div className="win95-window-content">
+            <div className="form-group">
+              <label className="form-label" htmlFor="seed">
+                Seed Number
+              </label>
+              <div className="input-with-action">
+                <input
+                  id="seed"
+                  type="text"
+                  className="form-input"
+                  value={seed}
+                  onChange={handleSeedChange}
+                  placeholder="Enter a seed number (e.g., 82910)"
+                />
+                <button type="button" className="btn btn-outline" onClick={handleRandomSeed}>
+                  Random
+                </button>
+              </div>
+              <p className="form-help">
+                The same seed always produces the same project configuration.
+              </p>
+            </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="seed">
-              Seed Number
-            </label>
-            <div className="input-with-action">
+            <div className="form-group">
+              <label className="form-label" htmlFor="output">
+                Output Directory
+              </label>
               <input
-                id="seed"
+                id="output"
                 type="text"
                 className="form-input"
-                value={seed}
-                onChange={handleSeedChange}
-                placeholder="Enter a seed number (e.g., 82910)"
+                value={outputPath}
+                onChange={e => setOutputPath(e.target.value)}
+                placeholder="./my-project"
               />
-              <button type="button" className="btn btn-outline" onClick={handleRandomSeed}>
-                Random
+              <p className="form-help">Directory where the project will be generated.</p>
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handlePreview}
+                disabled={isLoading || !seed}
+              >
+                Preview Stack
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleGenerate}
+                disabled={isLoading || !seed}
+              >
+                {isLoading ? 'Generating...' : 'Generate Project'}
               </button>
             </div>
-            <p className="form-help">
-              The same seed always produces the same project configuration.
-            </p>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="output">
-              Output Directory
-            </label>
-            <input
-              id="output"
-              type="text"
-              className="form-input"
-              value={outputPath}
-              onChange={e => setOutputPath(e.target.value)}
-              placeholder="./my-project"
-            />
-            <p className="form-help">Directory where the project will be generated.</p>
+            {error && <div className="error-message">{error}</div>}
           </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handlePreview}
-              disabled={isLoading || !seed}
-            >
-              Preview Stack
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleGenerate}
-              disabled={isLoading || !seed}
-            >
-              {isLoading ? 'Generating...' : 'Generate Project'}
-            </button>
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
         </section>
 
+        {/* Preview Section */}
         <section className="preview-section">
           {previewStack && (
-            <div className="card stack-preview">
-              <h2 className="card-title">Stack Preview</h2>
-              <StackDisplay stack={previewStack} />
+            <div className="win95-window">
+              <div className="win95-window-title">
+                <span className="win95-window-title-icon">*</span>
+                Stack Preview
+              </div>
+              <div className="win95-window-content">
+                <StackDisplay stack={previewStack} />
+              </div>
             </div>
           )}
 
-          {Object.keys(previewFiles).length > 0 && (
-            <div className="card files-preview">
-              <h2 className="card-title">Generated Files</h2>
-              <Preview files={previewFiles} />
-            </div>
-          )}
+          {Object.keys(previewFiles).length > 0 && <Preview files={previewFiles} />}
 
           {!previewStack && (
-            <div className="card empty-preview">
-              <p>Enter a seed and click "Preview Stack" to see what will be generated.</p>
+            <div className="win95-window">
+              <div className="win95-window-title">
+                <span className="win95-window-title-icon">?</span>
+                Preview
+              </div>
+              <div className="win95-window-content">
+                <p style={{ textAlign: 'center', color: 'var(--bevel-dark)', fontStyle: 'italic' }}>
+                  Enter a seed and click "Preview Stack" to see what will be generated.
+                </p>
+              </div>
             </div>
           )}
         </section>
       </div>
 
+      {/* Example Seeds */}
       <section className="seed-examples">
         <h2>Example Seeds</h2>
         <div className="examples-grid">
@@ -178,6 +203,21 @@ function SeedGeneratorPage() {
             description="Java Spring Boot + MySQL"
             onClick={() => setSeed('44128')}
           />
+        </div>
+      </section>
+
+      {/* CLI Equivalent */}
+      <section className="cli-panel">
+        <div className="cli-panel-header">
+          <h3>CLI Equivalent</h3>
+        </div>
+        <div className="cli-panel-body">
+          <div className="cli-command">
+            <span className="cli-prompt">$</span>
+            <span className="cli-text">
+              upg seed {seed || '82910'} --output {outputPath}
+            </span>
+          </div>
         </div>
       </section>
     </div>

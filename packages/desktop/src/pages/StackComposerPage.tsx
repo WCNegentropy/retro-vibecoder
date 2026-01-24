@@ -400,6 +400,22 @@ function StackComposerPage() {
 
         {error && <div className="error-message">{error}</div>}
       </div>
+
+      {/* CLI Equivalent */}
+      <section className="cli-panel">
+        <div className="cli-panel-header">
+          <h3>CLI Equivalent</h3>
+        </div>
+        <div className="cli-panel-body">
+          <div className="cli-command">
+            <span className="cli-prompt">$</span>
+            <span className="cli-text">
+              upg seed --archetype {archetype || 'backend'} --language {language || 'typescript'}{' '}
+              --framework {framework || 'express'} --output {outputPath}
+            </span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

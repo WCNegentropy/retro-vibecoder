@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 /**
  * Home page - entry point for the UPG Desktop application
@@ -6,8 +6,16 @@ import { Link } from 'react-router-dom';
  * Provides quick access to both generation modes:
  * - Procedural Mode: Seed generator, Stack composer
  * - Manifest Mode: Template selector
+ *
+ * Features Windows 95 retro styling with RGB accents
  */
 function HomePage() {
+  const navigate = useNavigate();
+
+  const handleQuickSeed = (seed: number) => {
+    navigate(`/seed?seed=${seed}`);
+  };
+
   return (
     <div className="page home-page">
       <header className="page-header">
@@ -16,66 +24,138 @@ function HomePage() {
       </header>
 
       <section className="mode-selector">
-        <div className="mode-card procedural">
-          <h2>Procedural Mode</h2>
-          <p>Generate projects from seed numbers or compose custom tech stacks</p>
-          <div className="mode-actions">
-            <Link to="/seed" className="btn btn-primary">
-              Seed Generator
-            </Link>
-            <Link to="/compose" className="btn btn-secondary">
-              Stack Composer
-            </Link>
-            <Link to="/gallery" className="btn btn-outline">
-              Browse Seeds
-            </Link>
+        {/* Procedural Mode Card */}
+        <div className="mode-card">
+          <div className="mode-card-header">
+            <span className="icon">#</span>
+            Procedural Mode
           </div>
-          <div className="mode-features">
-            <ul>
-              <li>Deterministic generation from seed numbers</li>
-              <li>Interactive stack composition wizard</li>
-              <li>Constraint-validated combinations</li>
-              <li>Pre-validated seed gallery</li>
-            </ul>
+          <div className="mode-card-body">
+            <p>Generate projects from seed numbers or compose custom tech stacks</p>
+            <div className="mode-actions">
+              <Link to="/seed" className="btn btn-primary">
+                Seed Generator
+              </Link>
+              <Link to="/compose" className="btn btn-secondary">
+                Stack Composer
+              </Link>
+              <Link to="/gallery" className="btn btn-outline">
+                Browse Seeds
+              </Link>
+            </div>
+            <div className="mode-features">
+              <ul>
+                <li>Deterministic generation from seed numbers</li>
+                <li>Interactive stack composition wizard</li>
+                <li>Constraint-validated combinations</li>
+                <li>31+ technology strategies (Tier 1-5)</li>
+                <li>Pre-validated seed gallery</li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div className="mode-card manifest">
-          <h2>Manifest Mode</h2>
-          <p>Generate projects from curated UPG manifest templates</p>
-          <div className="mode-actions">
-            <Link to="/templates" className="btn btn-primary">
-              Browse Templates
-            </Link>
+        {/* Manifest Mode Card */}
+        <div className="mode-card">
+          <div className="mode-card-header">
+            <span className="icon">[]</span>
+            Manifest Mode
           </div>
-          <div className="mode-features">
-            <ul>
-              <li>Hand-crafted, opinionated templates</li>
-              <li>Dynamic forms from YAML manifests</li>
-              <li>Smart Update support</li>
-              <li>Copier-powered generation</li>
-            </ul>
+          <div className="mode-card-body">
+            <p>Generate projects from curated UPG manifest templates</p>
+            <div className="mode-actions">
+              <Link to="/templates" className="btn btn-primary">
+                Browse Templates
+              </Link>
+            </div>
+            <div className="mode-features">
+              <ul>
+                <li>Hand-crafted, opinionated templates</li>
+                <li>Dynamic forms from YAML manifests</li>
+                <li>Smart Update support (3-way merge)</li>
+                <li>Copier-powered generation</li>
+                <li>Full RJSF form support</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Quick Start Section */}
       <section className="quick-start">
-        <h2>Quick Start</h2>
-        <div className="quick-actions">
-          <div className="quick-action">
-            <span className="action-label">Try a seed:</span>
-            <code>82910</code>
-            <span className="action-result">Rust + Axum + PostgreSQL</span>
+        <div className="quick-start-header">Quick Start - Try a Seed</div>
+        <div className="quick-start-body">
+          <div className="quick-actions">
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(82910)}>
+              <code>82910</code>
+              <span className="action-result">Rust + Axum + PostgreSQL + Docker</span>
+              <span className="btn btn-sm btn-outline action-btn">Use</span>
+            </button>
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(10455)}>
+              <code>10455</code>
+              <span className="action-result">Go + Cobra CLI tool</span>
+              <span className="btn btn-sm btn-outline action-btn">Use</span>
+            </button>
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(99123)}>
+              <code>99123</code>
+              <span className="action-result">Python + FastAPI + MongoDB</span>
+              <span className="btn btn-sm btn-outline action-btn">Use</span>
+            </button>
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(55782)}>
+              <code>55782</code>
+              <span className="action-result">React + Vite + TypeScript + Tailwind</span>
+              <span className="btn btn-sm btn-outline action-btn">Use</span>
+            </button>
           </div>
-          <div className="quick-action">
-            <span className="action-label">Try a seed:</span>
-            <code>10455</code>
-            <span className="action-result">Go + Cobra CLI</span>
+        </div>
+      </section>
+
+      {/* CLI Commands Banner */}
+      <section className="win95-window" style={{ marginTop: '16px' }}>
+        <div className="win95-window-title">
+          <span className="win95-window-title-icon">&gt;</span>
+          Command Line Interface
+        </div>
+        <div className="win95-window-content">
+          <p style={{ marginBottom: '12px', fontSize: '11px' }}>
+            All features are also available via the CLI. Access full command options in the GUI:
+          </p>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <code
+              style={{
+                background: 'var(--win95-black)',
+                color: 'var(--synth-cyan)',
+                padding: '4px 8px',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              upg seed 82910
+            </code>
+            <code
+              style={{
+                background: 'var(--win95-black)',
+                color: 'var(--synth-cyan)',
+                padding: '4px 8px',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              upg sweep --count 100
+            </code>
+            <code
+              style={{
+                background: 'var(--win95-black)',
+                color: 'var(--synth-cyan)',
+                padding: '4px 8px',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              upg generate react-starter
+            </code>
           </div>
-          <div className="quick-action">
-            <span className="action-label">Try a seed:</span>
-            <code>99123</code>
-            <span className="action-result">Python + FastAPI + MongoDB</span>
+          <div style={{ marginTop: '12px' }}>
+            <Link to="/cli" className="btn btn-outline">
+              Open CLI Commands Panel
+            </Link>
           </div>
         </div>
       </section>
