@@ -384,11 +384,15 @@ function mockProceduralPreview(
   return {
     files: {
       'README.md': `# ${projectName}\n\nGenerated from seed ${seed}`,
-      'package.json': JSON.stringify({
-        name: projectName,
-        version: '0.1.0',
-        description: `Project generated from seed ${seed}`,
-      }, null, 2),
+      'package.json': JSON.stringify(
+        {
+          name: projectName,
+          version: '0.1.0',
+          description: `Project generated from seed ${seed}`,
+        },
+        null,
+        2
+      ),
     },
     stack: {
       archetype: constraints?.archetype || 'backend',
@@ -488,11 +492,7 @@ export async function validateProceduralConstraints(
       framework?: string
     ) => { valid: boolean; errors: string[]; suggestions: string[] };
 
-    return validateFn(
-      constraints.archetype,
-      constraints.language,
-      constraints.framework
-    );
+    return validateFn(constraints.archetype, constraints.language, constraints.framework);
   } catch {
     // Return valid when procedural package is not available
     return {

@@ -257,12 +257,9 @@ function CLICommandsPage() {
   const [commandOutput, setCommandOutput] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(false);
 
-  const handleOptionChange = useCallback(
-    (flag: string, value: string | number | boolean) => {
-      setOptionValues(prev => ({ ...prev, [flag]: value }));
-    },
-    []
-  );
+  const handleOptionChange = useCallback((flag: string, value: string | number | boolean) => {
+    setOptionValues(prev => ({ ...prev, [flag]: value }));
+  }, []);
 
   const buildCommand = useCallback(() => {
     const parts = ['upg', selectedCommand.id];
@@ -351,9 +348,7 @@ function CLICommandsPage() {
                   style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '4px' }}
                 >
                   <code style={{ marginRight: '8px' }}>upg {cmd.id}</code>
-                  <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>
-                    {cmd.name}
-                  </span>
+                  <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>{cmd.name}</span>
                 </button>
               ))}
             </div>
@@ -367,9 +362,7 @@ function CLICommandsPage() {
             {selectedCommand.name} Options
           </div>
           <div className="win95-window-content">
-            <p style={{ marginBottom: '12px', fontSize: '11px' }}>
-              {selectedCommand.description}
-            </p>
+            <p style={{ marginBottom: '12px', fontSize: '11px' }}>{selectedCommand.description}</p>
             <code
               style={{
                 display: 'block',

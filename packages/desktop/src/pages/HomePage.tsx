@@ -86,38 +86,22 @@ function HomePage() {
         <div className="quick-start-header">Quick Start - Try a Seed</div>
         <div className="quick-start-body">
           <div className="quick-actions">
-            <button
-              type="button"
-              className="quick-action"
-              onClick={() => handleQuickSeed(82910)}
-            >
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(82910)}>
               <code>82910</code>
               <span className="action-result">Rust + Axum + PostgreSQL + Docker</span>
               <span className="btn btn-sm btn-outline action-btn">Use</span>
             </button>
-            <button
-              type="button"
-              className="quick-action"
-              onClick={() => handleQuickSeed(10455)}
-            >
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(10455)}>
               <code>10455</code>
               <span className="action-result">Go + Cobra CLI tool</span>
               <span className="btn btn-sm btn-outline action-btn">Use</span>
             </button>
-            <button
-              type="button"
-              className="quick-action"
-              onClick={() => handleQuickSeed(99123)}
-            >
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(99123)}>
               <code>99123</code>
               <span className="action-result">Python + FastAPI + MongoDB</span>
               <span className="btn btn-sm btn-outline action-btn">Use</span>
             </button>
-            <button
-              type="button"
-              className="quick-action"
-              onClick={() => handleQuickSeed(55782)}
-            >
+            <button type="button" className="quick-action" onClick={() => handleQuickSeed(55782)}>
               <code>55782</code>
               <span className="action-result">React + Vite + TypeScript + Tailwind</span>
               <span className="btn btn-sm btn-outline action-btn">Use</span>

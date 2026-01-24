@@ -151,9 +151,7 @@ function SeedGeneratorPage() {
             </div>
           )}
 
-          {Object.keys(previewFiles).length > 0 && (
-            <Preview files={previewFiles} />
-          )}
+          {Object.keys(previewFiles).length > 0 && <Preview files={previewFiles} />}
 
           {!previewStack && (
             <div className="win95-window">
@@ -216,7 +214,9 @@ function SeedGeneratorPage() {
         <div className="cli-panel-body">
           <div className="cli-command">
             <span className="cli-prompt">$</span>
-            <span className="cli-text">upg seed {seed || '82910'} --output {outputPath}</span>
+            <span className="cli-text">
+              upg seed {seed || '82910'} --output {outputPath}
+            </span>
           </div>
         </div>
       </section>

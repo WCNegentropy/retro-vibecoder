@@ -39,12 +39,7 @@ function WindowChrome({ children, title = 'Universal Project Generator' }: Windo
               >
                 {isMaximized ? '=' : '+'}
               </button>
-              <button
-                type="button"
-                className="title-bar-btn"
-                title="Close"
-                aria-label="Close"
-              >
+              <button type="button" className="title-bar-btn" title="Close" aria-label="Close">
                 X
               </button>
             </div>

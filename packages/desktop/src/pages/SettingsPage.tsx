@@ -282,7 +282,9 @@ function SettingsPage() {
                 id="node-runtime"
                 className="form-select"
                 value={settings.nodeRuntime}
-                onChange={e => handleChange('nodeRuntime', e.target.value as Settings['nodeRuntime'])}
+                onChange={e =>
+                  handleChange('nodeRuntime', e.target.value as Settings['nodeRuntime'])
+                }
               >
                 <option value="node">Node.js</option>
                 <option value="bun">Bun</option>
@@ -323,7 +325,9 @@ function SettingsPage() {
                 type="number"
                 className="form-input"
                 value={settings.validationTimeout}
-                onChange={e => handleChange('validationTimeout', parseInt(e.target.value, 10) || 300)}
+                onChange={e =>
+                  handleChange('validationTimeout', parseInt(e.target.value, 10) || 300)
+                }
                 min={60}
                 max={600}
               />
