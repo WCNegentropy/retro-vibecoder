@@ -31,4 +31,7 @@ panic = "abort"
 codegen-units = 1
 lto = true
 opt-level = "s"
-strip = true
+# Note: Do not use strip = true as it removes the __TAURI_BUNDLE_TYPE
+# variable needed by Tauri's updater plugin. Use "debuginfo" to strip
+# debug symbols while keeping required markers.
+strip = "debuginfo"
