@@ -36,12 +36,8 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/copier-cli"
-    ],
-    "resources": [
-      "../../scripts/procedural-bridge.mjs"
-    ]
+    "externalBin": ["binaries/copier-cli"],
+    "resources": ["../scripts/procedural-bridge.mjs"]
   },
   "plugins": {
     "shell": {
