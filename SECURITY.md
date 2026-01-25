@@ -4,7 +4,7 @@
 
 **Do NOT open public issues for security vulnerabilities.**
 
-Please report security issues privately to: security@retro-vibecoder.dev
+Please report security issues privately to: contact@wcnegentropy.com
 
 Include:
 
