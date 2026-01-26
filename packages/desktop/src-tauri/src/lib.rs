@@ -103,7 +103,12 @@ fn get_bridge_paths(app: &tauri::AppHandle) -> Result<BridgePaths, String> {
 }
 
 /// Build command arguments for the procedural bridge
-fn build_bridge_args(action: &str, seed: u64, output_path: Option<&str>, stack: &Option<TechStackConfig>) -> Vec<String> {
+fn build_bridge_args(
+    action: &str,
+    seed: u64,
+    output_path: Option<&str>,
+    stack: &Option<TechStackConfig>,
+) -> Vec<String> {
     let mut args = vec![action.to_string(), seed.to_string()];
 
     // Add output path for generate action
@@ -137,23 +142,35 @@ fn execute_bridge(paths: &BridgePaths, args: Vec<String>) -> Result<BridgeRespon
         .args(&args)
         .current_dir(&paths.working_dir)
         .output()
-        .map_err(|e| format!("Failed to execute procedural bridge: {}. Script: {:?}, Working dir: {:?}",
-            e, paths.script_path, paths.working_dir))?;
+        .map_err(|e| {
+            format!(
+                "Failed to execute procedural bridge: {}. Script: {:?}, Working dir: {:?}",
+                e, paths.script_path, paths.working_dir
+            )
+        })?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     // Try to parse JSON from stdout
     if !stdout.is_empty() {
-        serde_json::from_str::<BridgeResponse>(&stdout)
-            .map_err(|e| format!("Failed to parse bridge response: {}. stdout: {}, stderr: {}", e, stdout, stderr))
+        serde_json::from_str::<BridgeResponse>(&stdout).map_err(|e| {
+            format!(
+                "Failed to parse bridge response: {}. stdout: {}, stderr: {}",
+                e, stdout, stderr
+            )
+        })
     } else if !stderr.is_empty() {
         // Try to parse error from stderr
         serde_json::from_str::<BridgeResponse>(&stderr)
             .map_err(|e| format!("Bridge failed. stderr: {}, parse error: {}", stderr, e))
     } else {
-        Err(format!("Bridge returned empty output. Exit code: {:?}, Script: {:?}, Working dir: {:?}",
-            output.status.code(), paths.script_path, paths.working_dir))
+        Err(format!(
+            "Bridge returned empty output. Exit code: {:?}, Script: {:?}, Working dir: {:?}",
+            output.status.code(),
+            paths.script_path,
+            paths.working_dir
+        ))
     }
 }
 
@@ -180,18 +197,24 @@ fn resolve_output_path(output_path: &str, app: &tauri::AppHandle) -> Result<Path
 
 /// Generate a project using the specified mode
 #[tauri::command]
-async fn generate_project(app: tauri::AppHandle, request: GenerationRequest) -> Result<GenerationResult, String> {
+async fn generate_project(
+    app: tauri::AppHandle,
+    request: GenerationRequest,
+) -> Result<GenerationResult, String> {
     let start = std::time::Instant::now();
 
     match request.mode {
         GenerationMode::Procedural => {
-            let seed = request.seed.ok_or("Seed is required for procedural generation")?;
+            let seed = request
+                .seed
+                .ok_or("Seed is required for procedural generation")?;
 
             // Resolve the output path to an absolute path
             let resolved_output = resolve_output_path(&request.output_path, &app)?;
             let resolved_output_str = resolved_output.to_string_lossy().to_string();
 
-            let args = build_bridge_args("generate", seed, Some(&resolved_output_str), &request.stack);
+            let args =
+                build_bridge_args("generate", seed, Some(&resolved_output_str), &request.stack);
             let paths = get_bridge_paths(&app)?;
             let response = execute_bridge(&paths, args)?;
 
@@ -201,7 +224,11 @@ async fn generate_project(app: tauri::AppHandle, request: GenerationRequest) -> 
                 let files_generated: Vec<String> = data
                     .get("files_generated")
                     .and_then(|v| v.as_array())
-                    .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect()
+                    })
                     .unwrap_or_default();
 
                 let message = data
@@ -215,10 +242,14 @@ async fn generate_project(app: tauri::AppHandle, request: GenerationRequest) -> 
                     message,
                     files_generated,
                     output_path: resolved_output_str,
-                    duration_ms: response.duration_ms.unwrap_or(start.elapsed().as_millis() as u64),
+                    duration_ms: response
+                        .duration_ms
+                        .unwrap_or(start.elapsed().as_millis() as u64),
                 })
             } else {
-                let error = response.error.unwrap_or_else(|| "Unknown error".to_string());
+                let error = response
+                    .error
+                    .unwrap_or_else(|| "Unknown error".to_string());
                 Ok(GenerationResult {
                     success: false,
                     message: error,
@@ -290,10 +321,15 @@ pub struct PreviewResult {
 
 /// Preview generated files without writing to disk
 #[tauri::command]
-async fn preview_generation(app: tauri::AppHandle, request: GenerationRequest) -> Result<PreviewResult, String> {
+async fn preview_generation(
+    app: tauri::AppHandle,
+    request: GenerationRequest,
+) -> Result<PreviewResult, String> {
     match request.mode {
         GenerationMode::Procedural => {
-            let seed = request.seed.ok_or("Seed is required for procedural preview")?;
+            let seed = request
+                .seed
+                .ok_or("Seed is required for procedural preview")?;
 
             let args = build_bridge_args("preview", seed, None, &request.stack);
             let paths = get_bridge_paths(&app)?;
@@ -322,7 +358,9 @@ async fn preview_generation(app: tauri::AppHandle, request: GenerationRequest) -
                     seed: Some(seed),
                 })
             } else {
-                let error = response.error.unwrap_or_else(|| "Unknown error".to_string());
+                let error = response
+                    .error
+                    .unwrap_or_else(|| "Unknown error".to_string());
                 Err(error)
             }
         }
@@ -332,9 +370,7 @@ async fn preview_generation(app: tauri::AppHandle, request: GenerationRequest) -
             // the Copier sidecar or template processing.
             Err("Manifest preview not yet implemented in Rust backend".to_string())
         }
-        GenerationMode::Hybrid => {
-            Err("Hybrid preview not yet implemented".to_string())
-        }
+        GenerationMode::Hybrid => Err("Hybrid preview not yet implemented".to_string()),
     }
 }
 

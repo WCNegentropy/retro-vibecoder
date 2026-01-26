@@ -147,7 +147,9 @@ function SeedGeneratorPage() {
                   marginTop: '1rem',
                   padding: '0.75rem',
                   border: `2px solid ${generationResult.success ? 'var(--color-success, #4caf50)' : 'var(--color-error, #f44336)'}`,
-                  background: generationResult.success ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                  background: generationResult.success
+                    ? 'rgba(76, 175, 80, 0.1)'
+                    : 'rgba(244, 67, 54, 0.1)',
                 }}
               >
                 <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
