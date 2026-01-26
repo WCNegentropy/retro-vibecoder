@@ -18,9 +18,28 @@
  *   JSON to stdout with either PreviewResult or GenerationResult
  */
 
-import { ProjectAssembler, AllStrategies } from '@retro-vibecoder/procedural';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+
+// Import procedural package with error handling
+let ProjectAssembler, AllStrategies;
+try {
+  const procedural = await import('@retro-vibecoder/procedural');
+  ProjectAssembler = procedural.ProjectAssembler;
+  AllStrategies = procedural.AllStrategies;
+} catch (importError) {
+  // Output detailed error for debugging module resolution issues
+  console.log(
+    JSON.stringify({
+      success: false,
+      error:
+        `Failed to import @retro-vibecoder/procedural: ${importError.message}. ` +
+        `Working directory: ${process.cwd()}. ` +
+        `Script location: ${import.meta.url}`,
+    })
+  );
+  process.exit(1);
+}
 
 /**
  * Parse command line arguments
@@ -171,20 +190,24 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-    console.error(JSON.stringify({
-      success: false,
-      error: 'Usage: procedural-bridge.mjs <preview|generate> <seed> [output_path] [options]',
-    }));
+    console.error(
+      JSON.stringify({
+        success: false,
+        error: 'Usage: procedural-bridge.mjs <preview|generate> <seed> [output_path] [options]',
+      })
+    );
     process.exit(1);
   }
 
   const { action, seed, outputPath, options } = parseArgs(args);
 
   if (isNaN(seed) || seed < 1) {
-    console.error(JSON.stringify({
-      success: false,
-      error: 'Seed must be a positive integer',
-    }));
+    console.error(
+      JSON.stringify({
+        success: false,
+        error: 'Seed must be a positive integer',
+      })
+    );
     process.exit(1);
   }
 
@@ -194,18 +217,22 @@ async function main() {
     result = await previewProject(seed, options);
   } else if (action === 'generate') {
     if (!outputPath) {
-      console.error(JSON.stringify({
-        success: false,
-        error: 'Output path is required for generate action',
-      }));
+      console.error(
+        JSON.stringify({
+          success: false,
+          error: 'Output path is required for generate action',
+        })
+      );
       process.exit(1);
     }
     result = await generateProject(seed, outputPath, options);
   } else {
-    console.error(JSON.stringify({
-      success: false,
-      error: `Unknown action: ${action}. Use 'preview' or 'generate'`,
-    }));
+    console.error(
+      JSON.stringify({
+        success: false,
+        error: `Unknown action: ${action}. Use 'preview' or 'generate'`,
+      })
+    );
     process.exit(1);
   }
 
@@ -215,9 +242,11 @@ async function main() {
 }
 
 main().catch(error => {
-  console.error(JSON.stringify({
-    success: false,
-    error: error instanceof Error ? error.message : String(error),
-  }));
+  console.error(
+    JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  );
   process.exit(1);
 });
