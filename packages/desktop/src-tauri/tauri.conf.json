@@ -25,9 +25,7 @@
     ],
     "security": {
       "csp": null,
-      "capabilities": [
-        "default"
-      ]
+      "capabilities": ["default"]
     }
   },
   "bundle": {
@@ -40,9 +38,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/copier-cli"
-    ],
+    "externalBin": ["binaries/copier-cli"],
     "resources": [
       "../dist-scripts/procedural-bridge.mjs",
       "../../../templates",
