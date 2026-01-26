@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { SeedEntry, Archetype, Language, TechStack } from '../types';
+import type { SeedEntry, Archetype, Language, Runtime, TechStack } from '../types';
 
 /**
  * Check if running in Tauri environment
@@ -36,7 +36,7 @@ function convertSeedEntry(entry: SeedEntryResponse): SeedEntry {
     stack: {
       archetype: (stack.archetype || 'backend') as Archetype,
       language: (stack.language || 'typescript') as Language,
-      runtime: stack.runtime || 'node',
+      runtime: (stack.runtime || 'node') as Runtime,
       framework: stack.framework || '',
       database: (stack.database || 'none') as SeedEntry['stack']['database'],
       orm: stack.orm || 'none',
