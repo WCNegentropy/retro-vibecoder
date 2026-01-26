@@ -1,13 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { SeedEntry, Archetype, Language, Runtime, TechStack } from '../types';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
-}
+import type { SeedEntry, Archetype, Language } from '../types';
 
 /**
  * Seed Gallery Page
@@ -16,115 +9,147 @@ function isTauri(): boolean {
  * - Filter by archetype, language, framework
  * - View stack configurations
  * - Quick generate from any seed
- * - Run sweeper to discover new seeds
  */
 
-// Response type from Tauri backend (uses camelCase from serde)
-interface SeedEntryResponse {
-  seed: number;
-  stack: TechStack | Record<string, string>;
-  files: string[];
-  validatedAt: string;
-  tags: string[];
-}
-
-// Convert backend response to frontend type
-function convertSeedEntry(entry: SeedEntryResponse): SeedEntry {
-  const stack = entry.stack as Record<string, string>;
-  return {
-    seed: entry.seed,
+// Mock seed entries for development
+const MOCK_SEEDS: SeedEntry[] = [
+  {
+    seed: 82910,
     stack: {
-      archetype: (stack.archetype || 'backend') as Archetype,
-      language: (stack.language || 'typescript') as Language,
-      runtime: (stack.runtime || 'node') as Runtime,
-      framework: stack.framework || '',
-      database: (stack.database || 'none') as SeedEntry['stack']['database'],
-      orm: stack.orm || 'none',
-      transport: stack.transport || 'rest',
-      packaging: (stack.packaging || 'none') as SeedEntry['stack']['packaging'],
-      cicd: (stack.cicd || 'github-actions') as SeedEntry['stack']['cicd'],
-      buildTool: stack.buildTool || stack.build_tool || '',
-      styling: stack.styling || 'none',
-      testing: stack.testing || '',
+      archetype: 'backend',
+      language: 'rust',
+      runtime: 'native',
+      framework: 'axum',
+      database: 'postgres',
+      orm: 'diesel',
+      transport: 'rest',
+      packaging: 'docker',
+      cicd: 'github-actions',
+      buildTool: 'cargo',
+      styling: 'none',
+      testing: 'rust-test',
     },
-    files: entry.files,
-    validatedAt: entry.validatedAt,
-    tags: entry.tags,
-  };
-}
+    files: ['Cargo.toml', 'src/main.rs', 'Dockerfile', '.github/workflows/ci.yml'],
+    validatedAt: '2026-01-15T10:00:00Z',
+    tags: ['rust', 'axum', 'postgres', 'docker'],
+  },
+  {
+    seed: 10455,
+    stack: {
+      archetype: 'cli',
+      language: 'go',
+      runtime: 'native',
+      framework: 'cobra',
+      database: 'none',
+      orm: 'none',
+      transport: 'rest',
+      packaging: 'none',
+      cicd: 'github-actions',
+      buildTool: 'make',
+      styling: 'none',
+      testing: 'go-test',
+    },
+    files: ['go.mod', 'main.go', 'cmd/root.go', 'Makefile'],
+    validatedAt: '2026-01-15T10:00:00Z',
+    tags: ['go', 'cobra', 'cli'],
+  },
+  {
+    seed: 99123,
+    stack: {
+      archetype: 'backend',
+      language: 'python',
+      runtime: 'native',
+      framework: 'fastapi',
+      database: 'mongodb',
+      orm: 'none',
+      transport: 'rest',
+      packaging: 'docker',
+      cicd: 'github-actions',
+      buildTool: 'make',
+      styling: 'none',
+      testing: 'pytest',
+    },
+    files: ['pyproject.toml', 'app/main.py', 'Dockerfile', 'tests/test_main.py'],
+    validatedAt: '2026-01-15T10:00:00Z',
+    tags: ['python', 'fastapi', 'mongodb', 'docker'],
+  },
+  {
+    seed: 55782,
+    stack: {
+      archetype: 'web',
+      language: 'typescript',
+      runtime: 'browser',
+      framework: 'react',
+      database: 'none',
+      orm: 'none',
+      transport: 'rest',
+      packaging: 'docker',
+      cicd: 'github-actions',
+      buildTool: 'vite',
+      styling: 'tailwind',
+      testing: 'vitest',
+    },
+    files: ['package.json', 'src/App.tsx', 'vite.config.ts', 'tailwind.config.js'],
+    validatedAt: '2026-01-15T10:00:00Z',
+    tags: ['typescript', 'react', 'vite', 'tailwind'],
+  },
+  {
+    seed: 44128,
+    stack: {
+      archetype: 'backend',
+      language: 'java',
+      runtime: 'jvm',
+      framework: 'spring-boot',
+      database: 'mysql',
+      orm: 'none',
+      transport: 'rest',
+      packaging: 'docker',
+      cicd: 'github-actions',
+      buildTool: 'gradle',
+      styling: 'none',
+      testing: 'junit',
+    },
+    files: ['build.gradle', 'src/main/java/Application.java', 'Dockerfile'],
+    validatedAt: '2026-01-15T10:00:00Z',
+    tags: ['java', 'spring-boot', 'mysql', 'gradle'],
+  },
+  {
+    seed: 33411,
+    stack: {
+      archetype: 'mobile',
+      language: 'typescript',
+      runtime: 'native',
+      framework: 'react-native',
+      database: 'none',
+      orm: 'none',
+      transport: 'rest',
+      packaging: 'none',
+      cicd: 'github-actions',
+      buildTool: 'vite',
+      styling: 'none',
+      testing: 'jest',
+    },
+    files: ['package.json', 'app.json', 'App.tsx', 'babel.config.js'],
+    validatedAt: '2026-01-15T10:00:00Z',
+    tags: ['typescript', 'react-native', 'expo', 'mobile'],
+  },
+];
 
 function SeedGalleryPage() {
   const navigate = useNavigate();
   const [seeds, setSeeds] = useState<SeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filterArchetype, setFilterArchetype] = useState<Archetype | 'all'>('all');
   const [filterLanguage, setFilterLanguage] = useState<Language | 'all'>('all');
   const [selectedSeed, setSelectedSeed] = useState<SeedEntry | null>(null);
-  const [isRunningSwweper, setIsRunningSweeper] = useState(false);
-  const [sweeperCount, setSweeperCount] = useState(10);
 
-  // Load seeds from registry
+  // Load seeds
   useEffect(() => {
-    async function loadSeeds() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        if (isTauri()) {
-          const { invoke } = await import('@tauri-apps/api/core');
-          const result = await invoke<SeedEntryResponse[]>('get_seeds');
-          setSeeds(result.map(convertSeedEntry));
-        } else {
-          setError(
-            'Seed gallery requires Tauri environment. Run the desktop app to see real seeds.'
-          );
-          setSeeds([]);
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load seeds';
-        setError(message);
-        setSeeds([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadSeeds();
+    setTimeout(() => {
+      setSeeds(MOCK_SEEDS);
+      setIsLoading(false);
+    }, 300);
   }, []);
-
-  // Run sweeper to discover new seeds
-  const handleRunSweeper = useCallback(async () => {
-    if (!isTauri()) {
-      setError('Sweeper requires Tauri environment');
-      return;
-    }
-
-    setIsRunningSweeper(true);
-    setError(null);
-
-    try {
-      const { invoke } = await import('@tauri-apps/api/core');
-      const newSeeds = await invoke<SeedEntryResponse[]>('run_sweeper', {
-        count: sweeperCount,
-        startSeed: null,
-        validate: false,
-      });
-
-      // Add new seeds to the list
-      setSeeds(prev => {
-        const existingIds = new Set(prev.map(s => s.seed));
-        const converted = newSeeds.map(convertSeedEntry);
-        const unique = converted.filter(s => !existingIds.has(s.seed));
-        return [...prev, ...unique];
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Sweeper failed';
-      setError(message);
-    } finally {
-      setIsRunningSweeper(false);
-    }
-  }, [sweeperCount]);
 
   // Filter seeds
   const filteredSeeds = seeds.filter(entry => {
@@ -155,61 +180,6 @@ function SeedGalleryPage() {
         <h1>Seed Gallery</h1>
         <p className="subtitle">Browse pre-validated project seeds discovered by the sweeper</p>
       </header>
-
-      {error && (
-        <div
-          className="error-banner"
-          style={{
-            marginBottom: '16px',
-            padding: '12px',
-            background: 'var(--win95-bg)',
-            border: '2px solid var(--bevel-dark)',
-          }}
-        >
-          <strong>Note:</strong> {error}
-        </div>
-      )}
-
-      {/* Sweeper Controls */}
-      <div
-        className="sweeper-controls"
-        style={{
-          marginBottom: '16px',
-          padding: '12px',
-          background: 'var(--win95-bg)',
-          border: '2px inset var(--bevel-light)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-        }}
-      >
-        <span style={{ fontWeight: 'bold' }}>Discover Seeds:</span>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          Count:
-          <input
-            type="number"
-            min={1}
-            max={100}
-            value={sweeperCount}
-            onChange={e =>
-              setSweeperCount(Math.max(1, Math.min(100, parseInt(e.target.value, 10) || 10)))
-            }
-            className="form-input"
-            style={{ width: '60px' }}
-          />
-        </label>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={handleRunSweeper}
-          disabled={isRunningSwweper || !isTauri()}
-        >
-          {isRunningSwweper ? 'Running Sweeper...' : 'Run Sweeper'}
-        </button>
-        <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>
-          {seeds.length} seeds in registry
-        </span>
-      </div>
 
       <div className="gallery-controls">
         <div className="filter-group">
@@ -249,33 +219,15 @@ function SeedGalleryPage() {
 
       <div className="gallery-layout">
         <div className="seed-grid">
-          {filteredSeeds.length === 0 ? (
-            <div
-              className="no-results"
-              style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px' }}
-            >
-              {seeds.length === 0 ? (
-                <>
-                  <p style={{ marginBottom: '12px' }}>No seeds in registry yet.</p>
-                  <p style={{ fontSize: '11px', color: 'var(--bevel-dark)' }}>
-                    Click "Run Sweeper" above to discover valid seed configurations.
-                  </p>
-                </>
-              ) : (
-                <p>No seeds match your filter criteria.</p>
-              )}
-            </div>
-          ) : (
-            filteredSeeds.map(entry => (
-              <SeedCard
-                key={entry.seed}
-                entry={entry}
-                isSelected={selectedSeed?.seed === entry.seed}
-                onSelect={() => setSelectedSeed(entry)}
-                onUse={() => handleUseSeed(entry.seed)}
-              />
-            ))
-          )}
+          {filteredSeeds.map(entry => (
+            <SeedCard
+              key={entry.seed}
+              entry={entry}
+              isSelected={selectedSeed?.seed === entry.seed}
+              onSelect={() => setSelectedSeed(entry)}
+              onUse={() => handleUseSeed(entry.seed)}
+            />
+          ))}
         </div>
 
         {selectedSeed && (

@@ -1,13 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import type { TemplateEntry } from '../types';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
-}
 
 /**
  * Template Selector Page
@@ -19,43 +11,68 @@ function isTauri(): boolean {
  * - Generate using RJSF form + Copier sidecar
  */
 
+// Mock templates for development
+const MOCK_TEMPLATES: TemplateEntry[] = [
+  {
+    name: 'react-starter',
+    version: '1.0.0',
+    title: 'React Starter',
+    description: 'Modern React app with Vite, TypeScript, and Tailwind CSS',
+    tags: ['react', 'typescript', 'vite', 'tailwind'],
+    icon: '[]',
+    author: 'UPG Team',
+    lifecycle: 'production',
+    path: './templates/react-starter',
+  },
+  {
+    name: 'python-api',
+    version: '1.0.0',
+    title: 'Python FastAPI',
+    description: 'FastAPI backend with PostgreSQL and SQLAlchemy',
+    tags: ['python', 'fastapi', 'postgresql', 'backend'],
+    icon: '{}',
+    author: 'UPG Team',
+    lifecycle: 'production',
+    path: './templates/python-api',
+  },
+  {
+    name: 'rust-axum',
+    version: '0.1.0',
+    title: 'Rust Axum API',
+    description: 'High-performance Rust backend with Axum framework',
+    tags: ['rust', 'axum', 'backend', 'performance'],
+    icon: '{}',
+    author: 'Community',
+    lifecycle: 'experimental',
+    path: './templates/rust-axum',
+  },
+  {
+    name: 'go-cli',
+    version: '1.0.0',
+    title: 'Go CLI Tool',
+    description: 'Command-line application with Cobra and Viper',
+    tags: ['go', 'cobra', 'cli'],
+    icon: '>',
+    author: 'UPG Team',
+    lifecycle: 'production',
+    path: './templates/go-cli',
+  },
+];
+
 function TemplateSelectorPage() {
-  const navigate = useNavigate();
   const [templates, setTemplates] = useState<TemplateEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateEntry | null>(null);
-  const [manifestContent, setManifestContent] = useState<string | null>(null);
-  const [showManifest, setShowManifest] = useState(false);
 
-  // Load templates from Tauri backend
+  // Load templates (mock for now)
   useEffect(() => {
-    async function loadTemplates() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        if (isTauri()) {
-          const { invoke } = await import('@tauri-apps/api/core');
-          const result = await invoke<TemplateEntry[]>('get_templates');
-          setTemplates(result);
-        } else {
-          // Development fallback - show message that Tauri is required
-          setError('Templates are loaded from the filesystem. Run in Tauri to see real templates.');
-          setTemplates([]);
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load templates';
-        setError(message);
-        setTemplates([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadTemplates();
+    // Simulate loading
+    setTimeout(() => {
+      setTemplates(MOCK_TEMPLATES);
+      setIsLoading(false);
+    }, 300);
   }, []);
 
   // Get all unique tags
@@ -80,48 +97,7 @@ function TemplateSelectorPage() {
 
   const handleSelectTemplate = (template: TemplateEntry) => {
     setSelectedTemplate(template);
-    setShowManifest(false);
-    setManifestContent(null);
   };
-
-  // Handle using a template - navigate to generation page
-  const handleUseTemplate = useCallback(async () => {
-    if (!selectedTemplate) return;
-
-    // Navigate to a generation page with the template path
-    // For now, we'll store the template in sessionStorage and navigate
-    sessionStorage.setItem('selectedTemplate', JSON.stringify(selectedTemplate));
-    navigate('/seed', {
-      state: { template: selectedTemplate },
-    });
-  }, [selectedTemplate, navigate]);
-
-  // Handle viewing manifest content
-  const handleViewManifest = useCallback(async () => {
-    if (!selectedTemplate) return;
-
-    if (showManifest && manifestContent) {
-      setShowManifest(false);
-      return;
-    }
-
-    try {
-      if (isTauri()) {
-        const { invoke } = await import('@tauri-apps/api/core');
-        const manifestPath = `${selectedTemplate.path}/upg.yaml`;
-        const content = await invoke<string>('read_manifest', { path: manifestPath });
-        setManifestContent(content);
-        setShowManifest(true);
-      } else {
-        setManifestContent('# Manifest viewing requires Tauri environment');
-        setShowManifest(true);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to read manifest';
-      setManifestContent(`# Error reading manifest:\n# ${message}`);
-      setShowManifest(true);
-    }
-  }, [selectedTemplate, showManifest, manifestContent]);
 
   if (isLoading) {
     return (
@@ -137,20 +113,6 @@ function TemplateSelectorPage() {
         <h1>Template Selector</h1>
         <p className="subtitle">Browse curated UPG manifest templates</p>
       </header>
-
-      {error && (
-        <div
-          className="error-banner"
-          style={{
-            marginBottom: '16px',
-            padding: '12px',
-            background: 'var(--win95-bg)',
-            border: '2px solid var(--bevel-dark)',
-          }}
-        >
-          <strong>Note:</strong> {error}
-        </div>
-      )}
 
       <div className="template-layout">
         <aside className="filter-sidebar">
@@ -183,11 +145,7 @@ function TemplateSelectorPage() {
 
         <main className="template-grid-container">
           {filteredTemplates.length === 0 ? (
-            <div className="no-results">
-              {templates.length === 0
-                ? 'No templates found. Add templates to the templates/ directory.'
-                : 'No templates match your criteria'}
-            </div>
+            <div className="no-results">No templates match your criteria</div>
           ) : (
             <div className="template-grid">
               {filteredTemplates.map(template => (
@@ -218,13 +176,7 @@ function TemplateSelectorPage() {
               </div>
               <div className="meta-item">
                 <span className="label">Author:</span>
-                <span className="value">{selectedTemplate.author || 'Unknown'}</span>
-              </div>
-              <div className="meta-item">
-                <span className="label">Path:</span>
-                <span className="value" style={{ fontSize: '10px', wordBreak: 'break-all' }}>
-                  {selectedTemplate.path}
-                </span>
+                <span className="value">{selectedTemplate.author}</span>
               </div>
             </div>
             <div className="details-tags">
@@ -235,33 +187,13 @@ function TemplateSelectorPage() {
               ))}
             </div>
             <div className="details-actions">
-              <button type="button" className="btn btn-primary" onClick={handleUseTemplate}>
+              <button type="button" className="btn btn-primary">
                 Use Template
               </button>
-              <button type="button" className="btn btn-outline" onClick={handleViewManifest}>
-                {showManifest ? 'Hide Manifest' : 'View Manifest'}
+              <button type="button" className="btn btn-outline">
+                View Manifest
               </button>
             </div>
-
-            {showManifest && manifestContent && (
-              <div className="manifest-viewer" style={{ marginTop: '16px' }}>
-                <h3>Manifest (upg.yaml)</h3>
-                <pre
-                  style={{
-                    background: '#000',
-                    color: '#0f0',
-                    padding: '12px',
-                    fontSize: '10px',
-                    overflow: 'auto',
-                    maxHeight: '300px',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {manifestContent}
-                </pre>
-              </div>
-            )}
           </aside>
         )}
       </div>

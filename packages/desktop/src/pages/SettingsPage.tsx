@@ -71,38 +71,7 @@ function SettingsPage() {
     if (!settings.rgbEnabled) {
       document.documentElement.style.setProperty('--rgb-speed', '0s');
     }
-
-    // Toggle RGB disabled class
-    const appContainer = document.querySelector('.app-container');
-    if (appContainer) {
-      if (settings.rgbEnabled) {
-        appContainer.classList.remove('rgb-disabled');
-      } else {
-        appContainer.classList.add('rgb-disabled');
-      }
-    }
   }, [settings.rgbSpeed, settings.rgbEnabled]);
-
-  // Apply theme to document
-  useEffect(() => {
-    const root = document.documentElement;
-    // Remove existing theme classes
-    root.classList.remove('theme-win95', 'theme-synthwave', 'theme-terminal');
-    // Add the selected theme class (win95 is the default, no class needed)
-    if (settings.theme !== 'win95' && settings.theme !== 'custom') {
-      root.classList.add(`theme-${settings.theme}`);
-    }
-  }, [settings.theme]);
-
-  // Apply scanlines effect
-  useEffect(() => {
-    const root = document.documentElement;
-    if (settings.showScanlines) {
-      root.classList.add('scanlines-enabled');
-    } else {
-      root.classList.remove('scanlines-enabled');
-    }
-  }, [settings.showScanlines]);
 
   const handleChange = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));

@@ -39,11 +39,7 @@
       "icons/icon.ico"
     ],
     "externalBin": ["binaries/copier-cli"],
-    "resources": [
-      "../dist-scripts/procedural-bridge.mjs",
-      "../../templates",
-      "../../registry"
-    ]
+    "resources": ["../scripts/procedural-bridge.mjs"]
   },
   "plugins": {
     "shell": {
