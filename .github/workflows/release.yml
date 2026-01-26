@@ -169,6 +169,11 @@ jobs:
             echo "Icons already exist, skipping generation"
           fi
 
+      # Bundle procedural bridge script for Tauri resources
+      - name: Bundle procedural bridge
+        working-directory: packages/desktop
+        run: pnpm bundle:bridge
+
       # Build Tauri application
       - name: Build Tauri App
         working-directory: packages/desktop
