@@ -1,6 +1,24 @@
 import { useState, useCallback } from 'react';
 
 /**
+ * Check if running in Tauri environment
+ */
+function isTauri(): boolean {
+  return typeof window !== 'undefined' && '__TAURI__' in window;
+}
+
+/**
+ * CLI execution result from Tauri backend
+ */
+interface CLIResult {
+  success: boolean;
+  stdout: string;
+  stderr: string;
+  exit_code: number | null;
+  duration_ms: number;
+}
+
+/**
  * CLI Commands Page
  *
  * Exposes all UPG CLI commands and options in a graphical interface:
@@ -297,20 +315,84 @@ function CLICommandsPage() {
     const command = buildCommand();
     setCommandOutput(prev => [...prev, `$ ${command}`, '']);
 
-    // Simulate command execution (in real app, this would call Tauri)
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setCommandOutput(prev => [
-      ...prev,
-      `Executing: ${command}`,
-      '',
-      `[Mock] Command would execute here.`,
-      `[Mock] In the full app, this connects to the Tauri backend.`,
-      '',
-      'Done.',
-      '',
-    ]);
-    setIsRunning(false);
-  }, [buildCommand]);
+    try {
+      if (isTauri()) {
+        const { invoke } = await import('@tauri-apps/api/core');
+
+        // Build the args array for the CLI
+        const args: string[] = [selectedCommand.id];
+
+        // Add positional arguments
+        if (selectedCommand.id === 'seed') {
+          args.push(String(optionValues['seed'] || '82910'));
+        } else if (
+          selectedCommand.usage.includes('<manifest>') ||
+          selectedCommand.usage.includes('[template]')
+        ) {
+          const manifestPath = String(optionValues['manifest'] || 'upg.yaml');
+          if (manifestPath) args.push(manifestPath);
+        } else if (selectedCommand.usage.includes('<query>')) {
+          const query = String(optionValues['query'] || '');
+          if (query) args.push(query);
+        }
+
+        // Add options
+        selectedCommand.options.forEach(opt => {
+          const value = optionValues[opt.flag];
+          if (value !== undefined && value !== '' && value !== opt.default) {
+            if (opt.type === 'boolean') {
+              if (value) {
+                args.push(opt.flag);
+              }
+            } else {
+              args.push(opt.flag, String(value));
+            }
+          }
+        });
+
+        setCommandOutput(prev => [...prev, `Executing: upg ${args.join(' ')}`, '']);
+
+        const result = await invoke<CLIResult>('execute_upg_cli', {
+          args,
+          workingDir: null,
+        });
+
+        // Display output
+        if (result.stdout) {
+          setCommandOutput(prev => [...prev, ...result.stdout.split('\n')]);
+        }
+        if (result.stderr) {
+          setCommandOutput(prev => [...prev, '--- stderr ---', ...result.stderr.split('\n')]);
+        }
+
+        setCommandOutput(prev => [
+          ...prev,
+          '',
+          `Exit code: ${result.exit_code ?? 'N/A'}`,
+          `Duration: ${result.duration_ms}ms`,
+          result.success ? 'Command completed successfully.' : 'Command failed.',
+          '',
+        ]);
+      } else {
+        // Not in Tauri - provide helpful message
+        setCommandOutput(prev => [
+          ...prev,
+          'CLI execution requires the Tauri desktop environment.',
+          'To run this command manually, copy it and execute in your terminal:',
+          '',
+          `  ${command}`,
+          '',
+          'Or run the desktop app with: pnpm tauri:dev',
+          '',
+        ]);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Command execution failed';
+      setCommandOutput(prev => [...prev, `Error: ${message}`, '']);
+    } finally {
+      setIsRunning(false);
+    }
+  }, [buildCommand, selectedCommand, optionValues]);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(buildCommand());

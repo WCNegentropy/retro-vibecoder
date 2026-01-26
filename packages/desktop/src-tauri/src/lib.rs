@@ -4,6 +4,7 @@
 //! It implements the Sidecar Pattern for orchestrating external generation tools.
 
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use tauri::Manager;
@@ -91,10 +92,11 @@ fn get_bridge_paths(app: &tauri::AppHandle) -> Result<BridgePaths, String> {
     #[cfg(not(debug_assertions))]
     {
         let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-        let script_path = resource_dir.join("procedural-bridge.mjs");
+        // In release, use the bundled self-contained script
+        let script_path = resource_dir.join("dist-scripts/procedural-bridge.mjs");
 
-        // In release, use the resource directory as working directory
-        // The bundled node_modules should be available there
+        // Working directory can be the resource directory
+        // The bundled script doesn't need node_modules - all dependencies are inlined
         Ok(BridgePaths {
             script_path,
             working_dir: resource_dir,
@@ -290,25 +292,270 @@ async fn generate_project(
     }
 }
 
-/// Get available templates from the registry
+/// Template entry structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TemplateEntry {
+    pub name: String,
+    pub version: String,
+    pub title: String,
+    pub description: String,
+    pub tags: Vec<String>,
+    pub icon: Option<String>,
+    pub author: Option<String>,
+    pub lifecycle: String,
+    pub path: String,
+}
+
+/// YAML manifest metadata (partial parse for template info)
+#[derive(Debug, Deserialize)]
+struct ManifestMetadata {
+    name: String,
+    #[serde(default = "default_version")]
+    version: String,
+    #[serde(default)]
+    title: Option<String>,
+    #[serde(default)]
+    description: Option<String>,
+    #[serde(default)]
+    tags: Vec<String>,
+    #[serde(default)]
+    icon: Option<String>,
+    #[serde(default)]
+    author: Option<String>,
+    #[serde(default = "default_lifecycle")]
+    lifecycle: String,
+}
+
+fn default_version() -> String {
+    "1.0.0".to_string()
+}
+
+fn default_lifecycle() -> String {
+    "production".to_string()
+}
+
+#[derive(Debug, Deserialize)]
+struct ManifestFile {
+    metadata: ManifestMetadata,
+}
+
+/// Get the templates directory path
+fn get_templates_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    #[cfg(debug_assertions)]
+    {
+        // In development, use the source templates directory
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let project_root = PathBuf::from(manifest_dir)
+            .parent() // src-tauri
+            .and_then(|p| p.parent()) // packages/desktop
+            .and_then(|p| p.parent()) // packages
+            .and_then(|p| p.parent()) // project root
+            .ok_or("Failed to find project root")?;
+        Ok(project_root.join("templates"))
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+        Ok(resource_dir.join("templates"))
+    }
+}
+
+/// Get the registry directory path
+fn get_registry_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    #[cfg(debug_assertions)]
+    {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let project_root = PathBuf::from(manifest_dir)
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+            .ok_or("Failed to find project root")?;
+        Ok(project_root.join("registry"))
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+        Ok(resource_dir.join("registry"))
+    }
+}
+
+/// Get available templates from the templates directory
 #[tauri::command]
-async fn get_templates() -> Result<Vec<serde_json::Value>, String> {
-    // TODO: Read from registry
-    // For now, return empty list - templates will be loaded from the filesystem
-    Ok(vec![])
+async fn get_templates(app: tauri::AppHandle) -> Result<Vec<TemplateEntry>, String> {
+    let templates_dir = get_templates_dir(&app)?;
+    let mut templates = Vec::new();
+
+    if !templates_dir.exists() {
+        return Ok(templates);
+    }
+
+    // Read all subdirectories in templates/
+    let entries = fs::read_dir(&templates_dir).map_err(|e| {
+        format!(
+            "Failed to read templates directory {:?}: {}",
+            templates_dir, e
+        )
+    })?;
+
+    for entry in entries {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+
+        // Look for upg.yaml manifest
+        let manifest_path = path.join("upg.yaml");
+        if !manifest_path.exists() {
+            continue;
+        }
+
+        // Parse the manifest
+        let content = match fs::read_to_string(&manifest_path) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("Failed to read manifest {:?}: {}", manifest_path, e);
+                continue;
+            }
+        };
+
+        let manifest: ManifestFile = match serde_yaml::from_str(&content) {
+            Ok(m) => m,
+            Err(e) => {
+                eprintln!("Failed to parse manifest {:?}: {}", manifest_path, e);
+                continue;
+            }
+        };
+
+        let meta = manifest.metadata;
+        templates.push(TemplateEntry {
+            name: meta.name.clone(),
+            version: meta.version,
+            title: meta.title.unwrap_or_else(|| meta.name.clone()),
+            description: meta.description.unwrap_or_default(),
+            tags: meta.tags,
+            icon: meta.icon,
+            author: meta.author,
+            lifecycle: meta.lifecycle,
+            path: path.to_string_lossy().to_string(),
+        });
+    }
+
+    Ok(templates)
+}
+
+/// Validation result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidationResult {
+    pub valid: bool,
+    pub path: String,
+    pub errors: Vec<String>,
+    pub warnings: Vec<String>,
 }
 
 /// Validate a UPG manifest file
 #[tauri::command]
-async fn validate_manifest(path: String) -> Result<serde_json::Value, String> {
-    // TODO: Implement validation via core package
-    // For now, return a basic validation result
-    Ok(serde_json::json!({
-        "valid": true,
-        "path": path,
-        "errors": [],
-        "warnings": []
-    }))
+async fn validate_manifest(path: String) -> Result<ValidationResult, String> {
+    let manifest_path = PathBuf::from(&path);
+
+    // Check if file exists
+    if !manifest_path.exists() {
+        return Ok(ValidationResult {
+            valid: false,
+            path: path.clone(),
+            errors: vec![format!("Manifest file not found: {}", path)],
+            warnings: vec![],
+        });
+    }
+
+    // Check file extension
+    let extension = manifest_path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("");
+    if extension != "yaml" && extension != "yml" {
+        return Ok(ValidationResult {
+            valid: false,
+            path: path.clone(),
+            errors: vec![format!(
+                "Invalid file extension '{}'. Expected .yaml or .yml",
+                extension
+            )],
+            warnings: vec![],
+        });
+    }
+
+    // Read and parse the manifest
+    let content = fs::read_to_string(&manifest_path)
+        .map_err(|e| format!("Failed to read manifest file: {}", e))?;
+
+    let mut errors = Vec::new();
+    let mut warnings = Vec::new();
+
+    // Parse YAML
+    let manifest: serde_yaml::Value = match serde_yaml::from_str(&content) {
+        Ok(m) => m,
+        Err(e) => {
+            return Ok(ValidationResult {
+                valid: false,
+                path: path.clone(),
+                errors: vec![format!("YAML parse error: {}", e)],
+                warnings: vec![],
+            });
+        }
+    };
+
+    // Validate required fields
+    if manifest.get("apiVersion").is_none() {
+        errors.push("Missing required field: apiVersion".to_string());
+    } else if let Some(api_version) = manifest.get("apiVersion").and_then(|v| v.as_str()) {
+        if api_version != "upg/v1" {
+            warnings.push(format!(
+                "Unknown apiVersion '{}'. Expected 'upg/v1'",
+                api_version
+            ));
+        }
+    }
+
+    if manifest.get("metadata").is_none() {
+        errors.push("Missing required field: metadata".to_string());
+    } else if let Some(metadata) = manifest.get("metadata") {
+        if metadata.get("name").is_none() {
+            errors.push("Missing required field: metadata.name".to_string());
+        }
+        if metadata.get("version").is_none() {
+            warnings.push("Missing recommended field: metadata.version".to_string());
+        }
+    }
+
+    if manifest.get("prompts").is_none() && manifest.get("template").is_none() {
+        warnings.push("Manifest has no prompts or template section".to_string());
+    }
+
+    // Check for template directory if template section exists
+    if manifest.get("template").is_some() || manifest.get("actions").is_some() {
+        let template_dir = manifest_path.parent().map(|p| p.join("template"));
+        if let Some(ref dir) = template_dir {
+            if !dir.exists() {
+                warnings.push(format!(
+                    "Template directory not found: {:?}",
+                    dir.file_name().unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    Ok(ValidationResult {
+        valid: errors.is_empty(),
+        path,
+        errors,
+        warnings,
+    })
 }
 
 /// Preview result structure
@@ -317,6 +564,37 @@ pub struct PreviewResult {
     pub files: std::collections::HashMap<String, String>,
     pub stack: Option<serde_json::Value>,
     pub seed: Option<u64>,
+}
+
+/// Seed entry from registry
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeedEntry {
+    pub seed: u64,
+    pub stack: serde_json::Value,
+    pub files: Vec<String>,
+    pub validated_at: String,
+    pub tags: Vec<String>,
+}
+
+/// Registry data structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegistryData {
+    pub version: String,
+    pub generated_at: String,
+    pub total_entries: u32,
+    pub entries: Vec<SeedEntry>,
+}
+
+/// CLI execution result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CLIResult {
+    pub success: bool,
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: Option<i32>,
+    pub duration_ms: u64,
 }
 
 /// Preview generated files without writing to disk
@@ -374,6 +652,228 @@ async fn preview_generation(
     }
 }
 
+/// Get validated seeds from the registry
+#[tauri::command]
+async fn get_seeds(app: tauri::AppHandle) -> Result<Vec<SeedEntry>, String> {
+    let registry_dir = get_registry_dir(&app)?;
+    let registry_path = registry_dir.join("manifests/generated.json");
+
+    if !registry_path.exists() {
+        // Return empty list if registry doesn't exist yet
+        return Ok(vec![]);
+    }
+
+    let content = fs::read_to_string(&registry_path)
+        .map_err(|e| format!("Failed to read registry: {}", e))?;
+
+    let registry: RegistryData =
+        serde_json::from_str(&content).map_err(|e| format!("Failed to parse registry: {}", e))?;
+
+    Ok(registry.entries)
+}
+
+/// Read manifest file content
+#[tauri::command]
+async fn read_manifest(path: String) -> Result<String, String> {
+    fs::read_to_string(&path).map_err(|e| format!("Failed to read manifest: {}", e))
+}
+
+/// Execute a CLI command and return the result
+#[tauri::command]
+async fn execute_cli(
+    app: tauri::AppHandle,
+    command: String,
+    args: Vec<String>,
+    working_dir: Option<String>,
+) -> Result<CLIResult, String> {
+    let start = std::time::Instant::now();
+
+    // Determine the working directory
+    let cwd = if let Some(ref dir) = working_dir {
+        PathBuf::from(dir)
+    } else {
+        app.path().home_dir().map_err(|e| e.to_string())?
+    };
+
+    // Build the command
+    let output = Command::new(&command)
+        .args(&args)
+        .current_dir(&cwd)
+        .output()
+        .map_err(|e| format!("Failed to execute command '{}': {}", command, e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+
+    Ok(CLIResult {
+        success: output.status.success(),
+        stdout,
+        stderr,
+        exit_code: output.status.code(),
+        duration_ms: start.elapsed().as_millis() as u64,
+    })
+}
+
+/// Execute the UPG CLI with specific arguments
+#[tauri::command]
+async fn execute_upg_cli(
+    app: tauri::AppHandle,
+    args: Vec<String>,
+    working_dir: Option<String>,
+) -> Result<CLIResult, String> {
+    let start = std::time::Instant::now();
+
+    // Get path to the UPG CLI
+    #[cfg(debug_assertions)]
+    let cli_path = {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let project_root = PathBuf::from(manifest_dir)
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+            .ok_or("Failed to find project root")?;
+        // In development, use npx to run the CLI from the monorepo
+        "npx".to_string()
+    };
+
+    #[cfg(not(debug_assertions))]
+    let cli_path = "upg".to_string();
+
+    // Determine the working directory
+    let cwd = if let Some(ref dir) = working_dir {
+        PathBuf::from(dir)
+    } else {
+        app.path().home_dir().map_err(|e| e.to_string())?
+    };
+
+    // Build arguments - in dev mode, prepend 'upg' for npx
+    #[cfg(debug_assertions)]
+    let full_args = {
+        let mut a = vec!["upg".to_string()];
+        a.extend(args);
+        a
+    };
+
+    #[cfg(not(debug_assertions))]
+    let full_args = args;
+
+    // Execute the command
+    let output = Command::new(&cli_path)
+        .args(&full_args)
+        .current_dir(&cwd)
+        .output()
+        .map_err(|e| format!("Failed to execute UPG CLI: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+
+    Ok(CLIResult {
+        success: output.status.success(),
+        stdout,
+        stderr,
+        exit_code: output.status.code(),
+        duration_ms: start.elapsed().as_millis() as u64,
+    })
+}
+
+/// Generate seeds using the sweeper and save to registry
+#[tauri::command]
+async fn run_sweeper(
+    app: tauri::AppHandle,
+    count: u32,
+    start_seed: Option<u64>,
+    validate: bool,
+) -> Result<Vec<SeedEntry>, String> {
+    let registry_dir = get_registry_dir(&app)?;
+    let paths = get_bridge_paths(&app)?;
+
+    let mut entries = Vec::new();
+    let start = start_seed.unwrap_or(1);
+
+    for i in 0..count {
+        let seed = start + i as u64;
+        let args = build_bridge_args("preview", seed, None, &None);
+        let response = execute_bridge(&paths, args)?;
+
+        if response.success {
+            if let Some(data) = response.data {
+                let stack = data.get("stack").cloned().unwrap_or(serde_json::json!({}));
+                let files: Vec<String> = data
+                    .get("files")
+                    .and_then(|f| f.as_object())
+                    .map(|obj| obj.keys().cloned().collect())
+                    .unwrap_or_default();
+
+                // Extract tags from stack
+                let mut tags = Vec::new();
+                if let Some(lang) = stack.get("language").and_then(|v| v.as_str()) {
+                    tags.push(lang.to_string());
+                }
+                if let Some(fw) = stack.get("framework").and_then(|v| v.as_str()) {
+                    tags.push(fw.to_string());
+                }
+                if let Some(arch) = stack.get("archetype").and_then(|v| v.as_str()) {
+                    tags.push(arch.to_string());
+                }
+
+                entries.push(SeedEntry {
+                    seed,
+                    stack,
+                    files,
+                    validated_at: chrono::Utc::now().to_rfc3339(),
+                    tags,
+                });
+            }
+        }
+    }
+
+    // Save to registry
+    let registry_path = registry_dir.join("manifests/generated.json");
+    if let Some(parent) = registry_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create registry directory: {}", e))?;
+    }
+
+    // Load existing registry or create new
+    let mut registry = if registry_path.exists() {
+        let content = fs::read_to_string(&registry_path)
+            .map_err(|e| format!("Failed to read registry: {}", e))?;
+        serde_json::from_str::<RegistryData>(&content).unwrap_or(RegistryData {
+            version: "1.0.0".to_string(),
+            generated_at: chrono::Utc::now().to_rfc3339(),
+            total_entries: 0,
+            entries: vec![],
+        })
+    } else {
+        RegistryData {
+            version: "1.0.0".to_string(),
+            generated_at: chrono::Utc::now().to_rfc3339(),
+            total_entries: 0,
+            entries: vec![],
+        }
+    };
+
+    // Add new entries (avoid duplicates by seed)
+    let existing_seeds: std::collections::HashSet<u64> =
+        registry.entries.iter().map(|e| e.seed).collect();
+    for entry in &entries {
+        if !existing_seeds.contains(&entry.seed) {
+            registry.entries.push(entry.clone());
+        }
+    }
+
+    registry.total_entries = registry.entries.len() as u32;
+    registry.generated_at = chrono::Utc::now().to_rfc3339();
+
+    // Write updated registry
+    let json = serde_json::to_string_pretty(&registry)
+        .map_err(|e| format!("Failed to serialize registry: {}", e))?;
+    fs::write(&registry_path, json).map_err(|e| format!("Failed to write registry: {}", e))?;
+
+    Ok(entries)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -390,7 +890,12 @@ pub fn run() {
             generate_project,
             get_templates,
             validate_manifest,
-            preview_generation
+            preview_generation,
+            get_seeds,
+            read_manifest,
+            execute_cli,
+            execute_upg_cli,
+            run_sweeper
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
