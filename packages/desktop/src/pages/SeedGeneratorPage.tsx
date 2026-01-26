@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Preview from '../components/Preview';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
-import type { TechStack } from '../types';
+import type { TechStack, GenerationResult } from '../types';
 
 /**
  * Seed Generator Page
@@ -19,6 +19,7 @@ function SeedGeneratorPage() {
   const [outputPath, setOutputPath] = useState<string>('./generated-project');
   const [previewStack, setPreviewStack] = useState<TechStack | null>(null);
   const [previewFiles, setPreviewFiles] = useState<Record<string, string>>({});
+  const [generationResult, setGenerationResult] = useState<GenerationResult | null>(null);
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
 
@@ -55,11 +56,15 @@ function SeedGeneratorPage() {
 
   const handleGenerate = useCallback(async () => {
     if (!seed) return;
-    await generate({
+    setGenerationResult(null);
+    const result = await generate({
       mode: 'procedural',
       seed: parseInt(seed, 10),
       output_path: outputPath,
     });
+    if (result) {
+      setGenerationResult(result);
+    }
   }, [seed, outputPath, generate]);
 
   return (
@@ -134,6 +139,39 @@ function SeedGeneratorPage() {
             </div>
 
             {error && <div className="error-message">{error}</div>}
+
+            {generationResult && (
+              <div
+                className={`generation-result ${generationResult.success ? 'success' : 'error'}`}
+                style={{
+                  marginTop: '1rem',
+                  padding: '0.75rem',
+                  border: `2px solid ${generationResult.success ? 'var(--color-success, #4caf50)' : 'var(--color-error, #f44336)'}`,
+                  background: generationResult.success ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                }}
+              >
+                <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                  {generationResult.success ? '✓ Generation Complete!' : '✗ Generation Failed'}
+                </div>
+                <div style={{ fontSize: '0.9rem' }}>{generationResult.message}</div>
+                {generationResult.success && (
+                  <>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                      <strong>Output:</strong>{' '}
+                      <code style={{ background: 'rgba(0,0,0,0.1)', padding: '2px 4px' }}>
+                        {generationResult.output_path}
+                      </code>
+                    </div>
+                    <div style={{ fontSize: '0.85rem' }}>
+                      <strong>Files:</strong> {generationResult.files_generated.length} generated
+                    </div>
+                    <div style={{ fontSize: '0.85rem' }}>
+                      <strong>Duration:</strong> {generationResult.duration_ms}ms
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </section>
 

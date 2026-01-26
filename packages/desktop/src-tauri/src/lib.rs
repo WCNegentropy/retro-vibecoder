@@ -4,8 +4,8 @@
 //! It implements the Sidecar Pattern for orchestrating external generation tools.
 
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use std::process::Command;
-#[cfg(debug_assertions)]
 use tauri::Manager;
 
 /// Generation mode for projects
@@ -67,23 +67,38 @@ struct BridgeResponse {
     duration_ms: Option<u64>,
 }
 
-/// Get the path to the procedural bridge script
-fn get_bridge_script_path(app: &tauri::AppHandle) -> Result<String, String> {
+/// Bridge script paths and working directory
+struct BridgePaths {
+    script_path: PathBuf,
+    working_dir: PathBuf,
+}
+
+/// Get the path to the procedural bridge script and the working directory for execution
+fn get_bridge_paths(app: &tauri::AppHandle) -> Result<BridgePaths, String> {
     #[cfg(debug_assertions)]
     {
+        // In development, use the source directory
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        Ok(format!("{}/scripts/procedural-bridge.mjs", manifest_dir.replace("/src-tauri", "")))
+        let desktop_dir = PathBuf::from(manifest_dir.replace("/src-tauri", ""));
+        let script_path = desktop_dir.join("scripts/procedural-bridge.mjs");
+
+        // Working directory should be the desktop package root for proper module resolution
+        Ok(BridgePaths {
+            script_path,
+            working_dir: desktop_dir,
+        })
     }
     #[cfg(not(debug_assertions))]
     {
-        use tauri::Manager;
         let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-        // In release, we expect the script to be at the root of the resource directory
-        // or effectively where we told Tauri to put it. 
-        // We will configure tauri.conf.json to bundle it.
-        // Let's assume it ends up at `procedural-bridge.mjs` in the resource folder.
-        let path = resource_dir.join("procedural-bridge.mjs");
-        Ok(path.to_string_lossy().to_string())
+        let script_path = resource_dir.join("procedural-bridge.mjs");
+
+        // In release, use the resource directory as working directory
+        // The bundled node_modules should be available there
+        Ok(BridgePaths {
+            script_path,
+            working_dir: resource_dir,
+        })
     }
 }
 
@@ -116,13 +131,14 @@ fn build_bridge_args(action: &str, seed: u64, output_path: Option<&str>, stack: 
 }
 
 /// Execute the procedural bridge script
-fn execute_bridge(script_path: String, args: Vec<String>) -> Result<BridgeResponse, String> {
-
+fn execute_bridge(paths: &BridgePaths, args: Vec<String>) -> Result<BridgeResponse, String> {
     let output = Command::new("node")
-        .arg(&script_path)
+        .arg(&paths.script_path)
         .args(&args)
+        .current_dir(&paths.working_dir)
         .output()
-        .map_err(|e| format!("Failed to execute procedural bridge: {}", e))?;
+        .map_err(|e| format!("Failed to execute procedural bridge: {}. Script: {:?}, Working dir: {:?}",
+            e, paths.script_path, paths.working_dir))?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -136,8 +152,30 @@ fn execute_bridge(script_path: String, args: Vec<String>) -> Result<BridgeRespon
         serde_json::from_str::<BridgeResponse>(&stderr)
             .map_err(|e| format!("Bridge failed. stderr: {}, parse error: {}", stderr, e))
     } else {
-        Err(format!("Bridge returned empty output. Exit code: {:?}", output.status.code()))
+        Err(format!("Bridge returned empty output. Exit code: {:?}, Script: {:?}, Working dir: {:?}",
+            output.status.code(), paths.script_path, paths.working_dir))
     }
+}
+
+/// Resolve output path to an absolute path
+/// If relative, resolves against the user's home directory or current directory
+fn resolve_output_path(output_path: &str, app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let path = PathBuf::from(output_path);
+
+    if path.is_absolute() {
+        return Ok(path);
+    }
+
+    // For relative paths, resolve against user's home directory or document directory
+    // This gives users a predictable location for their generated projects
+    if let Ok(home_dir) = app.path().home_dir() {
+        return Ok(home_dir.join(output_path));
+    }
+
+    // Fallback: resolve against current directory
+    std::env::current_dir()
+        .map(|cwd| cwd.join(output_path))
+        .map_err(|e| format!("Failed to resolve output path: {}", e))
 }
 
 /// Generate a project using the specified mode
@@ -149,9 +187,13 @@ async fn generate_project(app: tauri::AppHandle, request: GenerationRequest) -> 
         GenerationMode::Procedural => {
             let seed = request.seed.ok_or("Seed is required for procedural generation")?;
 
-            let args = build_bridge_args("generate", seed, Some(&request.output_path), &request.stack);
-            let script_path = get_bridge_script_path(&app)?;
-            let response = execute_bridge(script_path, args)?;
+            // Resolve the output path to an absolute path
+            let resolved_output = resolve_output_path(&request.output_path, &app)?;
+            let resolved_output_str = resolved_output.to_string_lossy().to_string();
+
+            let args = build_bridge_args("generate", seed, Some(&resolved_output_str), &request.stack);
+            let paths = get_bridge_paths(&app)?;
+            let response = execute_bridge(&paths, args)?;
 
             if response.success {
                 let data = response.data.ok_or("Missing data in successful response")?;
@@ -172,7 +214,7 @@ async fn generate_project(app: tauri::AppHandle, request: GenerationRequest) -> 
                     success: true,
                     message,
                     files_generated,
-                    output_path: request.output_path,
+                    output_path: resolved_output_str,
                     duration_ms: response.duration_ms.unwrap_or(start.elapsed().as_millis() as u64),
                 })
             } else {
@@ -181,28 +223,36 @@ async fn generate_project(app: tauri::AppHandle, request: GenerationRequest) -> 
                     success: false,
                     message: error,
                     files_generated: vec![],
-                    output_path: request.output_path,
+                    output_path: resolved_output_str,
                     duration_ms: start.elapsed().as_millis() as u64,
                 })
             }
         }
         GenerationMode::Manifest => {
+            // Resolve the output path for consistent behavior
+            let resolved_output = resolve_output_path(&request.output_path, &app)?;
+            let resolved_output_str = resolved_output.to_string_lossy().to_string();
+
             // TODO: Implement manifest-based generation via Copier sidecar
             Ok(GenerationResult {
                 success: false,
                 message: "Manifest mode not yet implemented in Rust backend. Use sidecar.ts for Copier integration.".to_string(),
                 files_generated: vec![],
-                output_path: request.output_path,
+                output_path: resolved_output_str,
                 duration_ms: start.elapsed().as_millis() as u64,
             })
         }
         GenerationMode::Hybrid => {
+            // Resolve the output path for consistent behavior
+            let resolved_output = resolve_output_path(&request.output_path, &app)?;
+            let resolved_output_str = resolved_output.to_string_lossy().to_string();
+
             // TODO: Implement hybrid mode
             Ok(GenerationResult {
                 success: false,
                 message: "Hybrid mode not yet implemented".to_string(),
                 files_generated: vec![],
-                output_path: request.output_path,
+                output_path: resolved_output_str,
                 duration_ms: start.elapsed().as_millis() as u64,
             })
         }
@@ -246,8 +296,8 @@ async fn preview_generation(app: tauri::AppHandle, request: GenerationRequest) -
             let seed = request.seed.ok_or("Seed is required for procedural preview")?;
 
             let args = build_bridge_args("preview", seed, None, &request.stack);
-            let script_path = get_bridge_script_path(&app)?;
-            let response = execute_bridge(script_path, args)?;
+            let paths = get_bridge_paths(&app)?;
+            let response = execute_bridge(&paths, args)?;
 
             if response.success {
                 let data = response.data.ok_or("Missing data in successful response")?;

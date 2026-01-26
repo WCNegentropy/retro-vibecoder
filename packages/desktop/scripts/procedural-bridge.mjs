@@ -18,9 +18,25 @@
  *   JSON to stdout with either PreviewResult or GenerationResult
  */
 
-import { ProjectAssembler, AllStrategies } from '@retro-vibecoder/procedural';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+
+// Import procedural package with error handling
+let ProjectAssembler, AllStrategies;
+try {
+  const procedural = await import('@retro-vibecoder/procedural');
+  ProjectAssembler = procedural.ProjectAssembler;
+  AllStrategies = procedural.AllStrategies;
+} catch (importError) {
+  // Output detailed error for debugging module resolution issues
+  console.log(JSON.stringify({
+    success: false,
+    error: `Failed to import @retro-vibecoder/procedural: ${importError.message}. ` +
+      `Working directory: ${process.cwd()}. ` +
+      `Script location: ${import.meta.url}`,
+  }));
+  process.exit(1);
+}
 
 /**
  * Parse command line arguments
