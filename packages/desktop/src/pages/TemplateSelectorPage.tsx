@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { TemplateEntry } from '../types';
 
@@ -12,51 +12,23 @@ function isTauri(): boolean {
 /**
  * Template Selector Page
  *
- * Manifest Mode: Browse and select curated UPG templates
- * - Load templates from registry
- * - Filter by tags
- * - Preview template details
- * - Generate using RJSF form + Copier sidecar
+ * NOTE: Manifest Mode is out of scope for v1.
+ * This page displays a message directing users to use Procedural Mode instead.
+ *
+ * v1 supports procedural mode only (seed → stack → files).
  */
 
 function TemplateSelectorPage() {
   const navigate = useNavigate();
-  const [templates, setTemplates] = useState<TemplateEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // v1: Template state kept for future use but templates list is always empty
+  const [templates] = useState<TemplateEntry[]>([]);
+  const [isLoading] = useState(false);
+  const [error] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateEntry | null>(null);
   const [manifestContent, setManifestContent] = useState<string | null>(null);
   const [showManifest, setShowManifest] = useState(false);
-
-  // Load templates from Tauri backend
-  useEffect(() => {
-    async function loadTemplates() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        if (isTauri()) {
-          const { invoke } = await import('@tauri-apps/api/core');
-          const result = await invoke<TemplateEntry[]>('get_templates');
-          setTemplates(result);
-        } else {
-          // Development fallback - show message that Tauri is required
-          setError('Templates are loaded from the filesystem. Run in Tauri to see real templates.');
-          setTemplates([]);
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load templates';
-        setError(message);
-        setTemplates([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadTemplates();
-  }, []);
 
   // Get all unique tags
   const allTags = Array.from(new Set(templates.flatMap(t => t.tags)));
@@ -131,12 +103,52 @@ function TemplateSelectorPage() {
     );
   }
 
+  // v1: Show out-of-scope message for Manifest mode
   return (
     <div className="page template-selector-page">
       <header className="page-header">
         <h1>Template Selector</h1>
-        <p className="subtitle">Browse curated UPG manifest templates</p>
+        <p className="subtitle">Manifest-based templates</p>
       </header>
+
+      {/* v1 Scope Notice */}
+      <div
+        className="win95-window"
+        style={{
+          marginBottom: '24px',
+          background: 'var(--win95-bg)',
+        }}
+      >
+        <div className="win95-window-title">
+          <span className="win95-window-title-icon">!</span>
+          Feature Not Available in v1
+        </div>
+        <div className="win95-window-content" style={{ padding: '16px' }}>
+          <p style={{ marginBottom: '12px' }}>
+            <strong>Manifest Mode</strong> (template-based generation) is out of scope for v1.
+          </p>
+          <p style={{ marginBottom: '16px' }}>
+            v1 supports <strong>Procedural Mode</strong> only — generate projects from seed numbers
+            using the Universal Matrix procedural engine.
+          </p>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => navigate('/seed')}
+            >
+              Go to Seed Generator
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => navigate('/compose')}
+            >
+              Go to Stack Composer
+            </button>
+          </div>
+        </div>
+      </div>
 
       {error && (
         <div

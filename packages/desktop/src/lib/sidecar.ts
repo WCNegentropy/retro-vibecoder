@@ -2,13 +2,14 @@
  * Sidecar Integration Layer
  *
  * Provides the interface between the React frontend and the Tauri backend's
- * sidecar functionality. Sidecars are bundled external binaries (like Copier)
- * that can be spawned by the Tauri core to perform generation tasks.
+ * sidecar functionality.
  *
- * Architecture (from plan.txt):
+ * v1 Architecture (procedural mode only):
  * - The Core (Rust): Handles window management, file system, security
  * - The Frontend (React): Renders forms, validates input, displays progress
- * - The Sidecars: Bundled binaries (Copier, Node tools) for actual generation
+ * - The CLI (upg): Single generation engine for procedural projects
+ *
+ * Note: Copier/Manifest mode is out of scope for v1.
  */
 
 // Types available in '../types' if needed:
@@ -67,6 +68,8 @@ function isTauri(): boolean {
  *
  * This uses the Tauri shell plugin to spawn the bundled sidecar binary.
  * The sidecar must be configured in tauri.conf.json.
+ *
+ * Note: In v1, the primary sidecar is the upg CLI for procedural generation.
  */
 export async function executeSidecar(
   config: SidecarConfig,
@@ -75,8 +78,11 @@ export async function executeSidecar(
   const startTime = Date.now();
 
   if (!isTauri()) {
-    // Mock implementation for development
-    return mockSidecarExecution(config, onEvent);
+    // In non-Tauri environment, throw an error - no mocks in production paths
+    throw new Error(
+      'Sidecar execution requires Tauri environment. ' +
+        'Please run this application through the desktop app.'
+    );
   }
 
   try {
@@ -133,81 +139,6 @@ export async function executeSidecar(
       durationMs: Date.now() - startTime,
     };
   }
-}
-
-/**
- * Mock sidecar execution for development outside Tauri
- */
-async function mockSidecarExecution(
-  config: SidecarConfig,
-  onEvent?: (event: SidecarEvent) => void
-): Promise<SidecarResult> {
-  const startTime = Date.now();
-
-  // Simulate execution
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  const mockOutput = `[mock] Executing sidecar: ${config.name}\n[mock] Args: ${config.args.join(' ')}\n[mock] Completed successfully`;
-
-  onEvent?.({
-    type: 'stdout',
-    data: mockOutput,
-    timestamp: Date.now(),
-  });
-
-  onEvent?.({
-    type: 'exit',
-    data: '0',
-    timestamp: Date.now(),
-  });
-
-  return {
-    success: true,
-    exitCode: 0,
-    stdout: mockOutput,
-    stderr: '',
-    durationMs: Date.now() - startTime,
-  };
-}
-
-/**
- * Execute Copier sidecar for manifest-based generation
- *
- * The Copier sidecar handles:
- * 1. Reading the UPG manifest (upg.yaml)
- * 2. Processing Jinja2 templates
- * 3. Writing generated files to the output directory
- */
-export async function executeCopier(params: {
-  templatePath: string;
-  outputPath: string;
-  answers: Record<string, unknown>;
-  onEvent?: (event: SidecarEvent) => void;
-}): Promise<SidecarResult> {
-  // Create temporary answers file
-  const answersJson = JSON.stringify(params.answers);
-
-  // Build Copier arguments
-  const args = [
-    'copy',
-    params.templatePath,
-    params.outputPath,
-    '--data-file=-', // Read answers from stdin
-    '--trust', // Trust the template
-    '--quiet', // Less verbose output
-  ];
-
-  return executeSidecar(
-    {
-      name: 'binaries/copier-cli',
-      args,
-      env: {
-        COPIER_ANSWERS: answersJson,
-      },
-      timeout: 60000, // 1 minute timeout
-    },
-    params.onEvent
-  );
 }
 
 /**

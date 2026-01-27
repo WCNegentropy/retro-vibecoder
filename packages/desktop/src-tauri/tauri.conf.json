@@ -38,10 +38,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/copier-cli"],
+    "externalBin": [],
     "resources": [
       "../dist-scripts/procedural-bridge.mjs",
-      "../../../templates",
       "../../../registry"
     ]
   },

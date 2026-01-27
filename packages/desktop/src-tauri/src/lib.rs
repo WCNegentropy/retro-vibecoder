@@ -10,15 +10,14 @@ use std::process::Command;
 use tauri::Manager;
 
 /// Generation mode for projects
+///
+/// v1 supports procedural mode only (seed → stack → files).
+/// Manifest and Hybrid modes are out of scope for v1.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum GenerationMode {
-    /// Generate from UPG manifest template
-    Manifest,
-    /// Generate from seed using procedural engine
+    /// Generate from seed using procedural engine (the only supported mode in v1)
     Procedural,
-    /// Hybrid: procedural base with manifest overlay
-    Hybrid,
 }
 
 /// Tech stack configuration for procedural generation
@@ -36,16 +35,12 @@ pub struct TechStackConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationRequest {
     pub mode: GenerationMode,
-    /// For Manifest mode: path to upg.yaml
-    pub manifest_path: Option<String>,
-    /// For Procedural mode: seed number
+    /// For Procedural mode: seed number (required)
     pub seed: Option<u64>,
-    /// For Procedural mode: explicit stack config
+    /// For Procedural mode: explicit stack config (optional constraints)
     pub stack: Option<TechStackConfig>,
     /// Output directory
     pub output_path: String,
-    /// User-provided answers (for Manifest mode)
-    pub answers: Option<serde_json::Value>,
 }
 
 /// Generation result
@@ -197,7 +192,10 @@ fn resolve_output_path(output_path: &str, app: &tauri::AppHandle) -> Result<Path
         .map_err(|e| format!("Failed to resolve output path: {}", e))
 }
 
-/// Generate a project using the specified mode
+/// Generate a project using the procedural engine via CLI sidecar
+///
+/// Primary invariant: upg seed <SEED> --output <DIR> [constraints...]
+/// Creates a project directory at <DIR> with a valid scaffolding for the chosen stack.
 #[tauri::command]
 async fn generate_project(
     app: tauri::AppHandle,
@@ -205,6 +203,7 @@ async fn generate_project(
 ) -> Result<GenerationResult, String> {
     let start = std::time::Instant::now();
 
+    // v1 only supports Procedural mode
     match request.mode {
         GenerationMode::Procedural => {
             let seed = request
@@ -260,34 +259,6 @@ async fn generate_project(
                     duration_ms: start.elapsed().as_millis() as u64,
                 })
             }
-        }
-        GenerationMode::Manifest => {
-            // Resolve the output path for consistent behavior
-            let resolved_output = resolve_output_path(&request.output_path, &app)?;
-            let resolved_output_str = resolved_output.to_string_lossy().to_string();
-
-            // TODO: Implement manifest-based generation via Copier sidecar
-            Ok(GenerationResult {
-                success: false,
-                message: "Manifest mode not yet implemented in Rust backend. Use sidecar.ts for Copier integration.".to_string(),
-                files_generated: vec![],
-                output_path: resolved_output_str,
-                duration_ms: start.elapsed().as_millis() as u64,
-            })
-        }
-        GenerationMode::Hybrid => {
-            // Resolve the output path for consistent behavior
-            let resolved_output = resolve_output_path(&request.output_path, &app)?;
-            let resolved_output_str = resolved_output.to_string_lossy().to_string();
-
-            // TODO: Implement hybrid mode
-            Ok(GenerationResult {
-                success: false,
-                message: "Hybrid mode not yet implemented".to_string(),
-                files_generated: vec![],
-                output_path: resolved_output_str,
-                duration_ms: start.elapsed().as_millis() as u64,
-            })
         }
     }
 }
@@ -603,6 +574,7 @@ async fn preview_generation(
     app: tauri::AppHandle,
     request: GenerationRequest,
 ) -> Result<PreviewResult, String> {
+    // v1 only supports Procedural mode
     match request.mode {
         GenerationMode::Procedural => {
             let seed = request
@@ -642,13 +614,6 @@ async fn preview_generation(
                 Err(error)
             }
         }
-        GenerationMode::Manifest => {
-            // For manifest mode, we would need to process the template
-            // without writing files. This is more complex and requires
-            // the Copier sidecar or template processing.
-            Err("Manifest preview not yet implemented in Rust backend".to_string())
-        }
-        GenerationMode::Hybrid => Err("Hybrid preview not yet implemented".to_string()),
     }
 }
 
