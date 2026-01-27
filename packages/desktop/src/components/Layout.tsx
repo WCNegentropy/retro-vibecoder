@@ -25,7 +25,7 @@ function Layout() {
             </NavLink>
 
             <div className="nav-section">
-              <span className="nav-section-title">Procedural Mode</span>
+              <span className="nav-section-title">Generation</span>
               <NavLink
                 to="/seed"
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
@@ -46,17 +46,6 @@ function Layout() {
               >
                 <span className="nav-link-icon">@</span>
                 Seed Gallery
-              </NavLink>
-            </div>
-
-            <div className="nav-section">
-              <span className="nav-section-title">Manifest Mode</span>
-              <NavLink
-                to="/templates"
-                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-              >
-                <span className="nav-link-icon">[]</span>
-                Template Selector
               </NavLink>
             </div>
 

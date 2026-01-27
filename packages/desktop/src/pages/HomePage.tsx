@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 /**
  * Home page - entry point for the UPG Desktop application
  *
- * Provides quick access to both generation modes:
+ * v1 supports procedural mode only (seed → stack → files).
  * - Procedural Mode: Seed generator, Stack composer
- * - Manifest Mode: Template selector
  *
  * Features Windows 95 retro styling with RGB accents
  */
@@ -24,11 +23,11 @@ function HomePage() {
       </header>
 
       <section className="mode-selector">
-        {/* Procedural Mode Card */}
-        <div className="mode-card">
+        {/* Procedural Mode Card - The only supported mode in v1 */}
+        <div className="mode-card mode-card-wide">
           <div className="mode-card-header">
             <span className="icon">#</span>
-            Procedural Mode
+            Procedural Generation
           </div>
           <div className="mode-card-body">
             <p>Generate projects from seed numbers or compose custom tech stacks</p>
@@ -50,31 +49,6 @@ function HomePage() {
                 <li>Constraint-validated combinations</li>
                 <li>31+ technology strategies (Tier 1-5)</li>
                 <li>Pre-validated seed gallery</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Manifest Mode Card */}
-        <div className="mode-card">
-          <div className="mode-card-header">
-            <span className="icon">[]</span>
-            Manifest Mode
-          </div>
-          <div className="mode-card-body">
-            <p>Generate projects from curated UPG manifest templates</p>
-            <div className="mode-actions">
-              <Link to="/templates" className="btn btn-primary">
-                Browse Templates
-              </Link>
-            </div>
-            <div className="mode-features">
-              <ul>
-                <li>Hand-crafted, opinionated templates</li>
-                <li>Dynamic forms from YAML manifests</li>
-                <li>Smart Update support (3-way merge)</li>
-                <li>Copier-powered generation</li>
-                <li>Full RJSF form support</li>
               </ul>
             </div>
           </div>

@@ -53,17 +53,23 @@ export interface TechStack {
   testing: string;
 }
 
-/** Generation mode */
-export type GenerationMode = 'manifest' | 'procedural' | 'hybrid';
+/**
+ * Generation mode
+ *
+ * v1 supports procedural mode only (seed → stack → files).
+ * Manifest and Hybrid modes are out of scope for v1.
+ */
+export type GenerationMode = 'procedural';
 
 /** Generation request to Tauri backend */
 export interface GenerationRequest {
   mode: GenerationMode;
-  manifest_path?: string;
+  /** Required: seed number for procedural generation */
   seed?: number;
+  /** Optional: stack constraints (archetype, language, framework) */
   stack?: Partial<TechStack>;
+  /** Output directory */
   output_path: string;
-  answers?: Record<string, unknown>;
 }
 
 /** Generation result from Tauri backend */
