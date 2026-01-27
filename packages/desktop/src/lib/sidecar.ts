@@ -146,6 +146,8 @@ export async function executeSidecar(
  *
  * This doesn't use a sidecar - it invokes the Tauri command
  * which calls the Rust validation logic.
+ *
+ * Note: Requires Tauri environment - no mock fallback.
  */
 export async function validateManifest(manifestPath: string): Promise<{
   valid: boolean;
@@ -153,12 +155,10 @@ export async function validateManifest(manifestPath: string): Promise<{
   warnings: Array<{ message: string; path: string }>;
 }> {
   if (!isTauri()) {
-    // Mock validation
-    return {
-      valid: true,
-      errors: [],
-      warnings: [],
-    };
+    throw new Error(
+      'Manifest validation requires Tauri environment. ' +
+        'Please run this application through the desktop app.'
+    );
   }
 
   const { invoke } = await import('@tauri-apps/api/core');
@@ -256,92 +256,46 @@ export interface ProceduralGenerationResult {
 /**
  * Execute procedural preview using the procedural package directly
  *
- * This is used in development mode when Tauri is not available.
- * In production, the Tauri backend handles this via the bridge script.
+ * Note: In production, use the Tauri backend (preview_generation command) instead.
+ * This function requires the procedural package to be available.
  */
 export async function executeProceduralPreview(
   seed: number,
   constraints?: ProceduralConstraints
 ): Promise<ProceduralPreviewResult> {
-  // Try dynamic import - may not be available in bundled builds
-  try {
-    const procedural = await import('@retro-vibecoder/procedural');
-    const { ProjectAssembler, AllStrategies } = procedural;
+  // Dynamic import - will fail if procedural package is not available
+  const procedural = await import('@retro-vibecoder/procedural');
+  const { ProjectAssembler, AllStrategies } = procedural;
 
-    const options: Record<string, unknown> = {};
-    if (constraints?.archetype) options.archetype = constraints.archetype;
-    if (constraints?.language) options.language = constraints.language;
-    if (constraints?.framework) options.framework = constraints.framework;
+  const options: Record<string, unknown> = {};
+  if (constraints?.archetype) options.archetype = constraints.archetype;
+  if (constraints?.language) options.language = constraints.language;
+  if (constraints?.framework) options.framework = constraints.framework;
 
-    const assembler = new ProjectAssembler(seed, options);
-    assembler.registerStrategies(AllStrategies);
+  const assembler = new ProjectAssembler(seed, options);
+  assembler.registerStrategies(AllStrategies);
 
-    const project = await assembler.generate();
+  const project = await assembler.generate();
 
-    return {
-      files: project.files,
-      stack: {
-        archetype: project.stack.archetype,
-        language: project.stack.language,
-        runtime: project.stack.runtime,
-        framework: project.stack.framework,
-        database: project.stack.database,
-        orm: project.stack.orm,
-        transport: project.stack.transport,
-        packaging: project.stack.packaging,
-        cicd: project.stack.cicd,
-        buildTool: project.stack.buildTool,
-        styling: project.stack.styling,
-        testing: project.stack.testing,
-      },
-      seed,
-      projectId: project.id,
-      projectName: project.name,
-    };
-  } catch {
-    // Return mock data when procedural package is not available
-    return mockProceduralPreview(seed, constraints);
-  }
-}
-
-/**
- * Mock procedural preview for when the procedural package is not available
- */
-function mockProceduralPreview(
-  seed: number,
-  constraints?: ProceduralConstraints
-): ProceduralPreviewResult {
-  const projectName = `project-${seed}`;
   return {
-    files: {
-      'README.md': `# ${projectName}\n\nGenerated from seed ${seed}`,
-      'package.json': JSON.stringify(
-        {
-          name: projectName,
-          version: '0.1.0',
-          description: `Project generated from seed ${seed}`,
-        },
-        null,
-        2
-      ),
-    },
+    files: project.files,
     stack: {
-      archetype: constraints?.archetype || 'backend',
-      language: constraints?.language || 'typescript',
-      runtime: 'node',
-      framework: constraints?.framework || 'express',
-      database: 'postgres',
-      orm: 'prisma',
-      transport: 'rest',
-      packaging: 'docker',
-      cicd: 'github-actions',
-      buildTool: 'vite',
-      styling: 'tailwind',
-      testing: 'vitest',
+      archetype: project.stack.archetype,
+      language: project.stack.language,
+      runtime: project.stack.runtime,
+      framework: project.stack.framework,
+      database: project.stack.database,
+      orm: project.stack.orm,
+      transport: project.stack.transport,
+      packaging: project.stack.packaging,
+      cicd: project.stack.cicd,
+      buildTool: project.stack.buildTool,
+      styling: project.stack.styling,
+      testing: project.stack.testing,
     },
     seed,
-    projectId: projectName,
-    projectName,
+    projectId: project.id,
+    projectName: project.name,
   };
 }
 
@@ -383,53 +337,39 @@ export async function executeProceduralGeneration(
 
 /**
  * Get available constraint options from the procedural engine
+ *
+ * Note: Requires the procedural package to be available.
  */
 export async function getProceduralConstraintOptions(): Promise<{
   archetypes: string[];
   languages: string[];
   frameworks: string[];
 }> {
-  try {
-    const procedural = await import('@retro-vibecoder/procedural');
-    const { ARCHETYPE_IDS, LANGUAGE_IDS, FRAMEWORKS } = procedural;
+  const procedural = await import('@retro-vibecoder/procedural');
+  const { ARCHETYPE_IDS, LANGUAGE_IDS, FRAMEWORKS } = procedural;
 
-    return {
-      archetypes: [...ARCHETYPE_IDS],
-      languages: [...LANGUAGE_IDS],
-      frameworks: FRAMEWORKS.map((f: { id: string }) => f.id),
-    };
-  } catch {
-    // Return default options when procedural package is not available
-    return {
-      archetypes: ['backend', 'web', 'cli', 'mobile', 'library', 'desktop', 'game'],
-      languages: ['typescript', 'python', 'rust', 'go', 'java', 'csharp', 'cpp'],
-      frameworks: ['express', 'fastapi', 'axum', 'react', 'vue', 'cobra', 'spring-boot'],
-    };
-  }
+  return {
+    archetypes: [...ARCHETYPE_IDS],
+    languages: [...LANGUAGE_IDS],
+    frameworks: FRAMEWORKS.map((f: { id: string }) => f.id),
+  };
 }
 
 /**
  * Validate constraint combination before generation
+ *
+ * Note: Requires the procedural package to be available.
  */
 export async function validateProceduralConstraints(
   constraints: ProceduralConstraints
 ): Promise<{ valid: boolean; errors: string[]; suggestions: string[] }> {
-  try {
-    const procedural = await import('@retro-vibecoder/procedural');
-    // Type assertion needed because our constraints are strings but the engine uses specific types
-    const validateFn = procedural.validateConstraints as (
-      archetype?: string,
-      language?: string,
-      framework?: string
-    ) => { valid: boolean; errors: string[]; suggestions: string[] };
+  const procedural = await import('@retro-vibecoder/procedural');
+  // Type assertion needed because our constraints are strings but the engine uses specific types
+  const validateFn = procedural.validateConstraints as (
+    archetype?: string,
+    language?: string,
+    framework?: string
+  ) => { valid: boolean; errors: string[]; suggestions: string[] };
 
-    return validateFn(constraints.archetype, constraints.language, constraints.framework);
-  } catch {
-    // Return valid when procedural package is not available
-    return {
-      valid: true,
-      errors: [],
-      suggestions: [],
-    };
-  }
+  return validateFn(constraints.archetype, constraints.language, constraints.framework);
 }

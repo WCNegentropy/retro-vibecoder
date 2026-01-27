@@ -1,7 +1,7 @@
 //! UPG Desktop - Tauri Backend
 //!
 //! This module provides the Rust backend for the Universal Project Generator desktop application.
-//! It implements the Sidecar Pattern for orchestrating external generation tools.
+//! v1 uses the CLI (upg) as the single generation engine - no separate sidecars.
 
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -53,65 +53,42 @@ pub struct GenerationResult {
     pub duration_ms: u64,
 }
 
-/// Response from procedural bridge script
-#[derive(Debug, Clone, Deserialize)]
-struct BridgeResponse {
-    success: bool,
-    data: Option<serde_json::Value>,
-    error: Option<String>,
-    #[serde(rename = "durationMs")]
-    duration_ms: Option<u64>,
-}
-
-/// Bridge script paths and working directory
-struct BridgePaths {
-    script_path: PathBuf,
-    working_dir: PathBuf,
-}
-
-/// Get the path to the procedural bridge script and the working directory for execution
-fn get_bridge_paths(app: &tauri::AppHandle) -> Result<BridgePaths, String> {
+/// Get the path to the UPG CLI
+/// In development: uses npx upg from the monorepo
+/// In production: uses the bundled upg binary
+fn get_cli_command() -> (String, Vec<String>) {
     #[cfg(debug_assertions)]
     {
-        // In development, use the source directory
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let desktop_dir = PathBuf::from(manifest_dir.replace("/src-tauri", ""));
-        let script_path = desktop_dir.join("scripts/procedural-bridge.mjs");
-
-        // Working directory should be the desktop package root for proper module resolution
-        Ok(BridgePaths {
-            script_path,
-            working_dir: desktop_dir,
-        })
+        // In development, use npx to run upg from the workspace
+        ("npx".to_string(), vec!["upg".to_string()])
     }
     #[cfg(not(debug_assertions))]
     {
-        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-        // In release, use the bundled self-contained script
-        let script_path = resource_dir.join("dist-scripts/procedural-bridge.mjs");
-
-        // Working directory can be the resource directory
-        // The bundled script doesn't need node_modules - all dependencies are inlined
-        Ok(BridgePaths {
-            script_path,
-            working_dir: resource_dir,
-        })
+        // In production, use the bundled CLI directly via node
+        // The CLI is bundled as a resource, not an external binary
+        ("node".to_string(), vec![])
     }
 }
 
-/// Build command arguments for the procedural bridge
-fn build_bridge_args(
-    action: &str,
+/// Get the CLI script path for production builds
+#[cfg(not(debug_assertions))]
+fn get_cli_script_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+    Ok(resource_dir.join("dist-scripts/procedural-bridge.mjs"))
+}
+
+/// Build CLI arguments for seed command
+fn build_cli_args(
     seed: u64,
-    output_path: Option<&str>,
+    output_path: &str,
     stack: &Option<TechStackConfig>,
 ) -> Vec<String> {
-    let mut args = vec![action.to_string(), seed.to_string()];
-
-    // Add output path for generate action
-    if let Some(path) = output_path {
-        args.push(path.to_string());
-    }
+    let mut args = vec![
+        "seed".to_string(),
+        seed.to_string(),
+        "--output".to_string(),
+        output_path.to_string(),
+    ];
 
     // Add stack constraints if provided
     if let Some(ref config) = stack {
@@ -132,43 +109,55 @@ fn build_bridge_args(
     args
 }
 
-/// Execute the procedural bridge script
-fn execute_bridge(paths: &BridgePaths, args: Vec<String>) -> Result<BridgeResponse, String> {
-    let output = Command::new("node")
-        .arg(&paths.script_path)
-        .args(&args)
-        .current_dir(&paths.working_dir)
+/// Execute the UPG CLI and return the result
+fn execute_cli(
+    base_cmd: &str,
+    base_args: Vec<String>,
+    cli_args: Vec<String>,
+    working_dir: &PathBuf,
+) -> Result<(bool, String, String, Option<i32>), String> {
+    let mut all_args = base_args;
+    all_args.extend(cli_args);
+
+    let output = Command::new(base_cmd)
+        .args(&all_args)
+        .current_dir(working_dir)
+        .env("NO_COLOR", "1") // Disable color output for easier parsing
         .output()
-        .map_err(|e| {
-            format!(
-                "Failed to execute procedural bridge: {}. Script: {:?}, Working dir: {:?}",
-                e, paths.script_path, paths.working_dir
-            )
-        })?;
+        .map_err(|e| format!("Failed to execute CLI: {}. Command: {} {:?}", e, base_cmd, all_args))?;
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    let success = output.status.success();
+    let exit_code = output.status.code();
 
-    // Try to parse JSON from stdout
-    if !stdout.is_empty() {
-        serde_json::from_str::<BridgeResponse>(&stdout).map_err(|e| {
-            format!(
-                "Failed to parse bridge response: {}. stdout: {}, stderr: {}",
-                e, stdout, stderr
-            )
-        })
-    } else if !stderr.is_empty() {
-        // Try to parse error from stderr
-        serde_json::from_str::<BridgeResponse>(&stderr)
-            .map_err(|e| format!("Bridge failed. stderr: {}, parse error: {}", stderr, e))
-    } else {
-        Err(format!(
-            "Bridge returned empty output. Exit code: {:?}, Script: {:?}, Working dir: {:?}",
-            output.status.code(),
-            paths.script_path,
-            paths.working_dir
-        ))
+    Ok((success, stdout, stderr, exit_code))
+}
+
+/// List files in a directory recursively
+fn list_files_recursive(dir: &PathBuf) -> Vec<String> {
+    let mut files = Vec::new();
+
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                if let Ok(relative) = path.strip_prefix(dir) {
+                    files.push(relative.to_string_lossy().to_string());
+                }
+            } else if path.is_dir() {
+                // Recurse into subdirectories
+                let subfiles = list_files_recursive(&path);
+                for subfile in subfiles {
+                    if let Ok(relative) = path.strip_prefix(dir) {
+                        files.push(format!("{}/{}", relative.to_string_lossy(), subfile));
+                    }
+                }
+            }
+        }
     }
+
+    files
 }
 
 /// Resolve output path to an absolute path
@@ -192,10 +181,11 @@ fn resolve_output_path(output_path: &str, app: &tauri::AppHandle) -> Result<Path
         .map_err(|e| format!("Failed to resolve output path: {}", e))
 }
 
-/// Generate a project using the procedural engine via CLI sidecar
+/// Generate a project using the CLI (upg seed command)
 ///
 /// Primary invariant: upg seed <SEED> --output <DIR> [constraints...]
 /// Creates a project directory at <DIR> with a valid scaffolding for the chosen stack.
+/// Exit code 0 on success, non-zero on failure.
 #[tauri::command]
 async fn generate_project(
     app: tauri::AppHandle,
@@ -214,49 +204,71 @@ async fn generate_project(
             let resolved_output = resolve_output_path(&request.output_path, &app)?;
             let resolved_output_str = resolved_output.to_string_lossy().to_string();
 
-            let args =
-                build_bridge_args("generate", seed, Some(&resolved_output_str), &request.stack);
-            let paths = get_bridge_paths(&app)?;
-            let response = execute_bridge(&paths, args)?;
+            // Get CLI command and base args
+            let (cmd, base_args) = get_cli_command();
 
-            if response.success {
-                let data = response.data.ok_or("Missing data in successful response")?;
+            // Build CLI arguments for seed command
+            let cli_args = build_cli_args(seed, &resolved_output_str, &request.stack);
 
-                let files_generated: Vec<String> = data
-                    .get("files_generated")
-                    .and_then(|v| v.as_array())
-                    .map(|arr| {
-                        arr.iter()
-                            .filter_map(|v| v.as_str().map(String::from))
-                            .collect()
-                    })
-                    .unwrap_or_default();
+            // Get working directory (project root in dev, home dir in prod)
+            #[cfg(debug_assertions)]
+            let working_dir = {
+                let manifest_dir = env!("CARGO_MANIFEST_DIR");
+                PathBuf::from(manifest_dir)
+                    .parent()
+                    .and_then(|p| p.parent())
+                    .and_then(|p| p.parent())
+                    .and_then(|p| p.parent())
+                    .map(|p| p.to_path_buf())
+                    .ok_or("Failed to find project root")?
+            };
 
-                let message = data
-                    .get("message")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("Generation completed")
-                    .to_string();
+            #[cfg(not(debug_assertions))]
+            let working_dir = app.path().home_dir().map_err(|e| e.to_string())?;
+
+            // Execute the CLI
+            let (success, stdout, stderr, exit_code) = execute_cli(&cmd, base_args, cli_args, &working_dir)?;
+
+            let duration_ms = start.elapsed().as_millis() as u64;
+
+            if success {
+                // List generated files from the output directory
+                let files_generated = if resolved_output.exists() {
+                    list_files_recursive(&resolved_output)
+                } else {
+                    vec![]
+                };
+
+                let message = format!(
+                    "Generated {} files for seed {} in {}ms",
+                    files_generated.len(),
+                    seed,
+                    duration_ms
+                );
 
                 Ok(GenerationResult {
                     success: true,
                     message,
                     files_generated,
                     output_path: resolved_output_str,
-                    duration_ms: response
-                        .duration_ms
-                        .unwrap_or(start.elapsed().as_millis() as u64),
+                    duration_ms,
                 })
             } else {
-                let error = response
-                    .error
-                    .unwrap_or_else(|| "Unknown error".to_string());
+                // Extract error message from stderr or stdout
+                let error_msg = if !stderr.is_empty() {
+                    stderr.lines().last().unwrap_or("Generation failed").to_string()
+                } else if !stdout.is_empty() {
+                    stdout.lines().last().unwrap_or("Generation failed").to_string()
+                } else {
+                    format!("CLI exited with code {:?}", exit_code)
+                };
+
                 Ok(GenerationResult {
                     success: false,
-                    message: error,
+                    message: error_msg,
                     files_generated: vec![],
                     output_path: resolved_output_str,
-                    duration_ms: start.elapsed().as_millis() as u64,
+                    duration_ms,
                 })
             }
         }
@@ -568,7 +580,71 @@ pub struct CLIResult {
     pub duration_ms: u64,
 }
 
+/// Response from procedural bridge script (used for preview only)
+#[derive(Debug, Clone, Deserialize)]
+struct BridgeResponse {
+    success: bool,
+    data: Option<serde_json::Value>,
+    error: Option<String>,
+    #[serde(rename = "durationMs")]
+    duration_ms: Option<u64>,
+}
+
+/// Bridge script paths and working directory
+struct BridgePaths {
+    script_path: PathBuf,
+    working_dir: PathBuf,
+}
+
+/// Get the path to the procedural bridge script (for preview functionality)
+fn get_bridge_paths(app: &tauri::AppHandle) -> Result<BridgePaths, String> {
+    #[cfg(debug_assertions)]
+    {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let desktop_dir = PathBuf::from(manifest_dir.replace("/src-tauri", ""));
+        let script_path = desktop_dir.join("scripts/procedural-bridge.mjs");
+        Ok(BridgePaths {
+            script_path,
+            working_dir: desktop_dir,
+        })
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+        let script_path = resource_dir.join("dist-scripts/procedural-bridge.mjs");
+        Ok(BridgePaths {
+            script_path,
+            working_dir: resource_dir,
+        })
+    }
+}
+
+/// Execute the procedural bridge script (for preview only - generation uses CLI)
+fn execute_bridge(paths: &BridgePaths, args: Vec<String>) -> Result<BridgeResponse, String> {
+    let output = Command::new("node")
+        .arg(&paths.script_path)
+        .args(&args)
+        .current_dir(&paths.working_dir)
+        .output()
+        .map_err(|e| format!("Failed to execute bridge: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    if !stdout.is_empty() {
+        serde_json::from_str::<BridgeResponse>(&stdout)
+            .map_err(|e| format!("Failed to parse response: {}. stdout: {}", e, stdout))
+    } else if !stderr.is_empty() {
+        serde_json::from_str::<BridgeResponse>(&stderr)
+            .map_err(|e| format!("Bridge failed. stderr: {}", stderr))
+    } else {
+        Err("Bridge returned empty output".to_string())
+    }
+}
+
 /// Preview generated files without writing to disk
+/// Note: Preview still uses the bridge script for in-memory generation
+/// Generation uses the CLI for actual file writing
 #[tauri::command]
 async fn preview_generation(
     app: tauri::AppHandle,
@@ -581,14 +657,29 @@ async fn preview_generation(
                 .seed
                 .ok_or("Seed is required for procedural preview")?;
 
-            let args = build_bridge_args("preview", seed, None, &request.stack);
+            // Build bridge args for preview
+            let mut args = vec!["preview".to_string(), seed.to_string()];
+            if let Some(ref config) = request.stack {
+                if let Some(ref archetype) = config.archetype {
+                    args.push("--archetype".to_string());
+                    args.push(archetype.clone());
+                }
+                if let Some(ref language) = config.language {
+                    args.push("--language".to_string());
+                    args.push(language.clone());
+                }
+                if let Some(ref framework) = config.framework {
+                    args.push("--framework".to_string());
+                    args.push(framework.clone());
+                }
+            }
+
             let paths = get_bridge_paths(&app)?;
             let response = execute_bridge(&paths, args)?;
 
             if response.success {
                 let data = response.data.ok_or("Missing data in successful response")?;
 
-                // Extract files from response
                 let files: std::collections::HashMap<String, String> = data
                     .get("files")
                     .and_then(|v| v.as_object())
@@ -599,7 +690,6 @@ async fn preview_generation(
                     })
                     .unwrap_or_default();
 
-                // Extract stack from response
                 let stack = data.get("stack").cloned();
 
                 Ok(PreviewResult {
