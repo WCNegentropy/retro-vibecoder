@@ -9,59 +9,24 @@ function isTauri(): boolean {
 }
 
 /**
- * Mock implementation for development outside Tauri
+ * Error thrown when Tauri environment is not available
  */
-async function mockGenerate(request: GenerationRequest): Promise<GenerationResult> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  return {
-    success: true,
-    message: `Mock generation for seed ${request.seed} completed`,
-    files_generated: ['package.json', 'tsconfig.json', 'src/index.ts', '.gitignore', 'README.md'],
-    output_path: request.output_path,
-    duration_ms: 150,
-  };
-}
-
-/**
- * Mock preview for development outside Tauri
- */
-async function mockPreview(request: GenerationRequest): Promise<PreviewResult> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-
-  // Generate deterministic mock based on seed
-  const seed = request.seed || 0;
-  const archetypes = ['backend', 'web', 'cli', 'mobile', 'library'];
-  const languages = ['typescript', 'python', 'rust', 'go', 'java'];
-  const frameworks = ['express', 'fastapi', 'axum', 'gin', 'spring-boot'];
-
-  return {
-    files: {
-      'package.json': '{ "name": "generated-project" }',
-      'src/index.ts': '// Entry point',
-      'README.md': '# Generated Project',
-    },
-    stack: {
-      archetype: archetypes[seed % archetypes.length] as 'backend',
-      language: languages[seed % languages.length] as 'typescript',
-      runtime: 'node',
-      framework: frameworks[seed % frameworks.length],
-      database: seed % 2 === 0 ? 'postgres' : 'none',
-      orm: 'none',
-      transport: 'rest',
-      packaging: seed % 3 === 0 ? 'docker' : 'none',
-      cicd: 'github-actions',
-      buildTool: 'vite',
-      styling: 'none',
-      testing: 'vitest',
-    },
-    seed: request.seed,
-  };
+class TauriNotAvailableError extends Error {
+  constructor() {
+    super(
+      'Tauri environment not available. ' +
+        'This application requires the Tauri desktop runtime to function. ' +
+        'Please run this application through the desktop app, not a web browser.'
+    );
+    this.name = 'TauriNotAvailableError';
+  }
 }
 
 /**
  * Hook for interacting with Tauri generation commands
+ *
+ * IMPORTANT: This hook requires the Tauri runtime environment.
+ * When not running in Tauri, operations will fail with a clear error.
  *
  * Provides:
  * - generate: Generate a project to disk
@@ -69,11 +34,17 @@ async function mockPreview(request: GenerationRequest): Promise<PreviewResult> {
  * - isLoading: Loading state
  * - error: Error message if any
  * - result: Last generation result
+ * - isTauriAvailable: Whether Tauri runtime is available
  */
 export function useTauriGenerate() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerationResult | null>(null);
+
+  /**
+   * Check if Tauri is available (useful for conditional UI rendering)
+   */
+  const isTauriAvailable = isTauri();
 
   const generate = useCallback(
     async (request: GenerationRequest): Promise<GenerationResult | null> => {
@@ -81,15 +52,20 @@ export function useTauriGenerate() {
       setError(null);
 
       try {
-        let generationResult: GenerationResult;
+        // Fail explicitly if not in Tauri environment
+        if (!isTauri()) {
+          throw new TauriNotAvailableError();
+        }
 
-        if (isTauri()) {
-          // Use Tauri invoke
-          const { invoke } = await import('@tauri-apps/api/core');
-          generationResult = await invoke<GenerationResult>('generate_project', { request });
-        } else {
-          // Use mock implementation
-          generationResult = await mockGenerate(request);
+        // Use Tauri invoke for real generation
+        const { invoke } = await import('@tauri-apps/api/core');
+        const generationResult = await invoke<GenerationResult>('generate_project', { request });
+
+        // Check if the backend returned an error
+        if (!generationResult.success) {
+          setError(generationResult.message);
+          setResult(generationResult);
+          return generationResult;
         }
 
         setResult(generationResult);
@@ -110,14 +86,14 @@ export function useTauriGenerate() {
     setError(null);
 
     try {
-      let previewResult: PreviewResult;
-
-      if (isTauri()) {
-        const { invoke } = await import('@tauri-apps/api/core');
-        previewResult = await invoke<PreviewResult>('preview_generation', { request });
-      } else {
-        previewResult = await mockPreview(request);
+      // Fail explicitly if not in Tauri environment
+      if (!isTauri()) {
+        throw new TauriNotAvailableError();
       }
+
+      // Use Tauri invoke for real preview
+      const { invoke } = await import('@tauri-apps/api/core');
+      const previewResult = await invoke<PreviewResult>('preview_generation', { request });
 
       return previewResult;
     } catch (err) {
@@ -135,5 +111,6 @@ export function useTauriGenerate() {
     isLoading,
     error,
     result,
+    isTauriAvailable,
   };
 }

@@ -1,6 +1,1272 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2024-01-01T00:00:00.000Z",
-  "totalEntries": 0,
-  "entries": []
+  "generatedAt": "2026-01-27T05:47:04.092Z",
+  "totalEntries": 50,
+  "entries": [
+    {
+      "seed": 1,
+      "id": "typescript-yargs-1",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "yargs",
+        "runtime": "node",
+        "database": "postgres",
+        "orm": "drizzle"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.079Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 2,
+      "id": "typescript-yargs-2",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "yargs",
+        "runtime": "node",
+        "database": "sqlite",
+        "orm": "typeorm"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.080Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 3,
+      "id": "typescript-commander-3",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "commander",
+        "runtime": "node",
+        "database": "sqlite",
+        "orm": "drizzle"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.080Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 4,
+      "id": "typescript-electron-4",
+      "license": "MIT",
+      "stack": {
+        "archetype": "desktop",
+        "language": "typescript",
+        "framework": "electron",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.080Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 5,
+      "id": "go-cobra-5",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "go",
+        "framework": "cobra",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "go.mod",
+        "main.go",
+        "cmd/root.go",
+        "cmd/hello.go",
+        "cmd/version.go",
+        "Makefile",
+        "Dockerfile",
+        ".dockerignore",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.081Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 6,
+      "id": "typescript-vue-6",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "typescript",
+        "framework": "vue",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "vite.config.ts",
+        "tsconfig.json",
+        "tsconfig.node.json",
+        "index.html",
+        "src/main.ts",
+        "src/App.vue",
+        "src/views/Home.vue",
+        "src/views/About.vue",
+        "src/style.css",
+        "tailwind.config.js",
+        "postcss.config.js",
+        "src/env.d.ts",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.081Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 7,
+      "id": "typescript-nestjs-7",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "typescript",
+        "framework": "nestjs",
+        "runtime": "deno",
+        "database": "sqlite",
+        "orm": "drizzle"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "tsconfig.json",
+        "nest-cli.json",
+        "src/main.ts",
+        "src/app.module.ts",
+        "src/app.controller.ts",
+        "src/app.service.ts",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.081Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 8,
+      "id": "rust-actix-8",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "rust",
+        "framework": "actix",
+        "runtime": "native",
+        "database": "sqlite",
+        "orm": "diesel"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Cargo.toml",
+        "src/main.rs",
+        "Makefile",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.081Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 9,
+      "id": "csharp-aspnet-core-9",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "csharp",
+        "framework": "aspnet-core",
+        "runtime": "dotnet",
+        "database": "mysql",
+        "orm": "entity-framework"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "brightbasevk7k.csproj",
+        "Program.cs",
+        "Properties/launchSettings.json",
+        "appsettings.json",
+        "appsettings.Development.json",
+        "Data/AppDbContext.cs",
+        "brightbasevk7k.sln",
+        "Makefile",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.082Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 10,
+      "id": "javascript-express-10",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.082Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 11,
+      "id": "javascript-express-11",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.083Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 12,
+      "id": "typescript-nestjs-12",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "typescript",
+        "framework": "nestjs",
+        "runtime": "node",
+        "database": "postgres",
+        "orm": "prisma"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "tsconfig.json",
+        "nest-cli.json",
+        "src/main.ts",
+        "src/app.module.ts",
+        "src/app.controller.ts",
+        "src/app.service.ts",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.083Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 13,
+      "id": "typescript-commander-13",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "commander",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.083Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 14,
+      "id": "javascript-express-14",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.083Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 15,
+      "id": "javascript-express-15",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "sqlite",
+        "orm": "prisma"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "src/index.mjs",
+        "jsconfig.json",
+        "prisma/schema.prisma",
+        ".env.example",
+        "src/index.test.mjs",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.083Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 16,
+      "id": "typescript-commander-16",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "commander",
+        "runtime": "bun",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".gitlab-ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.084Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 17,
+      "id": "typescript-commander-17",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "commander",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.084Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 18,
+      "id": "javascript-express-18",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.084Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 19,
+      "id": "typescript-nestjs-19",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "typescript",
+        "framework": "nestjs",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "tsconfig.json",
+        "nest-cli.json",
+        "src/main.ts",
+        "src/app.module.ts",
+        "src/app.controller.ts",
+        "src/app.service.ts",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.084Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 20,
+      "id": "typescript-express-20",
+      "license": "MIT",
+      "stack": {
+        "archetype": "library",
+        "language": "typescript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.084Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 21,
+      "id": "javascript-express-21",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.085Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 22,
+      "id": "typescript-commander-22",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "commander",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.085Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 23,
+      "id": "typescript-express-23",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "typescript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "postgres",
+        "orm": "prisma"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "tsconfig.json",
+        "tsup.config.ts",
+        "src/index.ts",
+        "prisma/schema.prisma",
+        ".env.example",
+        "src/index.test.ts",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.085Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 24,
+      "id": "javascript-express-24",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.088Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 25,
+      "id": "go-cobra-25",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "go",
+        "framework": "cobra",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "go.mod",
+        "main.go",
+        "cmd/root.go",
+        "cmd/hello.go",
+        "cmd/version.go",
+        "Makefile",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.088Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 26,
+      "id": "javascript-express-26",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.088Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 27,
+      "id": "typescript-vue-27",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "typescript",
+        "framework": "vue",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "vite.config.ts",
+        "tsconfig.json",
+        "tsconfig.node.json",
+        "index.html",
+        "src/main.ts",
+        "src/App.vue",
+        "src/views/Home.vue",
+        "src/views/About.vue",
+        "src/style.css",
+        "tailwind.config.js",
+        "postcss.config.js",
+        "src/env.d.ts",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.088Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 28,
+      "id": "javascript-express-28",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "bun",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.088Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 29,
+      "id": "typescript-express-29",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "typescript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "postgres",
+        "orm": "drizzle"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "tsconfig.json",
+        "tsup.config.ts",
+        "src/index.ts",
+        "src/index.test.ts",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.088Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 30,
+      "id": "cpp-none-30",
+      "license": "MIT",
+      "stack": {
+        "archetype": "library",
+        "language": "cpp",
+        "framework": "none",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "CMakeLists.txt",
+        "conanfile.txt",
+        "src/main.cpp",
+        "build.sh",
+        "CMakePresets.json",
+        "Makefile",
+        "Dockerfile",
+        ".dockerignore",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.089Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 31,
+      "id": "go-cobra-31",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "go",
+        "framework": "cobra",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "go.mod",
+        "main.go",
+        "cmd/root.go",
+        "cmd/hello.go",
+        "cmd/version.go",
+        "Makefile",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.089Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 32,
+      "id": "javascript-express-32",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.089Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 33,
+      "id": "go-cobra-33",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "go",
+        "framework": "cobra",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "go.mod",
+        "main.go",
+        "cmd/root.go",
+        "cmd/hello.go",
+        "cmd/version.go",
+        "Makefile",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.089Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 34,
+      "id": "go-cobra-34",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "go",
+        "framework": "cobra",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "go.mod",
+        "main.go",
+        "cmd/root.go",
+        "cmd/hello.go",
+        "cmd/version.go",
+        "Makefile",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.089Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 35,
+      "id": "python-django-35",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "python",
+        "framework": "django",
+        "runtime": "native",
+        "database": "postgres",
+        "orm": "sqlalchemy"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "requirements.txt",
+        "requirements-dev.txt",
+        "pyproject.toml",
+        "manage.py",
+        "quick_core_4ubs/settings.py",
+        "quick_core_4ubs/urls.py",
+        "quick_core_4ubs/wsgi.py",
+        "quick_core_4ubs/__init__.py",
+        "api/__init__.py",
+        "api/views.py",
+        "api/urls.py",
+        "Makefile",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.089Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 36,
+      "id": "swift-swiftui-36",
+      "license": "MIT",
+      "stack": {
+        "archetype": "mobile",
+        "language": "swift",
+        "framework": "swiftui",
+        "runtime": "native",
+        "database": "sqlite",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Package.swift",
+        "Sources/sharpkithsmdApp.swift",
+        "Sources/ContentView.swift",
+        "Sources/AboutView.swift",
+        "Tests/sharpkithsmdTests.swift",
+        "README.md",
+        ".github/workflows/ci.yml"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.090Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 37,
+      "id": "javascript-express-37",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.090Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 38,
+      "id": "go-cobra-38",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "go",
+        "framework": "cobra",
+        "runtime": "native",
+        "database": "sqlite",
+        "orm": "gorm"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "go.mod",
+        "main.go",
+        "cmd/root.go",
+        "cmd/hello.go",
+        "cmd/version.go",
+        "Makefile",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.090Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 39,
+      "id": "kotlin-spring-boot-39",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "kotlin",
+        "framework": "spring-boot",
+        "runtime": "native",
+        "database": "postgres",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "build.gradle.kts",
+        "settings.gradle.kts",
+        "gradle.properties",
+        "gradle/wrapper/gradle-wrapper.properties",
+        "src/main/kotlin/com/example/rapidlab2624/Application.kt",
+        "src/main/kotlin/com/example/rapidlab2624/controller/HealthController.kt",
+        "src/main/resources/application.properties",
+        "src/test/kotlin/com/example/rapidlab2624/ApplicationTests.kt",
+        "Makefile",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.090Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 40,
+      "id": "go-cobra-40",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "go",
+        "framework": "cobra",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "go.mod",
+        "main.go",
+        "cmd/root.go",
+        "cmd/hello.go",
+        "cmd/version.go",
+        "Makefile",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.090Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 41,
+      "id": "python-fastapi-41",
+      "license": "MIT",
+      "stack": {
+        "archetype": "library",
+        "language": "python",
+        "framework": "fastapi",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".gitlab-ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 42,
+      "id": "javascript-express-42",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "bun",
+        "database": "sqlite",
+        "orm": "prisma"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 43,
+      "id": "typescript-express-43",
+      "license": "MIT",
+      "stack": {
+        "archetype": "game",
+        "language": "typescript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 44,
+      "id": "typescript-express-44",
+      "license": "MIT",
+      "stack": {
+        "archetype": "library",
+        "language": "typescript",
+        "framework": "express",
+        "runtime": "node",
+        "database": "sqlite",
+        "orm": "typeorm"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 45,
+      "id": "ruby-rails-45",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "ruby",
+        "framework": "rails",
+        "runtime": "native",
+        "database": "sqlite",
+        "orm": "activerecord"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 46,
+      "id": "ruby-rails-46",
+      "license": "MIT",
+      "stack": {
+        "archetype": "backend",
+        "language": "ruby",
+        "framework": "rails",
+        "runtime": "native",
+        "database": "postgres",
+        "orm": "activerecord"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".dockerignore",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 47,
+      "id": "typescript-yargs-47",
+      "license": "MIT",
+      "stack": {
+        "archetype": "cli",
+        "language": "typescript",
+        "framework": "yargs",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 48,
+      "id": "go-gin-48",
+      "license": "MIT",
+      "stack": {
+        "archetype": "library",
+        "language": "go",
+        "framework": "gin",
+        "runtime": "native",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 49,
+      "id": "javascript-express-49",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "javascript",
+        "framework": "express",
+        "runtime": "bun",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "Dockerfile",
+        ".dockerignore",
+        ".github/workflows/ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.091Z",
+      "upgVersion": "1.0.0"
+    },
+    {
+      "seed": 50,
+      "id": "typescript-react-50",
+      "license": "MIT",
+      "stack": {
+        "archetype": "web",
+        "language": "typescript",
+        "framework": "react",
+        "runtime": "node",
+        "database": "none",
+        "orm": "none"
+      },
+      "files": [
+        ".gitignore",
+        "LICENSE",
+        "package.json",
+        "vite.config.ts",
+        "tsconfig.json",
+        "tsconfig.node.json",
+        "index.html",
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/index.css",
+        "tailwind.config.js",
+        "postcss.config.js",
+        "src/App.test.tsx",
+        ".eslintrc.cjs",
+        "Dockerfile",
+        ".dockerignore",
+        ".gitlab-ci.yml",
+        "README.md"
+      ],
+      "validatedAt": "2026-01-27T05:47:04.092Z",
+      "upgVersion": "1.0.0"
+    }
+  ]
 }
