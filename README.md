@@ -1,3 +1,26 @@
+## ⚠️ IMPORTANT NOTICE (January 27, 2026)
+
+**This project is currently undergoing critical remediation.** 
+
+The v0.1.0 release was shipped with incomplete implementation. While the UI 
+and CLI are functional, the actual project generation produces placeholder 
+files rather than working templates.
+
+**Current Status:**
+- ✅ Procedural engine (seed → stack selection) works
+- ✅ Desktop UI and CLI are operational
+- ❌ Template rendering produces stub files (3-5 lines each)
+- ❌ Generated projects are not buildable/runnable
+
+**We are actively fixing this.** Follow [#123](issue-link) for progress.
+
+If you starred/forked this expecting a working generator, we apologize. 
+A functional release is coming soon.
+
+---
+
+*Original README below*
+
 # Retro Vibecoder UPG
 
 **Universal Procedural Generator** - A machine that turns integers into software.
