@@ -12,7 +12,7 @@ files rather than working templates.
 - ❌ Template rendering produces stub files (3-5 lines each)
 - ❌ Generated projects are not buildable/runnable
 
-**We are actively fixing this.** Follow [#123](issue-link) for progress.
+**We are actively fixing this.** Follow for progress.
 
 If you starred/forked this expecting a working generator, we apologize. 
 A functional release is coming soon.
