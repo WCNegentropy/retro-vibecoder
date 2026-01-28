@@ -38,9 +38,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [],
+    "externalBin": [
+      "binaries/upg"
+    ],
     "resources": [
-      "../dist-scripts/procedural-bridge.mjs",
       "../../../registry"
     ]
   },

@@ -53,28 +53,72 @@ pub struct GenerationResult {
     pub duration_ms: u64,
 }
 
-/// Get the path to the UPG CLI
-/// In development: uses npx upg from the monorepo
-/// In production: uses the bundled upg binary
-fn get_cli_command() -> (String, Vec<String>) {
-    #[cfg(debug_assertions)]
-    {
-        // In development, use npx to run upg from the workspace
-        ("npx".to_string(), vec!["upg".to_string()])
-    }
-    #[cfg(not(debug_assertions))]
-    {
-        // In production, use the bundled CLI directly via node
-        // The CLI is bundled as a resource, not an external binary
-        ("node".to_string(), vec![])
-    }
+/// Get the target triple for the current platform (compile-time)
+fn get_target_triple() -> &'static str {
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    { "x86_64-unknown-linux-gnu" }
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    { "aarch64-unknown-linux-gnu" }
+    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+    { "x86_64-apple-darwin" }
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    { "aarch64-apple-darwin" }
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    { "x86_64-pc-windows-msvc" }
+    #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
+    { "aarch64-pc-windows-msvc" }
 }
 
-/// Get the CLI script path for production builds
-#[cfg(not(debug_assertions))]
-fn get_cli_script_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-    Ok(resource_dir.join("dist-scripts/procedural-bridge.mjs"))
+/// Get the path to the UPG CLI executable
+/// In development: uses the built CLI from the monorepo via node
+/// In production: uses the bundled upg sidecar binary
+fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), String> {
+    #[cfg(debug_assertions)]
+    {
+        // In development, use the built CLI from packages/cli/dist/bin/upg.js via node
+        // This is acceptable in dev because we control the environment
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let project_root = PathBuf::from(manifest_dir)
+            .parent() // src-tauri
+            .and_then(|p| p.parent()) // desktop
+            .and_then(|p| p.parent()) // packages
+            .and_then(|p| p.parent()) // project root
+            .ok_or("Failed to find project root")?;
+
+        let cli_path = project_root.join("packages/cli/dist/bin/upg.js");
+        if !cli_path.exists() {
+            return Err(format!(
+                "CLI not built. Run 'pnpm build' first. Expected: {:?}",
+                cli_path
+            ));
+        }
+
+        Ok(("node".to_string(), vec![cli_path.to_string_lossy().to_string()]))
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        // In production, use the bundled sidecar binary
+        // Sidecar binaries are placed in the resource directory with platform-specific names
+        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+        let target = get_target_triple();
+
+        #[cfg(windows)]
+        let binary_name = format!("upg-{}.exe", target);
+        #[cfg(not(windows))]
+        let binary_name = format!("upg-{}", target);
+
+        let sidecar_path = resource_dir.join(&binary_name);
+
+        if !sidecar_path.exists() {
+            return Err(format!(
+                "Sidecar binary not found: {:?}. This is a packaging error.",
+                sidecar_path
+            ));
+        }
+
+        Ok((sidecar_path.to_string_lossy().to_string(), vec![]))
+    }
 }
 
 /// Build CLI arguments for seed command
@@ -109,22 +153,18 @@ fn build_cli_args(
     args
 }
 
-/// Execute the UPG CLI and return the result
-fn execute_cli(
-    base_cmd: &str,
-    base_args: Vec<String>,
-    cli_args: Vec<String>,
+/// Execute a CLI command and return the result (internal helper)
+fn execute_cli_internal(
+    cmd: &str,
+    args: Vec<String>,
     working_dir: &PathBuf,
 ) -> Result<(bool, String, String, Option<i32>), String> {
-    let mut all_args = base_args;
-    all_args.extend(cli_args);
-
-    let output = Command::new(base_cmd)
-        .args(&all_args)
+    let output = Command::new(cmd)
+        .args(&args)
         .current_dir(working_dir)
         .env("NO_COLOR", "1") // Disable color output for easier parsing
         .output()
-        .map_err(|e| format!("Failed to execute CLI: {}. Command: {} {:?}", e, base_cmd, all_args))?;
+        .map_err(|e| format!("Failed to execute CLI: {}. Command: {} {:?}", e, cmd, args))?;
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -205,29 +245,20 @@ async fn generate_project(
             let resolved_output_str = resolved_output.to_string_lossy().to_string();
 
             // Get CLI command and base args
-            let (cmd, base_args) = get_cli_command();
+            let (cmd, base_args) = get_cli_command(&app)?;
 
             // Build CLI arguments for seed command
             let cli_args = build_cli_args(seed, &resolved_output_str, &request.stack);
 
-            // Get working directory (project root in dev, home dir in prod)
-            #[cfg(debug_assertions)]
-            let working_dir = {
-                let manifest_dir = env!("CARGO_MANIFEST_DIR");
-                PathBuf::from(manifest_dir)
-                    .parent()
-                    .and_then(|p| p.parent())
-                    .and_then(|p| p.parent())
-                    .and_then(|p| p.parent())
-                    .map(|p| p.to_path_buf())
-                    .ok_or("Failed to find project root")?
-            };
+            // Combine base args and CLI args
+            let mut all_args = base_args;
+            all_args.extend(cli_args);
 
-            #[cfg(not(debug_assertions))]
+            // Get working directory (home dir in both dev and prod)
             let working_dir = app.path().home_dir().map_err(|e| e.to_string())?;
 
             // Execute the CLI
-            let (success, stdout, stderr, exit_code) = execute_cli(&cmd, base_args, cli_args, &working_dir)?;
+            let (success, stdout, stderr, exit_code) = execute_cli_internal(&cmd, all_args, &working_dir)?;
 
             let duration_ms = start.elapsed().as_millis() as u64;
 
@@ -580,71 +611,24 @@ pub struct CLIResult {
     pub duration_ms: u64,
 }
 
-/// Response from procedural bridge script (used for preview only)
+/// Response from CLI preview command
 #[derive(Debug, Clone, Deserialize)]
-struct BridgeResponse {
+struct CLIPreviewResponse {
     success: bool,
-    data: Option<serde_json::Value>,
+    data: Option<CLIPreviewData>,
     error: Option<String>,
-    #[serde(rename = "durationMs")]
-    duration_ms: Option<u64>,
 }
 
-/// Bridge script paths and working directory
-struct BridgePaths {
-    script_path: PathBuf,
-    working_dir: PathBuf,
-}
-
-/// Get the path to the procedural bridge script (for preview functionality)
-fn get_bridge_paths(app: &tauri::AppHandle) -> Result<BridgePaths, String> {
-    #[cfg(debug_assertions)]
-    {
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let desktop_dir = PathBuf::from(manifest_dir.replace("/src-tauri", ""));
-        let script_path = desktop_dir.join("scripts/procedural-bridge.mjs");
-        Ok(BridgePaths {
-            script_path,
-            working_dir: desktop_dir,
-        })
-    }
-    #[cfg(not(debug_assertions))]
-    {
-        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-        let script_path = resource_dir.join("dist-scripts/procedural-bridge.mjs");
-        Ok(BridgePaths {
-            script_path,
-            working_dir: resource_dir,
-        })
-    }
-}
-
-/// Execute the procedural bridge script (for preview only - generation uses CLI)
-fn execute_bridge(paths: &BridgePaths, args: Vec<String>) -> Result<BridgeResponse, String> {
-    let output = Command::new("node")
-        .arg(&paths.script_path)
-        .args(&args)
-        .current_dir(&paths.working_dir)
-        .output()
-        .map_err(|e| format!("Failed to execute bridge: {}", e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-
-    if !stdout.is_empty() {
-        serde_json::from_str::<BridgeResponse>(&stdout)
-            .map_err(|e| format!("Failed to parse response: {}. stdout: {}", e, stdout))
-    } else if !stderr.is_empty() {
-        serde_json::from_str::<BridgeResponse>(&stderr)
-            .map_err(|e| format!("Bridge failed. stderr: {}", stderr))
-    } else {
-        Err("Bridge returned empty output".to_string())
-    }
+#[derive(Debug, Clone, Deserialize)]
+struct CLIPreviewData {
+    seed: u64,
+    id: String,
+    stack: serde_json::Value,
+    files: std::collections::HashMap<String, String>,
 }
 
 /// Preview generated files without writing to disk
-/// Note: Preview still uses the bridge script for in-memory generation
-/// Generation uses the CLI for actual file writing
+/// Uses the CLI preview command which outputs JSON without file writes
 #[tauri::command]
 async fn preview_generation(
     app: tauri::AppHandle,
@@ -657,45 +641,51 @@ async fn preview_generation(
                 .seed
                 .ok_or("Seed is required for procedural preview")?;
 
-            // Build bridge args for preview
-            let mut args = vec!["preview".to_string(), seed.to_string()];
+            // Get CLI command
+            let (cmd, mut base_args) = get_cli_command(&app)?;
+
+            // Build preview args: preview <seed> [constraints...]
+            let mut cli_args = vec!["preview".to_string(), seed.to_string()];
+
+            // Add stack constraints if provided
             if let Some(ref config) = request.stack {
                 if let Some(ref archetype) = config.archetype {
-                    args.push("--archetype".to_string());
-                    args.push(archetype.clone());
+                    cli_args.push("--archetype".to_string());
+                    cli_args.push(archetype.clone());
                 }
                 if let Some(ref language) = config.language {
-                    args.push("--language".to_string());
-                    args.push(language.clone());
+                    cli_args.push("--language".to_string());
+                    cli_args.push(language.clone());
                 }
                 if let Some(ref framework) = config.framework {
-                    args.push("--framework".to_string());
-                    args.push(framework.clone());
+                    cli_args.push("--framework".to_string());
+                    cli_args.push(framework.clone());
                 }
             }
 
-            let paths = get_bridge_paths(&app)?;
-            let response = execute_bridge(&paths, args)?;
+            // Working directory
+            let working_dir = app.path().home_dir().map_err(|e| e.to_string())?;
+
+            // Execute CLI
+            base_args.extend(cli_args);
+            let (success, stdout, stderr, _exit_code) =
+                execute_cli_internal(&cmd, base_args, &working_dir)?;
+
+            if !success {
+                return Err(format!("Preview failed: {}", stderr));
+            }
+
+            // Parse JSON output from stdout
+            let response: CLIPreviewResponse = serde_json::from_str(&stdout)
+                .map_err(|e| format!("Failed to parse CLI output: {}. stdout: {}", e, stdout))?;
 
             if response.success {
                 let data = response.data.ok_or("Missing data in successful response")?;
 
-                let files: std::collections::HashMap<String, String> = data
-                    .get("files")
-                    .and_then(|v| v.as_object())
-                    .map(|obj| {
-                        obj.iter()
-                            .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-                            .collect()
-                    })
-                    .unwrap_or_default();
-
-                let stack = data.get("stack").cloned();
-
                 Ok(PreviewResult {
-                    files,
-                    stack,
-                    seed: Some(seed),
+                    files: data.files,
+                    stack: Some(data.stack),
+                    seed: Some(data.seed),
                 })
             } else {
                 let error = response
@@ -778,22 +768,8 @@ async fn execute_upg_cli(
 ) -> Result<CLIResult, String> {
     let start = std::time::Instant::now();
 
-    // Get path to the UPG CLI
-    #[cfg(debug_assertions)]
-    let cli_path = {
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let project_root = PathBuf::from(manifest_dir)
-            .parent()
-            .and_then(|p| p.parent())
-            .and_then(|p| p.parent())
-            .and_then(|p| p.parent())
-            .ok_or("Failed to find project root")?;
-        // In development, use npx to run the CLI from the monorepo
-        "npx".to_string()
-    };
-
-    #[cfg(not(debug_assertions))]
-    let cli_path = "upg".to_string();
+    // Get CLI command using unified function
+    let (cmd, base_args) = get_cli_command(&app)?;
 
     // Determine the working directory
     let cwd = if let Some(ref dir) = working_dir {
@@ -802,83 +778,78 @@ async fn execute_upg_cli(
         app.path().home_dir().map_err(|e| e.to_string())?
     };
 
-    // Build arguments - in dev mode, prepend 'upg' for npx
-    #[cfg(debug_assertions)]
-    let full_args = {
-        let mut a = vec!["upg".to_string()];
-        a.extend(args);
-        a
-    };
-
-    #[cfg(not(debug_assertions))]
-    let full_args = args;
+    // Combine base args with user args
+    let mut full_args = base_args;
+    full_args.extend(args);
 
     // Execute the command
-    let output = Command::new(&cli_path)
-        .args(&full_args)
-        .current_dir(&cwd)
-        .output()
-        .map_err(|e| format!("Failed to execute UPG CLI: {}", e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    let (success, stdout, stderr, exit_code) = execute_cli_internal(&cmd, full_args, &cwd)?;
 
     Ok(CLIResult {
-        success: output.status.success(),
+        success,
         stdout,
         stderr,
-        exit_code: output.status.code(),
+        exit_code,
         duration_ms: start.elapsed().as_millis() as u64,
     })
 }
 
-/// Generate seeds using the sweeper and save to registry
+/// Generate seeds using the CLI preview command and save to registry
 #[tauri::command]
 async fn run_sweeper(
     app: tauri::AppHandle,
     count: u32,
     start_seed: Option<u64>,
-    validate: bool,
+    _validate: bool,
 ) -> Result<Vec<SeedEntry>, String> {
     let registry_dir = get_registry_dir(&app)?;
-    let paths = get_bridge_paths(&app)?;
+    let (cmd, base_args) = get_cli_command(&app)?;
+    let working_dir = app.path().home_dir().map_err(|e| e.to_string())?;
 
     let mut entries = Vec::new();
     let start = start_seed.unwrap_or(1);
 
     for i in 0..count {
         let seed = start + i as u64;
-        let args = build_bridge_args("preview", seed, None, &None);
-        let response = execute_bridge(&paths, args)?;
 
-        if response.success {
-            if let Some(data) = response.data {
-                let stack = data.get("stack").cloned().unwrap_or(serde_json::json!({}));
-                let files: Vec<String> = data
-                    .get("files")
-                    .and_then(|f| f.as_object())
-                    .map(|obj| obj.keys().cloned().collect())
-                    .unwrap_or_default();
+        // Build CLI preview args
+        let mut args = base_args.clone();
+        args.push("preview".to_string());
+        args.push(seed.to_string());
 
-                // Extract tags from stack
-                let mut tags = Vec::new();
-                if let Some(lang) = stack.get("language").and_then(|v| v.as_str()) {
-                    tags.push(lang.to_string());
-                }
-                if let Some(fw) = stack.get("framework").and_then(|v| v.as_str()) {
-                    tags.push(fw.to_string());
-                }
-                if let Some(arch) = stack.get("archetype").and_then(|v| v.as_str()) {
-                    tags.push(arch.to_string());
-                }
+        // Execute CLI preview command
+        let (success, stdout, _stderr, _exit_code) =
+            execute_cli_internal(&cmd, args, &working_dir)?;
 
-                entries.push(SeedEntry {
-                    seed,
-                    stack,
-                    files,
-                    validated_at: chrono::Utc::now().to_rfc3339(),
-                    tags,
-                });
+        if success {
+            // Parse JSON output
+            if let Ok(response) = serde_json::from_str::<CLIPreviewResponse>(&stdout) {
+                if response.success {
+                    if let Some(data) = response.data {
+                        let stack = data.stack.clone();
+                        let files: Vec<String> = data.files.keys().cloned().collect();
+
+                        // Extract tags from stack
+                        let mut tags = Vec::new();
+                        if let Some(lang) = stack.get("language").and_then(|v| v.as_str()) {
+                            tags.push(lang.to_string());
+                        }
+                        if let Some(fw) = stack.get("framework").and_then(|v| v.as_str()) {
+                            tags.push(fw.to_string());
+                        }
+                        if let Some(arch) = stack.get("archetype").and_then(|v| v.as_str()) {
+                            tags.push(arch.to_string());
+                        }
+
+                        entries.push(SeedEntry {
+                            seed,
+                            stack,
+                            files,
+                            validated_at: chrono::Utc::now().to_rfc3339(),
+                            tags,
+                        });
+                    }
+                }
             }
         }
     }
