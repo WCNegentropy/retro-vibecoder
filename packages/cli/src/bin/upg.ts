@@ -73,7 +73,9 @@ export function createCli(): Command {
   // Search command
   program
     .command('search <query>')
-    .description('Search for projects in the registry by keyword, archetype, language, or framework')
+    .description(
+      'Search for projects in the registry by keyword, archetype, language, or framework'
+    )
     .option('-t, --tags <tags>', 'Filter by tags (comma-separated)')
     .option('-l, --limit <number>', 'Maximum results', '10')
     .option('--local', 'Use local registry only (skip remote fetch)')

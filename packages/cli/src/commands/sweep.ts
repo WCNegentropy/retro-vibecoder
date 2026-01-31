@@ -15,6 +15,7 @@
 
 import pc from 'picocolors';
 import ora from 'ora';
+import type { Archetype, Language, Framework } from '@retro-vibecoder/procedural';
 
 interface SweepOptions {
   count: string;
@@ -105,9 +106,9 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
     // Early validation of user constraints
     if (options.archetype || options.language || options.framework) {
       const validation = validateConstraints(
-        options.archetype as any,
-        options.language as any,
-        options.framework as any
+        options.archetype as Archetype | undefined,
+        options.language as Language | undefined,
+        options.framework as Framework | undefined
       );
 
       if (!validation.valid) {
@@ -124,7 +125,7 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
 
         // Additional helpful info
         if (options.archetype && !options.language) {
-          const languages = getValidLanguagesForArchetype(options.archetype as any);
+          const languages = getValidLanguagesForArchetype(options.archetype as Archetype);
           console.error(
             pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`)
           );
@@ -520,9 +521,9 @@ export async function seedAction(
     // Early validation of user constraints
     if (options.archetype || options.language || options.framework) {
       const validation = validateConstraints(
-        options.archetype as any,
-        options.language as any,
-        options.framework as any
+        options.archetype as Archetype | undefined,
+        options.language as Language | undefined,
+        options.framework as Framework | undefined
       );
 
       if (!validation.valid) {
@@ -539,7 +540,7 @@ export async function seedAction(
 
         // Additional helpful info
         if (options.archetype && !options.language) {
-          const languages = getValidLanguagesForArchetype(options.archetype as any);
+          const languages = getValidLanguagesForArchetype(options.archetype as Archetype);
           console.error(
             pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`)
           );
@@ -547,8 +548,8 @@ export async function seedAction(
 
         if (options.archetype && options.language) {
           const frameworks = getSuggestedFrameworks(
-            options.archetype as any,
-            options.language as any
+            options.archetype as Archetype,
+            options.language as Language
           );
           if (frameworks.length > 0) {
             console.error(pc.dim(`Compatible frameworks: ${frameworks.join(', ')}`));

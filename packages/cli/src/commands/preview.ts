@@ -44,10 +44,7 @@ interface PreviewOutput {
 /**
  * Preview action - generate a project and output JSON to stdout
  */
-export async function previewAction(
-  seedStr: string,
-  options: PreviewOptions
-): Promise<void> {
+export async function previewAction(seedStr: string, options: PreviewOptions): Promise<void> {
   const seed = parseInt(seedStr, 10);
 
   if (isNaN(seed) || seed < 1) {
@@ -60,11 +57,8 @@ export async function previewAction(
   }
 
   try {
-    const {
-      ProjectAssembler,
-      AllStrategies,
-      validateConstraints,
-    } = await import('@retro-vibecoder/procedural');
+    const { ProjectAssembler, AllStrategies, validateConstraints } =
+      await import('@retro-vibecoder/procedural');
 
     // Early validation of user constraints
     if (options.archetype || options.language || options.framework) {
