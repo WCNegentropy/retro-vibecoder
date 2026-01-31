@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+package-lock.json
 
 # Build outputs
 dist/
@@ -51,12 +52,11 @@ yarn-error.log*
 tmp/
 temp/
 
-# Tauri (Phase 2)
+# Tauri
 **/src-tauri/target/
 
-# Sidecar binaries (Phase 2)
-binaries/copier-cli/dist/
-binaries/yeoman-cli/dist/
+# Sidecar binaries
+binaries/
 
 # Template generation outputs (testing)
 test-output/
