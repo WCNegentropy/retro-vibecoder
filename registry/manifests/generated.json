@@ -15,11 +15,7 @@
         "database": "postgres",
         "orm": "drizzle"
       },
-      "files": [
-        ".gitignore",
-        "LICENSE",
-        "README.md"
-      ],
+      "files": [".gitignore", "LICENSE", "README.md"],
       "validatedAt": "2026-01-27T05:47:04.079Z",
       "upgVersion": "1.0.0"
     },
