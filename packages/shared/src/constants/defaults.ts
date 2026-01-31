@@ -22,7 +22,7 @@ export const DEFAULT_LIFECYCLE: Lifecycle = 'experimental';
 /**
  * Default sidecar type
  */
-export const DEFAULT_SIDECAR: SidecarType = 'copier';
+export const DEFAULT_SIDECAR: SidecarType = 'nunjucks';
 
 /**
  * Default manifest filename

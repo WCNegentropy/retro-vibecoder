@@ -4,12 +4,12 @@
  * Provides the interface between the React frontend and the Tauri backend's
  * sidecar functionality.
  *
- * v1 Architecture (procedural mode only):
+ * Architecture:
  * - The Core (Rust): Handles window management, file system, security
  * - The Frontend (React): Renders forms, validates input, displays progress
- * - The CLI (upg): Single generation engine for procedural projects
- *
- * Note: Copier/Manifest mode is out of scope for v1.
+ * - The CLI (upg): Generation engine for both procedural and template-based projects
+ *   - Procedural: seed -> stack -> files via the universal matrix
+ *   - Template: UPG manifest + Nunjucks (.jinja) rendering
  */
 
 // Types available in '../types' if needed:

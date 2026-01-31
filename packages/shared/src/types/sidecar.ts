@@ -4,8 +4,11 @@
 
 /**
  * Supported sidecar types
+ *
+ * 'nunjucks' - UPG's built-in Nunjucks/Jinja2 template engine (default)
+ * 'custom' - Custom template engine integration
  */
-export type SidecarType = 'copier' | 'yeoman' | 'custom';
+export type SidecarType = 'nunjucks' | 'custom';
 
 /**
  * Sidecar configuration

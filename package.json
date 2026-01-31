@@ -55,8 +55,7 @@
     "scaffolding",
     "project-generator",
     "template",
-    "copier",
-    "yeoman",
+    "nunjucks",
     "universal",
     "declarative"
   ],

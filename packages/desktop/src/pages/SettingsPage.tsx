@@ -14,7 +14,7 @@ interface Settings {
   // Appearance
   rgbSpeed: number;
   rgbEnabled: boolean;
-  theme: 'win95' | 'synthwave' | 'terminal' | 'custom';
+  theme: 'win95' | 'synthwave' | 'terminal';
   showScanlines: boolean;
 
   // Generation Defaults
@@ -89,7 +89,7 @@ function SettingsPage() {
     // Remove existing theme classes
     root.classList.remove('theme-win95', 'theme-synthwave', 'theme-terminal');
     // Add the selected theme class (win95 is the default, no class needed)
-    if (settings.theme !== 'win95' && settings.theme !== 'custom') {
+    if (settings.theme !== 'win95') {
       root.classList.add(`theme-${settings.theme}`);
     }
   }, [settings.theme]);
@@ -179,7 +179,6 @@ function SettingsPage() {
                 <option value="win95">Windows 95 Classic</option>
                 <option value="synthwave">Synthwave Night</option>
                 <option value="terminal">Terminal Green</option>
-                <option value="custom">Custom (coming soon)</option>
               </select>
             </div>
 
@@ -389,7 +388,7 @@ function SettingsPage() {
             <h2 style={{ fontFamily: 'var(--font-retro)', fontSize: '18px', marginBottom: '12px' }}>
               Universal Project Generator
             </h2>
-            <p style={{ marginBottom: '8px' }}>Version 0.1.0 (Phase 2: Generic Engine)</p>
+            <p style={{ marginBottom: '8px' }}>Version 0.1.0</p>
             <p style={{ fontSize: '10px', color: 'var(--bevel-dark)', marginBottom: '16px' }}>
               Transform integers into software
             </p>

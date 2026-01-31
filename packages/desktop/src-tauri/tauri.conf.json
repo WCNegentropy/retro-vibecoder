@@ -39,7 +39,7 @@
       "icons/icon.ico"
     ],
     "externalBin": ["binaries/upg"],
-    "resources": ["../../../registry"]
+    "resources": ["../../../registry", "../../../templates"]
   },
   "plugins": {
     "shell": {

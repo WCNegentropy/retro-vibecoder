@@ -91,43 +91,33 @@ jobs:
       - name: Build workspace packages
         run: pnpm build
 
-      # Setup Python and build copier-cli sidecar
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Build copier-cli sidecar
+      # Build the UPG CLI as a standalone Node.js binary for sidecar use
+      - name: Build UPG CLI sidecar
         shell: bash
         run: |
-          # Install copier and PyInstaller
-          pip install copier pyinstaller
-
           # Create binaries directory in src-tauri
           mkdir -p packages/desktop/src-tauri/binaries
 
           # Get the target triple for Tauri sidecar naming convention
           TARGET="${{ matrix.settings.rust_target }}"
 
-          # Find copier's __main__.py entry point
-          COPIER_MAIN=$(python -c "import copier; import os; print(os.path.join(os.path.dirname(copier.__file__), '__main__.py'))")
+          # Bundle the CLI into a single self-contained JS file using esbuild
+          npx esbuild packages/cli/dist/bin/upg.js \
+            --bundle \
+            --platform=node \
+            --target=node18 \
+            --format=esm \
+            --outfile=packages/desktop/src-tauri/binaries/upg-bundle.mjs \
+            --external:node:* \
+            --banner:js='#!/usr/bin/env node'
 
-          # Build standalone executable with PyInstaller
-          # Tauri sidecar naming: <binary>-<target>[.exe]
-          echo "Building copier-cli sidecar for target: $TARGET"
-
-          if [[ "${{ matrix.settings.platform }}" == "windows-latest" ]]; then
-            pyinstaller --onefile --name "copier-cli-${TARGET}" "$COPIER_MAIN"
-            mv dist/copier-cli-${TARGET}.exe packages/desktop/src-tauri/binaries/
-          else
-            pyinstaller --onefile --name "copier-cli-${TARGET}" "$COPIER_MAIN"
-            mv dist/copier-cli-${TARGET} packages/desktop/src-tauri/binaries/
-            chmod +x "packages/desktop/src-tauri/binaries/copier-cli-${TARGET}"
-          fi
+          # Also bundle the procedural bridge script
+          cd packages/desktop && pnpm bundle:bridge && cd ../..
 
           # Verify sidecar was created
-          echo "Sidecar binaries:"
+          echo "Sidecar bundles:"
           ls -la packages/desktop/src-tauri/binaries/
+          ls -la packages/desktop/dist-scripts/ 2>/dev/null || true
 
       # Generate app icons if missing
       - name: Generate app icons
@@ -302,7 +292,7 @@ jobs:
           - **Procedural Generation:** Generate unique project configurations from numeric seeds
           - **Stack Composer:** Manually select your tech stack components
           - **Seed Gallery:** Browse pre-validated seed configurations
-          - **Template Mode:** Use Copier-based templates for standardized projects
+          - **Template Generation:** Use Nunjucks-based UPG manifest templates for standardized projects
 
           ### Requirements
 
