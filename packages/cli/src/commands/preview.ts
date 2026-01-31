@@ -22,6 +22,8 @@
  * }
  */
 
+import type { Archetype, Language, Framework } from '@retro-vibecoder/procedural';
+
 interface PreviewOptions {
   archetype?: string;
   language?: string;
@@ -67,9 +69,9 @@ export async function previewAction(
     // Early validation of user constraints
     if (options.archetype || options.language || options.framework) {
       const validation = validateConstraints(
-        options.archetype as any,
-        options.language as any,
-        options.framework as any
+        options.archetype as Archetype | undefined,
+        options.language as Language | undefined,
+        options.framework as Framework | undefined
       );
 
       if (!validation.valid) {
