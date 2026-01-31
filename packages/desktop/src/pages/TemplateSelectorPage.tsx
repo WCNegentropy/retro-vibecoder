@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { TemplateEntry } from '../types';
 
@@ -9,26 +9,65 @@ function isTauri(): boolean {
   return typeof window !== 'undefined' && '__TAURI__' in window;
 }
 
+/** Result from template generation */
+interface TemplateGenerationResult {
+  success: boolean;
+  message: string;
+  files_generated: string[];
+  output_path: string;
+  duration_ms: number;
+}
+
 /**
  * Template Selector Page
  *
- * NOTE: Manifest Mode is out of scope for v1.
- * This page displays a message directing users to use Procedural Mode instead.
- *
- * v1 supports procedural mode only (seed → stack → files).
+ * Browse and generate projects from UPG manifest templates.
+ * Templates are loaded from the templates/ directory via the Tauri backend.
+ * Generation uses the CLI's Nunjucks-based template engine.
  */
 
 function TemplateSelectorPage() {
   const navigate = useNavigate();
-  // v1: Template state kept for future use but templates list is always empty
-  const [templates] = useState<TemplateEntry[]>([]);
-  const [isLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<TemplateEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateEntry | null>(null);
   const [manifestContent, setManifestContent] = useState<string | null>(null);
   const [showManifest, setShowManifest] = useState(false);
+  const [outputPath, setOutputPath] = useState('./generated-project');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationResult, setGenerationResult] = useState<TemplateGenerationResult | null>(null);
+
+  // Load templates from Tauri backend on mount
+  useEffect(() => {
+    async function loadTemplates() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        if (isTauri()) {
+          const { invoke } = await import('@tauri-apps/api/core');
+          const result = await invoke<TemplateEntry[]>('get_templates');
+          setTemplates(result);
+        } else {
+          setError(
+            'Template loading requires the Tauri desktop environment. Please run the desktop app.'
+          );
+          setTemplates([]);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load templates';
+        setError(message);
+        setTemplates([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadTemplates();
+  }, []);
 
   // Get all unique tags
   const allTags = Array.from(new Set(templates.flatMap(t => t.tags)));
@@ -54,19 +93,34 @@ function TemplateSelectorPage() {
     setSelectedTemplate(template);
     setShowManifest(false);
     setManifestContent(null);
+    setGenerationResult(null);
   };
 
-  // Handle using a template - navigate to generation page
-  const handleUseTemplate = useCallback(async () => {
-    if (!selectedTemplate) return;
+  // Handle generating a project from the selected template
+  const handleGenerateFromTemplate = useCallback(async () => {
+    if (!selectedTemplate || !isTauri()) return;
 
-    // Navigate to a generation page with the template path
-    // For now, we'll store the template in sessionStorage and navigate
-    sessionStorage.setItem('selectedTemplate', JSON.stringify(selectedTemplate));
-    navigate('/seed', {
-      state: { template: selectedTemplate },
-    });
-  }, [selectedTemplate, navigate]);
+    setIsGenerating(true);
+    setGenerationResult(null);
+    setError(null);
+
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const result = await invoke<TemplateGenerationResult>('generate_from_template', {
+        templatePath: selectedTemplate.path,
+        outputPath,
+        data: null,
+        useDefaults: true,
+        force: false,
+      });
+      setGenerationResult(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Template generation failed';
+      setError(message);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [selectedTemplate, outputPath]);
 
   // Handle viewing manifest content
   const handleViewManifest = useCallback(async () => {
@@ -103,48 +157,12 @@ function TemplateSelectorPage() {
     );
   }
 
-  // v1: Show out-of-scope message for Manifest mode
   return (
     <div className="page template-selector-page">
       <header className="page-header">
         <h1>Template Selector</h1>
-        <p className="subtitle">Manifest-based templates</p>
+        <p className="subtitle">Generate projects from UPG manifest templates using Nunjucks</p>
       </header>
-
-      {/* v1 Scope Notice */}
-      <div
-        className="win95-window"
-        style={{
-          marginBottom: '24px',
-          background: 'var(--win95-bg)',
-        }}
-      >
-        <div className="win95-window-title">
-          <span className="win95-window-title-icon">!</span>
-          Feature Not Available in v1
-        </div>
-        <div className="win95-window-content" style={{ padding: '16px' }}>
-          <p style={{ marginBottom: '12px' }}>
-            <strong>Manifest Mode</strong> (template-based generation) is out of scope for v1.
-          </p>
-          <p style={{ marginBottom: '16px' }}>
-            v1 supports <strong>Procedural Mode</strong> only — generate projects from seed numbers
-            using the Universal Matrix procedural engine.
-          </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" className="btn btn-primary" onClick={() => navigate('/seed')}>
-              Go to Seed Generator
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate('/compose')}
-            >
-              Go to Stack Composer
-            </button>
-          </div>
-        </div>
-      </div>
 
       {error && (
         <div
@@ -157,6 +175,44 @@ function TemplateSelectorPage() {
           }}
         >
           <strong>Note:</strong> {error}
+        </div>
+      )}
+
+      {/* Guidance when no templates found */}
+      {templates.length === 0 && !error && (
+        <div
+          className="win95-window"
+          style={{
+            marginBottom: '24px',
+            background: 'var(--win95-bg)',
+          }}
+        >
+          <div className="win95-window-title">
+            <span className="win95-window-title-icon">!</span>
+            No Templates Found
+          </div>
+          <div className="win95-window-content" style={{ padding: '16px' }}>
+            <p style={{ marginBottom: '12px' }}>
+              No UPG manifest templates were found in the templates/ directory.
+            </p>
+            <p style={{ marginBottom: '16px' }}>
+              Add templates with <code>upg.yaml</code> manifests and a <code>template/</code>{' '}
+              subdirectory containing <code>.jinja</code> files, or use{' '}
+              <strong>Procedural Mode</strong> to generate from seeds.
+            </p>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="button" className="btn btn-primary" onClick={() => navigate('/seed')}>
+                Go to Seed Generator
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate('/compose')}
+              >
+                Go to Stack Composer
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -242,14 +298,69 @@ function TemplateSelectorPage() {
                 </span>
               ))}
             </div>
+
+            {/* Output path for generation */}
+            <div className="form-group" style={{ marginTop: '12px' }}>
+              <label className="form-label" htmlFor="template-output">
+                Output Directory
+              </label>
+              <input
+                id="template-output"
+                type="text"
+                className="form-input"
+                value={outputPath}
+                onChange={e => setOutputPath(e.target.value)}
+                placeholder="./my-project"
+              />
+            </div>
+
             <div className="details-actions">
-              <button type="button" className="btn btn-primary" onClick={handleUseTemplate}>
-                Use Template
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleGenerateFromTemplate}
+                disabled={isGenerating || !isTauri()}
+              >
+                {isGenerating ? 'Generating...' : 'Generate Project'}
               </button>
               <button type="button" className="btn btn-outline" onClick={handleViewManifest}>
                 {showManifest ? 'Hide Manifest' : 'View Manifest'}
               </button>
             </div>
+
+            {/* Generation result */}
+            {generationResult && (
+              <div
+                className={`generation-result ${generationResult.success ? 'success' : 'error'}`}
+                style={{
+                  marginTop: '12px',
+                  padding: '12px',
+                  border: `2px solid ${generationResult.success ? 'var(--color-success, #4caf50)' : 'var(--color-error, #f44336)'}`,
+                  background: generationResult.success
+                    ? 'rgba(76, 175, 80, 0.1)'
+                    : 'rgba(244, 67, 54, 0.1)',
+                }}
+              >
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                  {generationResult.success ? 'Generation Complete!' : 'Generation Failed'}
+                </div>
+                <div style={{ fontSize: '11px' }}>{generationResult.message}</div>
+                {generationResult.success && (
+                  <>
+                    <div style={{ marginTop: '4px', fontSize: '10px' }}>
+                      <strong>Output:</strong>{' '}
+                      <code style={{ background: 'rgba(0,0,0,0.1)', padding: '2px 4px' }}>
+                        {generationResult.output_path}
+                      </code>
+                    </div>
+                    <div style={{ fontSize: '10px' }}>
+                      <strong>Files:</strong> {generationResult.files_generated.length} generated in{' '}
+                      {generationResult.duration_ms}ms
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {showManifest && manifestContent && (
               <div className="manifest-viewer" style={{ marginTop: '16px' }}>

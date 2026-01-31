@@ -22,7 +22,7 @@ export interface CliConfig {
   /** Sidecar configuration */
   sidecars?: {
     /** Preferred sidecar */
-    default?: 'copier' | 'yeoman';
+    default?: 'nunjucks' | 'custom';
   };
 }
 
@@ -59,7 +59,7 @@ const DEFAULT_CONFIG: CliConfig = {
     useDefaults: false,
   },
   sidecars: {
-    default: 'copier',
+    default: 'nunjucks',
   },
 };
 

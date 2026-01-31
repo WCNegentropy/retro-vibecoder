@@ -11,10 +11,12 @@ import SettingsPage from './pages/SettingsPage';
 /**
  * UPG Desktop Application
  *
- * v1 supports procedural mode only (seed → stack → files):
- * - Seed Generator: Enter a seed number to generate a project
+ * - Seed Generator: Enter a seed number to generate a deterministic project
  * - Stack Composer: Compose a custom tech stack interactively
+ * - Template Selector: Generate projects from UPG manifest templates (Nunjucks)
  * - Seed Gallery: Browse pre-validated seeds from the registry
+ * - CLI Commands: Execute UPG CLI commands directly
+ * - Settings: Configure appearance and generation defaults
  *
  * Features retro Windows 95 aesthetic with RGB rainbow border
  */
@@ -25,7 +27,6 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="seed" element={<SeedGeneratorPage />} />
         <Route path="compose" element={<StackComposerPage />} />
-        {/* Templates page kept for backward compatibility but shows v1 scope message */}
         <Route path="templates" element={<TemplateSelectorPage />} />
         <Route path="gallery" element={<SeedGalleryPage />} />
         <Route path="cli" element={<CLICommandsPage />} />

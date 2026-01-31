@@ -56,10 +56,10 @@ export interface TechStack {
 /**
  * Generation mode
  *
- * v1 supports procedural mode only (seed → stack → files).
- * Manifest and Hybrid modes are out of scope for v1.
+ * 'procedural' - seed → stack → files via the procedural engine
+ * 'template' - UPG manifest template with Nunjucks rendering
  */
-export type GenerationMode = 'procedural';
+export type GenerationMode = 'procedural' | 'template';
 
 /** Generation request to Tauri backend */
 export interface GenerationRequest {

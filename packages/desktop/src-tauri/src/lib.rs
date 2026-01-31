@@ -794,6 +794,108 @@ async fn execute_upg_cli(
     })
 }
 
+/// Template generation result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TemplateGenerationResult {
+    pub success: bool,
+    pub message: String,
+    pub files_generated: Vec<String>,
+    pub output_path: String,
+    pub duration_ms: u64,
+}
+
+/// Generate a project from a UPG manifest template using the CLI generate command
+///
+/// Uses: upg generate <template_path> --dest <output_dir> [--data <json>] [--use-defaults] [--force]
+#[tauri::command]
+async fn generate_from_template(
+    app: tauri::AppHandle,
+    template_path: String,
+    output_path: String,
+    data: Option<String>,
+    use_defaults: bool,
+    force: bool,
+) -> Result<TemplateGenerationResult, String> {
+    let start = std::time::Instant::now();
+
+    let (cmd, base_args) = get_cli_command(&app)?;
+
+    let mut cli_args = vec!["generate".to_string(), template_path.clone()];
+
+    // Resolve and add output path
+    let resolved_output = resolve_output_path(&output_path, &app)?;
+    let resolved_output_str = resolved_output.to_string_lossy().to_string();
+    cli_args.push("--dest".to_string());
+    cli_args.push(resolved_output_str.clone());
+
+    // Add optional data as JSON
+    if let Some(ref json_data) = data {
+        cli_args.push("--data".to_string());
+        cli_args.push(json_data.clone());
+    }
+
+    if use_defaults {
+        cli_args.push("--use-defaults".to_string());
+    }
+
+    if force {
+        cli_args.push("--force".to_string());
+    }
+
+    // Combine base args with CLI args
+    let mut all_args = base_args;
+    all_args.extend(cli_args);
+
+    let working_dir = app.path().home_dir().map_err(|e| e.to_string())?;
+    let (success, stdout, stderr, exit_code) = execute_cli_internal(&cmd, all_args, &working_dir)?;
+
+    let duration_ms = start.elapsed().as_millis() as u64;
+
+    if success {
+        let files_generated = if resolved_output.exists() {
+            list_files_recursive(&resolved_output)
+        } else {
+            vec![]
+        };
+
+        Ok(TemplateGenerationResult {
+            success: true,
+            message: format!(
+                "Generated {} files from template in {}ms",
+                files_generated.len(),
+                duration_ms
+            ),
+            files_generated,
+            output_path: resolved_output_str,
+            duration_ms,
+        })
+    } else {
+        let error_msg = if !stderr.is_empty() {
+            stderr
+                .lines()
+                .last()
+                .unwrap_or("Template generation failed")
+                .to_string()
+        } else if !stdout.is_empty() {
+            stdout
+                .lines()
+                .last()
+                .unwrap_or("Template generation failed")
+                .to_string()
+        } else {
+            format!("CLI exited with code {:?}", exit_code)
+        };
+
+        Ok(TemplateGenerationResult {
+            success: false,
+            message: error_msg,
+            files_generated: vec![],
+            output_path: resolved_output_str,
+            duration_ms,
+        })
+    }
+}
+
 /// Generate seeds using the CLI preview command and save to registry
 #[tauri::command]
 async fn run_sweeper(
@@ -914,6 +1016,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             generate_project,
+            generate_from_template,
             get_templates,
             validate_manifest,
             preview_generation,

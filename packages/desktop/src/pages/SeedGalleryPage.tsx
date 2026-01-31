@@ -61,7 +61,7 @@ function SeedGalleryPage() {
   const [filterArchetype, setFilterArchetype] = useState<Archetype | 'all'>('all');
   const [filterLanguage, setFilterLanguage] = useState<Language | 'all'>('all');
   const [selectedSeed, setSelectedSeed] = useState<SeedEntry | null>(null);
-  const [isRunningSwweper, setIsRunningSweeper] = useState(false);
+  const [isRunningSweeper, setIsRunningSweeper] = useState(false);
   const [sweeperCount, setSweeperCount] = useState(10);
 
   // Load seeds from registry
@@ -202,9 +202,9 @@ function SeedGalleryPage() {
           type="button"
           className="btn btn-primary"
           onClick={handleRunSweeper}
-          disabled={isRunningSwweper || !isTauri()}
+          disabled={isRunningSweeper || !isTauri()}
         >
-          {isRunningSwweper ? 'Running Sweeper...' : 'Run Sweeper'}
+          {isRunningSweeper ? 'Running Sweeper...' : 'Run Sweeper'}
         </button>
         <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>
           {seeds.length} seeds in registry

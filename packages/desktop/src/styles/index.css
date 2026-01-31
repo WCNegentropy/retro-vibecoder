@@ -269,7 +269,44 @@ body,
   font-family: var(--font-system);
 }
 
-.menu-item:hover {
+.menu-item:hover,
+.menu-item.active {
+  background: var(--win95-navy);
+  color: var(--win95-white);
+}
+
+.menu-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 180px;
+  background: var(--win95-bg);
+  border: 2px outset var(--bevel-light);
+  box-shadow: 2px 2px 0 var(--bevel-darker);
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-dropdown-content button {
+  display: block;
+  width: 100%;
+  padding: 4px 24px 4px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-family: var(--font-system);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menu-dropdown-content button:hover {
   background: var(--win95-navy);
   color: var(--win95-white);
 }
