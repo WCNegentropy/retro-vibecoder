@@ -132,11 +132,7 @@ function TemplateSelectorPage() {
             using the Universal Matrix procedural engine.
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => navigate('/seed')}
-            >
+            <button type="button" className="btn btn-primary" onClick={() => navigate('/seed')}>
               Go to Seed Generator
             </button>
             <button

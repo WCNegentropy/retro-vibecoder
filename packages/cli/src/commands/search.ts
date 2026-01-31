@@ -188,7 +188,9 @@ export async function searchAction(query: string, options: SearchOptions): Promi
     console.error(pc.cyan('  npx tsx scripts/seed-registry.ts --count 50'));
     console.error('');
     console.error('Or use `upg sweep` to generate and save entries:');
-    console.error(pc.cyan('  upg sweep --count 50 --save-registry ./registry/manifests/generated.json'));
+    console.error(
+      pc.cyan('  upg sweep --count 50 --save-registry ./registry/manifests/generated.json')
+    );
     process.exit(1);
   }
 
@@ -231,7 +233,9 @@ export async function searchAction(query: string, options: SearchOptions): Promi
     }
 
     if (totalMatches > results.length) {
-      console.log(pc.dim(`Showing ${results.length} of ${totalMatches} matches. Use --limit to see more.`));
+      console.log(
+        pc.dim(`Showing ${results.length} of ${totalMatches} matches. Use --limit to see more.`)
+      );
       console.log('');
     }
 
@@ -241,6 +245,8 @@ export async function searchAction(query: string, options: SearchOptions): Promi
     console.log(pc.cyan(`  upg seed <seed-number> --output ./my-project`));
     console.log('');
     console.log('Example:');
-    console.log(pc.cyan(`  upg seed ${results[0].seed} --output ./my-${results[0].stack.framework}-app`));
+    console.log(
+      pc.cyan(`  upg seed ${results[0].seed} --output ./my-${results[0].stack.framework}-app`)
+    );
   }
 }

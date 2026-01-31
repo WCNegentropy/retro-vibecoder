@@ -12,6 +12,7 @@ import ora from 'ora';
 import nunjucks from 'nunjucks';
 import { validateCommand, transpileManifestToSchema } from '@retro-vibecoder/core';
 import { parseYaml } from '@retro-vibecoder/shared';
+import type { UpgManifest } from '@retro-vibecoder/shared';
 import { readFile, writeFile, readdir, mkdir, copyFile, access } from 'fs/promises';
 
 interface GenerateOptions {
@@ -117,7 +118,10 @@ function configureNunjucks(templateDir: string): nunjucks.Environment {
 /**
  * Evaluate a "when" condition
  */
-function evaluateCondition(condition: string | undefined, context: Record<string, unknown>): boolean {
+function evaluateCondition(
+  condition: string | undefined,
+  context: Record<string, unknown>
+): boolean {
   if (!condition) return true;
 
   // Handle simple cases
@@ -221,7 +225,7 @@ export async function generateAction(
     spinner.start('Processing template configuration...');
 
     // Transpile to JSON Schema to get default values
-    const transpiled = transpileManifestToSchema(manifest as any, {
+    const transpiled = transpileManifestToSchema(manifest as UpgManifest, {
       includeUiSchema: true,
       includeConditionals: true,
     });

@@ -16,6 +16,7 @@ import { testAction } from '../commands/test.js';
 import { searchAction } from '../commands/search.js';
 import { initAction } from '../commands/init.js';
 import { sweepAction, seedAction } from '../commands/sweep.js';
+import { previewAction } from '../commands/preview.js';
 
 /**
  * Create the CLI program
@@ -27,7 +28,11 @@ export function createCli(): Command {
     .name('upg')
     .description('Universal Project Generator - Data-driven project scaffolding')
     .version(version)
-    .hook('preAction', () => {
+    .hook('preAction', (_thisCommand, actionCommand) => {
+      // Skip disclaimer for preview command (needs clean JSON output)
+      if (actionCommand.name() === 'preview') {
+        return;
+      }
       // Print disclaimer on stderr so it doesn't break piping stdout
       console.error(pc.dim('-------------------------------------------------------'));
       console.error(pc.dim('  Retro Vibecoder UPG - Open Source Procedural Engine'));
@@ -68,7 +73,9 @@ export function createCli(): Command {
   // Search command
   program
     .command('search <query>')
-    .description('Search for projects in the registry by keyword, archetype, language, or framework')
+    .description(
+      'Search for projects in the registry by keyword, archetype, language, or framework'
+    )
     .option('-t, --tags <tags>', 'Filter by tags (comma-separated)')
     .option('-l, --limit <number>', 'Maximum results', '10')
     .option('--local', 'Use local registry only (skip remote fetch)')
@@ -139,6 +146,20 @@ export function createCli(): Command {
     .option('--language <lang>', 'Force specific language')
     .option('--framework <fw>', 'Force specific framework')
     .action(seedAction);
+
+  // Preview command - generate project and output JSON to stdout (for desktop app integration)
+  program
+    .command('preview <seed>')
+    .description('Preview a project from a seed (JSON output, no file writes)')
+    .option('--archetype <type>', 'Force specific archetype')
+    .option('--language <lang>', 'Force specific language')
+    .option('--framework <fw>', 'Force specific framework')
+    .configureOutput({
+      // Suppress all non-JSON output for preview command
+      writeOut: () => {},
+      writeErr: () => {},
+    })
+    .action(previewAction);
 
   return program;
 }

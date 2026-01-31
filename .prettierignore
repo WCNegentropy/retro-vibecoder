@@ -26,3 +26,6 @@ src-tauri/target/
 # Test reports (generated)
 E2E_SMOKETEST_REPORT.md
 Codebase Audit_ Critical Remediation Required.md
+
+# Root documentation
+README.md

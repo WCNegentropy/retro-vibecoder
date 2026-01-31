@@ -141,7 +141,9 @@ async function main() {
       }
     } catch (error) {
       failCount++;
-      console.error(`\n  ⚠ Seed ${seed} failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `\n  ⚠ Seed ${seed} failed: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
