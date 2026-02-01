@@ -1,7 +1,10 @@
 //! UPG Desktop - Tauri Backend
 //!
-//! This module provides the Rust backend for the Universal Project Generator desktop application.
-//! v1 uses the CLI (upg) as the single generation engine - no separate sidecars.
+//! Architecture: TypeScript frontend → invoke() → Rust → std::process::Command → CLI
+//!
+//! The Rust backend receives commands from the React frontend via Tauri's invoke system,
+//! then executes the UPG CLI as a child process using std::process::Command. No bridge
+//! scripts, no sidecar binaries, no localhost servers. Just Rust calling the CLI directly.
 
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -10,13 +13,9 @@ use std::process::Command;
 use tauri::Manager;
 
 /// Generation mode for projects
-///
-/// v1 supports procedural mode only (seed → stack → files).
-/// Manifest and Hybrid modes are out of scope for v1.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum GenerationMode {
-    /// Generate from seed using procedural engine (the only supported mode in v1)
     Procedural,
 }
 
@@ -35,11 +34,8 @@ pub struct TechStackConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationRequest {
     pub mode: GenerationMode,
-    /// For Procedural mode: seed number (required)
     pub seed: Option<u64>,
-    /// For Procedural mode: explicit stack config (optional constraints)
     pub stack: Option<TechStackConfig>,
-    /// Output directory
     pub output_path: String,
 }
 
@@ -53,30 +49,16 @@ pub struct GenerationResult {
     pub duration_ms: u64,
 }
 
-/// Get the target triple for the current platform (compile-time)
-fn get_target_triple() -> &'static str {
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    { "x86_64-unknown-linux-gnu" }
-    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
-    { "aarch64-unknown-linux-gnu" }
-    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
-    { "x86_64-apple-darwin" }
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    { "aarch64-apple-darwin" }
-    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-    { "x86_64-pc-windows-msvc" }
-    #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
-    { "aarch64-pc-windows-msvc" }
-}
-
-/// Get the path to the UPG CLI executable
-/// In development: uses the built CLI from the monorepo via node
-/// In production: uses the bundled upg sidecar binary
+/// Get the command to run the UPG CLI.
+///
+/// In development: `node packages/cli/dist/bin/upg.js`
+/// In production:  `node <resource_dir>/upg-cli-bundle.mjs`
+///
+/// Both paths use Node.js to run the CLI. The production bundle is a single
+/// self-contained JS file created by esbuild during the build step.
 fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), String> {
     #[cfg(debug_assertions)]
     {
-        // In development, use the built CLI from packages/cli/dist/bin/upg.js via node
-        // This is acceptable in dev because we control the environment
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
         let project_root = PathBuf::from(manifest_dir)
             .parent() // src-tauri
@@ -98,26 +80,17 @@ fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), Stri
 
     #[cfg(not(debug_assertions))]
     {
-        // In production, use the bundled sidecar binary
-        // Sidecar binaries are placed in the resource directory with platform-specific names
         let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-        let target = get_target_triple();
+        let bundle_path = resource_dir.join("upg-cli-bundle.mjs");
 
-        #[cfg(windows)]
-        let binary_name = format!("upg-{}.exe", target);
-        #[cfg(not(windows))]
-        let binary_name = format!("upg-{}", target);
-
-        let sidecar_path = resource_dir.join(&binary_name);
-
-        if !sidecar_path.exists() {
+        if !bundle_path.exists() {
             return Err(format!(
-                "Sidecar binary not found: {:?}. This is a packaging error.",
-                sidecar_path
+                "CLI bundle not found: {:?}. This is a packaging error.",
+                bundle_path
             ));
         }
 
-        Ok((sidecar_path.to_string_lossy().to_string(), vec![]))
+        Ok(("node".to_string(), vec![bundle_path.to_string_lossy().to_string()]))
     }
 }
 

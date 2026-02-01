@@ -10,8 +10,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "pnpm bundle:bridge && tauri build",
-    "bundle:bridge": "node scripts/bundle-bridge.mjs",
+    "tauri:build": "pnpm bundle:cli && tauri build",
+    "bundle:cli": "node scripts/bundle-cli.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/"
   },

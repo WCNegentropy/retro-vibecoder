@@ -54,6 +54,7 @@ temp/
 
 # Tauri
 **/src-tauri/target/
+**/src-tauri/upg-cli-bundle.mjs
 
 # Sidecar binaries
 binaries/

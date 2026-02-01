@@ -91,11 +91,11 @@ jobs:
       - name: Build workspace packages
         run: pnpm build
 
-      # Build the UPG CLI as a standalone native binary for Tauri sidecar use
-      # Uses esbuild (devDep) to bundle, then @yao-pkg/pkg to compile with Node.js runtime
-      - name: Build UPG CLI sidecar
+      # Bundle the UPG CLI into a single JS file for Tauri to include as a resource.
+      # Rust calls this via: node <resource_dir>/upg-cli-bundle.mjs <args>
+      - name: Bundle UPG CLI
         working-directory: packages/desktop
-        run: node scripts/build-sidecar.mjs ${{ matrix.settings.rust_target }}
+        run: pnpm bundle:cli
 
       # Generate app icons if missing
       - name: Generate app icons
@@ -136,11 +136,6 @@ jobs:
           else
             echo "Icons already exist, skipping generation"
           fi
-
-      # Bundle procedural bridge script for Tauri resources
-      - name: Bundle procedural bridge
-        working-directory: packages/desktop
-        run: pnpm bundle:bridge
 
       # Build Tauri application
       - name: Build Tauri App
