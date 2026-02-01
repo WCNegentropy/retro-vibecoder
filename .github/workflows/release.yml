@@ -91,33 +91,11 @@ jobs:
       - name: Build workspace packages
         run: pnpm build
 
-      # Build the UPG CLI as a standalone Node.js binary for sidecar use
+      # Build the UPG CLI as a standalone native binary for Tauri sidecar use
+      # Uses esbuild (devDep) to bundle, then @yao-pkg/pkg to compile with Node.js runtime
       - name: Build UPG CLI sidecar
-        shell: bash
-        run: |
-          # Create binaries directory in src-tauri
-          mkdir -p packages/desktop/src-tauri/binaries
-
-          # Get the target triple for Tauri sidecar naming convention
-          TARGET="${{ matrix.settings.rust_target }}"
-
-          # Bundle the CLI into a single self-contained JS file using esbuild
-          npx esbuild packages/cli/dist/bin/upg.js \
-            --bundle \
-            --platform=node \
-            --target=node18 \
-            --format=esm \
-            --outfile=packages/desktop/src-tauri/binaries/upg-bundle.mjs \
-            --external:node:* \
-            --banner:js='#!/usr/bin/env node'
-
-          # Also bundle the procedural bridge script
-          cd packages/desktop && pnpm bundle:bridge && cd ../..
-
-          # Verify sidecar was created
-          echo "Sidecar bundles:"
-          ls -la packages/desktop/src-tauri/binaries/
-          ls -la packages/desktop/dist-scripts/ 2>/dev/null || true
+        working-directory: packages/desktop
+        run: node scripts/build-sidecar.mjs ${{ matrix.settings.rust_target }}
 
       # Generate app icons if missing
       - name: Generate app icons
