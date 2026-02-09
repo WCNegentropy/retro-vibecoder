@@ -513,10 +513,10 @@ export async function seedAction(
     if (isJson) {
       console.log(JSON.stringify({ success: false, error: 'Seed must be a positive integer' }));
       process.exit(1);
-      return;
+    } else {
+      console.error(pc.red('Error: Seed must be a positive integer'));
+      process.exit(1);
     }
-    console.error(pc.red('Error: Seed must be a positive integer'));
-    process.exit(1);
   }
 
   const spinner = isJson ? null : ora('Generating project...').start();
@@ -545,40 +545,40 @@ export async function seedAction(
             JSON.stringify({ success: false, error: validation.errors.join('; ') || 'Invalid constraints specified' })
           );
           process.exit(1);
-          return;
-        }
-        if (spinner) {
-          spinner.fail('Invalid constraints specified');
-        }
-        console.error();
-        for (const error of validation.errors) {
-          console.error(pc.red(`  ✗ ${error}`));
-        }
-        console.error();
-        console.error(pc.yellow('Suggestions:'));
-        for (const suggestion of validation.suggestions) {
-          console.error(pc.yellow(`  → ${suggestion}`));
-        }
-
-        // Additional helpful info
-        if (options.archetype && !options.language) {
-          const languages = getValidLanguagesForArchetype(options.archetype as Archetype);
-          console.error(
-            pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`)
-          );
-        }
-
-        if (options.archetype && options.language) {
-          const frameworks = getSuggestedFrameworks(
-            options.archetype as Archetype,
-            options.language as Language
-          );
-          if (frameworks.length > 0) {
-            console.error(pc.dim(`Compatible frameworks: ${frameworks.join(', ')}`));
+        } else {
+          if (spinner) {
+            spinner.fail('Invalid constraints specified');
           }
-        }
+          console.error();
+          for (const error of validation.errors) {
+            console.error(pc.red(`  ✗ ${error}`));
+          }
+          console.error();
+          console.error(pc.yellow('Suggestions:'));
+          for (const suggestion of validation.suggestions) {
+            console.error(pc.yellow(`  → ${suggestion}`));
+          }
 
-        process.exit(1);
+          // Additional helpful info
+          if (options.archetype && !options.language) {
+            const languages = getValidLanguagesForArchetype(options.archetype as Archetype);
+            console.error(
+              pc.dim(`\nCompatible languages for '${options.archetype}': ${languages.join(', ')}`)
+            );
+          }
+
+          if (options.archetype && options.language) {
+            const frameworks = getSuggestedFrameworks(
+              options.archetype as Archetype,
+              options.language as Language
+            );
+            if (frameworks.length > 0) {
+              console.error(pc.dim(`Compatible frameworks: ${frameworks.join(', ')}`));
+            }
+          }
+
+          process.exit(1);
+        }
       }
     }
 
@@ -716,24 +716,24 @@ export async function seedAction(
     if (isJson) {
       console.log(JSON.stringify({ success: false, error: errorMsg }));
       process.exit(1);
-      return;
-    }
-    if (spinner) {
-      spinner.fail('Generation failed');
-    }
-    console.error(pc.red(`Error: ${errorMsg}`));
+    } else {
+      if (spinner) {
+        spinner.fail('Generation failed');
+      }
+      console.error(pc.red(`Error: ${errorMsg}`));
 
-    // Provide suggestions based on the error
-    if (errorMsg.includes('Invalid stack')) {
-      console.error();
-      console.error(pc.yellow('Suggestions:'));
-      console.error(pc.yellow('  → Try a different seed number'));
-      console.error(pc.yellow('  → Use --archetype and --language to constrain generation'));
-      console.error(
-        pc.yellow('  → Example: upg seed 42 --archetype backend --language typescript')
-      );
-    }
+      // Provide suggestions based on the error
+      if (errorMsg.includes('Invalid stack')) {
+        console.error();
+        console.error(pc.yellow('Suggestions:'));
+        console.error(pc.yellow('  → Try a different seed number'));
+        console.error(pc.yellow('  → Use --archetype and --language to constrain generation'));
+        console.error(
+          pc.yellow('  → Example: upg seed 42 --archetype backend --language typescript')
+        );
+      }
 
-    process.exit(1);
+      process.exit(1);
+    }
   }
 }
