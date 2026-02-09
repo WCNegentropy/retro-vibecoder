@@ -513,6 +513,7 @@ export async function seedAction(
     if (isJson) {
       console.log(JSON.stringify({ success: false, error: 'Seed must be a positive integer' }));
       process.exit(1);
+      return;
     }
     console.error(pc.red('Error: Seed must be a positive integer'));
     process.exit(1);
@@ -544,6 +545,7 @@ export async function seedAction(
             JSON.stringify({ success: false, error: validation.errors.join('; ') || 'Invalid constraints specified' })
           );
           process.exit(1);
+          return;
         }
         if (spinner) {
           spinner.fail('Invalid constraints specified');
@@ -714,6 +716,7 @@ export async function seedAction(
     if (isJson) {
       console.log(JSON.stringify({ success: false, error: errorMsg }));
       process.exit(1);
+      return;
     }
     if (spinner) {
       spinner.fail('Generation failed');
