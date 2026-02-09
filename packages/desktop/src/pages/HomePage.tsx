@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 /**
  * Home page - entry point for the UPG Desktop application
  *
- * v1 supports procedural mode only (seed → stack → files).
+ * v2 supports procedural mode only (seed → stack → files).
  * - Procedural Mode: Seed generator, Stack composer
  *
  * Features Windows 95 retro styling with RGB accents
@@ -47,7 +47,7 @@ function HomePage() {
                 <li>Deterministic generation from seed numbers</li>
                 <li>Interactive stack composition wizard</li>
                 <li>Constraint-validated combinations</li>
-                <li>31+ technology strategies (Tier 1-5)</li>
+                <li>40+ technology strategies (Tier 1-7)</li>
                 <li>Pre-validated seed gallery</li>
               </ul>
             </div>

@@ -1,27 +1,6 @@
-## IMPORTANT NOTICE (January 27, 2026)
-
-**This project is currently undergoing critical remediation.** 
-
-The v0.1.0 release was shipped with incomplete implementation. While the UI 
-and CLI are functional, the actual project generation produces placeholder 
-files rather than working templates.
-
-**Current Status:**
-- ✅ Procedural engine (seed → stack selection) works
-- ✅ Desktop UI and CLI are operational
-- ❌ Template rendering produces stub files (3-5 lines each)
-- ❌ Generated projects are not buildable/runnable
-
-**We are actively fixing this.** Follow for progress.
-
-If you starred/forked this expecting a working generator, we apologize. 
-A functional release is coming soon.
-
----
-
-*Original README below*
-
 # Retro Vibecoder UPG
+
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 
 **Universal Procedural Generator** - A machine that turns integers into software.
 
@@ -52,6 +31,18 @@ upg seed 42 --archetype mobile --language swift        # SwiftUI app
 **Note:** Unconstrained generation explores the full possibility space, which may produce invalid combinations. Use `--archetype` and `--language` flags for reliable results.
 
 ## Quick Start
+
+### Desktop App
+
+Download the latest UPG Desktop from the [Releases page](https://github.com/WCNegentropy/retro-vibecoder/releases):
+
+| Platform | Format |
+|----------|--------|
+| Windows | `.msi`, `.exe` |
+| macOS (Apple Silicon) | `.dmg` |
+| Linux | `.deb`, `.AppImage` |
+
+### CLI
 
 ```bash
 # Install dependencies
@@ -103,6 +94,12 @@ The Universal Matrix defines the possibility space of modern software:
 │  │  │ Docker,  │ │ Python,  │ │ Vue,     │ │ Java,      │  │   │
 │  │  │ CI)      │ │ Rust,Go) │ │ Svelte)  │ │ C#)        │  │   │
 │  │  └──────────┘ └──────────┘ └──────────┘ └────────────┘  │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────┐  │   │
+│  │  │ Desktop  │ │ Game     │ │ Mobile   │ │ Library    │  │   │
+│  │  │ (Tauri,  │ │ (Phaser, │ │ (RN,     │ │ (npm,      │  │   │
+│  │  │ Electron,│ │ Bevy,    │ │ SwiftUI, │ │ PyPI,      │  │   │
+│  │  │ Qt)      │ │ SDL2)    │ │ Flutter) │ │ crates.io) │  │   │
+│  │  └──────────┘ └──────────┘ └──────────┘ └────────────┘  │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                  ▼                              │
 │                    ┌─────────────────────┐                      │
@@ -129,12 +126,15 @@ The Universal Matrix defines the possibility space of modern software:
 
 - **Java/Kotlin**: Spring Boot (both Java and Kotlin supported)
 - **C#**: .NET Core / ASP.NET
+- **Ruby**: Ruby on Rails
+- **PHP**: Laravel
 
 ### Tier 4: Mobile
 
 - **React Native**: Expo (TypeScript)
 - **SwiftUI**: Native iOS/macOS apps (Swift)
 - **Jetpack Compose**: Native Android apps (Kotlin)
+- **Flutter**: Cross-platform mobile apps (Dart)
 
 ### Tier 5: Web Frontend
 
@@ -147,6 +147,24 @@ The Universal Matrix defines the possibility space of modern software:
 - **Nuxt**: Vue 3 + SSR/SSG
 - **SvelteKit**: Svelte + SSR/SSG
 - **Qwik**: Resumable framework
+
+### Tier 6: Desktop
+
+- **Tauri**: Rust + Web (TypeScript)
+- **Electron**: Node.js + Chromium (TypeScript/JavaScript)
+- **Qt**: Cross-platform native (C++)
+- **Flutter Desktop**: Cross-platform (Dart)
+
+### Tier 7: Game
+
+- **Phaser**: 2D browser games (TypeScript/JavaScript)
+- **PixiJS**: 2D rendering engine (TypeScript/JavaScript)
+- **Unity**: Cross-platform game engine (C#)
+- **Godot Mono**: Open-source game engine (C#)
+- **SDL2**: Low-level game development (C++)
+- **SFML**: Simple multimedia library (C++)
+- **Bevy**: Data-driven game engine (Rust)
+- **Macroquad**: Simple game framework (Rust)
 
 ## CLI Commands
 
@@ -213,7 +231,11 @@ retro-vibecoder-upg/
 │   │   │   ├── web/      # Web frontend strategies
 │   │   │   ├── systems/  # C++ strategies
 │   │   │   ├── backend/  # Java, C# strategies
-│   │   │   ├── mobile/   # React Native strategies
+│   │   │   ├── mobile/   # React Native, SwiftUI, Flutter strategies
+│   │   │   ├── desktop/  # Tauri, Electron, Qt strategies
+│   │   │   ├── game/     # Phaser, Bevy, SDL2, Unity strategies
+│   │   │   ├── library/  # Library/package strategies
+│   │   │   ├── cli/      # CLI tool strategies
 │   │   │   └── common/   # Git, Docker, CI strategies
 │   │   ├── matrices/     # Universal Matrix definitions
 │   │   └── sweeper/      # Validation pipeline
