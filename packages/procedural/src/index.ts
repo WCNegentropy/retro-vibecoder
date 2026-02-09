@@ -133,6 +133,7 @@ export {
   YargsStrategy,
   ClickStrategy,
   ArgparseStrategy,
+  JetpackComposeStrategy,
 } from './strategies/index.js';
 
 // Renderer

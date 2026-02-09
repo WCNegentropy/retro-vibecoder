@@ -61,6 +61,7 @@ export {
 
 // Mobile strategies
 export { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
+export { JetpackComposeStrategy } from './mobile/android.js';
 
 import { CommonStrategies } from './common/index.js';
 import { ApiStrategies } from './api/index.js';
@@ -72,6 +73,7 @@ import { RailsStrategy } from './backend/ruby.js';
 import { LaravelStrategy } from './backend/php.js';
 import { CliStrategies } from './cli/index.js';
 import { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
+import { JetpackComposeStrategy } from './mobile/android.js';
 import type { GenerationStrategy } from '../types.js';
 
 /**
@@ -95,6 +97,7 @@ export const AllStrategies: GenerationStrategy[] = [
   // Tier 4: Mobile
   ExpoStrategy,
   SwiftUIStrategy,
+  JetpackComposeStrategy,
 ];
 
 /**

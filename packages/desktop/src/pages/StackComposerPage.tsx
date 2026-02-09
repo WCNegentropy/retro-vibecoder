@@ -99,6 +99,7 @@ const FRAMEWORKS: FrameworkOption[] = [
   { id: 'laravel', name: 'Laravel', language: 'php', archetype: 'backend' },
   // Mobile
   { id: 'react-native', name: 'React Native', language: 'typescript', archetype: 'mobile' },
+  { id: 'jetpack-compose', name: 'Jetpack Compose', language: 'kotlin', archetype: 'mobile' },
 ];
 
 const DATABASES: { id: Database; name: string }[] = [
