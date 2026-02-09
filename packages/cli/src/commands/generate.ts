@@ -7,6 +7,7 @@
  */
 
 import { resolve, dirname, join, relative } from 'path';
+import { spawn } from 'child_process';
 import pc from 'picocolors';
 import ora from 'ora';
 import nunjucks from 'nunjucks';
@@ -385,7 +386,6 @@ export async function generateAction(
           spinner.start(desc);
 
           try {
-            const { spawn } = await import('child_process');
             await new Promise<void>((resolve, reject) => {
               const [cmd, ...args] = action.command!.split(' ');
               const proc = spawn(cmd, args, {
