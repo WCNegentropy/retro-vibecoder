@@ -42,16 +42,18 @@ const LANGUAGES: { id: Language; name: string; archetypes: Archetype[] }[] = [
   {
     id: 'typescript',
     name: 'TypeScript',
-    archetypes: ['backend', 'web', 'cli', 'library', 'desktop'],
+    archetypes: ['backend', 'web', 'cli', 'library', 'desktop', 'game'],
   },
   { id: 'python', name: 'Python', archetypes: ['backend', 'cli', 'library'] },
-  { id: 'rust', name: 'Rust', archetypes: ['backend', 'cli', 'library', 'desktop'] },
+  { id: 'rust', name: 'Rust', archetypes: ['backend', 'cli', 'library', 'desktop', 'game'] },
   { id: 'go', name: 'Go', archetypes: ['backend', 'cli', 'library'] },
   { id: 'java', name: 'Java', archetypes: ['backend', 'library', 'mobile'] },
   { id: 'csharp', name: 'C#', archetypes: ['backend', 'library', 'desktop', 'game'] },
   { id: 'kotlin', name: 'Kotlin', archetypes: ['backend', 'mobile', 'library'] },
   { id: 'swift', name: 'Swift', archetypes: ['mobile', 'library'] },
   { id: 'cpp', name: 'C++', archetypes: ['library', 'desktop', 'game'] },
+  { id: 'ruby', name: 'Ruby', archetypes: ['backend'] },
+  { id: 'php', name: 'PHP', archetypes: ['backend'] },
 ];
 
 interface FrameworkOption {
@@ -71,12 +73,17 @@ const FRAMEWORKS: FrameworkOption[] = [
   { id: 'svelte', name: 'Svelte', language: 'typescript', archetype: 'web' },
   { id: 'solid', name: 'Solid', language: 'typescript', archetype: 'web' },
   { id: 'commander', name: 'Commander', language: 'typescript', archetype: 'cli' },
+  { id: 'yargs', name: 'Yargs', language: 'typescript', archetype: 'cli' },
   { id: 'tauri', name: 'Tauri', language: 'typescript', archetype: 'desktop' },
+  { id: 'electron', name: 'Electron', language: 'typescript', archetype: 'desktop' },
+  { id: 'qt', name: 'Qt', language: 'cpp', archetype: 'desktop' },
+  { id: 'flutter', name: 'Flutter', language: 'kotlin', archetype: 'desktop' },
   // Python
   { id: 'fastapi', name: 'FastAPI', language: 'python', archetype: 'backend' },
   { id: 'flask', name: 'Flask', language: 'python', archetype: 'backend' },
   { id: 'django', name: 'Django', language: 'python', archetype: 'backend' },
   { id: 'click', name: 'Click', language: 'python', archetype: 'cli' },
+  { id: 'argparse', name: 'argparse', language: 'python', archetype: 'cli' },
   // Rust
   { id: 'axum', name: 'Axum', language: 'rust', archetype: 'backend' },
   { id: 'actix', name: 'Actix', language: 'rust', archetype: 'backend' },
@@ -89,8 +96,22 @@ const FRAMEWORKS: FrameworkOption[] = [
   { id: 'spring-boot', name: 'Spring Boot', language: 'java', archetype: 'backend' },
   // C#
   { id: 'aspnet-core', name: 'ASP.NET Core', language: 'csharp', archetype: 'backend' },
+  // Ruby
+  { id: 'rails', name: 'Ruby on Rails', language: 'ruby', archetype: 'backend' },
+  // PHP
+  { id: 'laravel', name: 'Laravel', language: 'php', archetype: 'backend' },
   // Mobile
   { id: 'react-native', name: 'React Native', language: 'typescript', archetype: 'mobile' },
+  { id: 'jetpack-compose', name: 'Jetpack Compose', language: 'kotlin', archetype: 'mobile' },
+  // Game
+  { id: 'phaser', name: 'Phaser', language: 'typescript', archetype: 'game' },
+  { id: 'pixijs', name: 'PixiJS', language: 'typescript', archetype: 'game' },
+  { id: 'unity', name: 'Unity', language: 'csharp', archetype: 'game' },
+  { id: 'godot-mono', name: 'Godot Mono', language: 'csharp', archetype: 'game' },
+  { id: 'sdl2', name: 'SDL2', language: 'cpp', archetype: 'game' },
+  { id: 'sfml', name: 'SFML', language: 'cpp', archetype: 'game' },
+  { id: 'bevy', name: 'Bevy', language: 'rust', archetype: 'game' },
+  { id: 'macroquad', name: 'Macroquad', language: 'rust', archetype: 'game' },
 ];
 
 const DATABASES: { id: Database; name: string }[] = [

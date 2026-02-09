@@ -19,7 +19,11 @@ import type {
 } from '../types.js';
 import { FRAMEWORK_MAP, getCompatibleFrameworks } from '../matrices/frameworks.js';
 import { getOrmsForStack } from '../matrices/databases.js';
-import { isLanguageCompatible, getLanguagesForArchetype } from '../matrices/archetypes.js';
+import {
+  isLanguageCompatible,
+  getLanguagesForArchetype,
+  getFrameworksForArchetype,
+} from '../matrices/archetypes.js';
 import { languageSupportsRuntime, getRuntimesForLanguage } from '../matrices/languages.js';
 
 // ============================================================================
@@ -282,6 +286,47 @@ export const REQUIREMENT_RULES: readonly RequirementRule[] = [
     when: { framework: 'tauri' },
     requires: { language: 'rust' },
     reason: 'Tauri backend is written in Rust',
+  },
+  // Game framework constraints
+  {
+    when: { framework: 'bevy' },
+    requires: { language: 'rust' },
+    reason: 'Bevy is a Rust game engine',
+  },
+  {
+    when: { framework: 'macroquad' },
+    requires: { language: 'rust' },
+    reason: 'Macroquad is a Rust framework',
+  },
+  {
+    when: { framework: 'phaser' },
+    requires: { language: 'typescript' },
+    reason: 'Phaser uses TypeScript',
+  },
+  {
+    when: { framework: 'pixijs' },
+    requires: { language: 'typescript' },
+    reason: 'PixiJS uses TypeScript',
+  },
+  {
+    when: { framework: 'unity' },
+    requires: { language: 'csharp' },
+    reason: 'Unity scripting uses C#',
+  },
+  {
+    when: { framework: 'godot-mono' },
+    requires: { language: 'csharp' },
+    reason: 'Godot Mono uses C#',
+  },
+  {
+    when: { framework: 'sdl2' },
+    requires: { language: 'cpp' },
+    reason: 'SDL2 is a C/C++ library',
+  },
+  {
+    when: { framework: 'sfml' },
+    requires: { language: 'cpp' },
+    reason: 'SFML is a C++ library',
   },
 ];
 
@@ -701,7 +746,9 @@ export function validateConstraints(
   // Validate framework-archetype compatibility
   if (framework && archetype && framework !== 'none') {
     const frameworkEntry = FRAMEWORK_MAP.get(framework);
-    if (frameworkEntry && frameworkEntry.archetype !== archetype) {
+    const archetypeFrameworks = getFrameworksForArchetype(archetype);
+    const inArchetypeList = archetypeFrameworks.includes(framework);
+    if (frameworkEntry && frameworkEntry.archetype !== archetype && !inArchetypeList) {
       errors.push(
         `Framework '${framework}' is for archetype '${frameworkEntry.archetype}', not '${archetype}'`
       );

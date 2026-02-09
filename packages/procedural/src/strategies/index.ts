@@ -46,8 +46,59 @@ export { CppStrategy } from './systems/cpp.js';
 export { JavaSpringStrategy } from './backend/java.js';
 export { CSharpApiStrategy } from './backend/csharp.js';
 
+// Additional backend strategies (Ruby, PHP)
+export { RailsStrategy } from './backend/ruby.js';
+export { LaravelStrategy } from './backend/php.js';
+
+// CLI strategies (TypeScript, Python)
+export {
+  CliStrategies,
+  CommanderStrategy,
+  YargsStrategy,
+  ClickStrategy,
+  ArgparseStrategy,
+} from './cli/index.js';
+
 // Mobile strategies
 export { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
+export { JetpackComposeStrategy } from './mobile/android.js';
+
+// Desktop strategies
+export {
+  DesktopStrategies,
+  ElectronStrategy,
+  TauriStrategy,
+  QtStrategy,
+  FlutterStrategy,
+} from './desktop/index.js';
+
+// Library strategies
+export {
+  LibraryStrategies,
+  TypeScriptLibraryStrategy,
+  PythonLibraryStrategy,
+  RustLibraryStrategy,
+  GoLibraryStrategy,
+  JavaLibraryStrategy,
+  KotlinLibraryStrategy,
+  CSharpLibraryStrategy,
+  CppLibraryStrategy,
+  RubyGemStrategy,
+  PhpLibraryStrategy,
+} from './library/index.js';
+
+// Game strategies
+export {
+  GameStrategies,
+  PhaserStrategy,
+  PixiJSStrategy,
+  UnityStrategy,
+  GodotMonoStrategy,
+  SDL2Strategy,
+  SFMLStrategy,
+  BevyStrategy,
+  MacroquadStrategy,
+} from './game/index.js';
 
 import { CommonStrategies } from './common/index.js';
 import { ApiStrategies } from './api/index.js';
@@ -55,7 +106,14 @@ import { WebStrategies } from './web/index.js';
 import { CppStrategy } from './systems/cpp.js';
 import { JavaSpringStrategy } from './backend/java.js';
 import { CSharpApiStrategy } from './backend/csharp.js';
+import { RailsStrategy } from './backend/ruby.js';
+import { LaravelStrategy } from './backend/php.js';
+import { CliStrategies } from './cli/index.js';
 import { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
+import { JetpackComposeStrategy } from './mobile/android.js';
+import { DesktopStrategies } from './desktop/index.js';
+import { LibraryStrategies } from './library/index.js';
+import { GameStrategies } from './game/index.js';
 import type { GenerationStrategy } from '../types.js';
 
 /**
@@ -71,9 +129,21 @@ export const AllStrategies: GenerationStrategy[] = [
   // Tier 3: Enterprise (Java, C#)
   JavaSpringStrategy,
   CSharpApiStrategy,
+  // Backend: Ruby, PHP
+  RailsStrategy,
+  LaravelStrategy,
+  // CLI: TypeScript (Commander, Yargs), Python (Click, Argparse)
+  ...CliStrategies,
   // Tier 4: Mobile
   ExpoStrategy,
   SwiftUIStrategy,
+  JetpackComposeStrategy,
+  // Desktop: Electron, Tauri, Qt, Flutter
+  ...DesktopStrategies,
+  // Library: All languages
+  ...LibraryStrategies,
+  // Game: Phaser, PixiJS, Unity, Godot, SDL2, SFML, Bevy, Macroquad
+  ...GameStrategies,
 ];
 
 /**

@@ -28,6 +28,7 @@ export {
   CLI_FRAMEWORKS,
   DESKTOP_FRAMEWORKS,
   MOBILE_FRAMEWORKS,
+  GAME_FRAMEWORKS,
   getFrameworksByArchetype,
   getFrameworksByLanguage,
   getCompatibleFrameworks,

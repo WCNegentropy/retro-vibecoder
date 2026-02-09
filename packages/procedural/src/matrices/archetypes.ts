@@ -11,6 +11,7 @@ import {
   CLI_FRAMEWORKS,
   DESKTOP_FRAMEWORKS,
   MOBILE_FRAMEWORKS,
+  GAME_FRAMEWORKS,
 } from './frameworks.js';
 
 /**
@@ -71,7 +72,7 @@ export const ARCHETYPES: readonly ArchetypeEntry[] = [
     id: 'desktop',
     name: 'Desktop App',
     description: 'Cross-platform desktop application',
-    compatibleLanguages: ['typescript', 'rust', 'cpp'],
+    compatibleLanguages: ['typescript', 'rust', 'cpp', 'kotlin'],
     frameworks: DESKTOP_FRAMEWORKS,
   },
   {
@@ -98,7 +99,7 @@ export const ARCHETYPES: readonly ArchetypeEntry[] = [
     name: 'Game',
     description: 'Video game or interactive experience',
     compatibleLanguages: ['typescript', 'csharp', 'cpp', 'rust'],
-    frameworks: [],
+    frameworks: GAME_FRAMEWORKS,
   },
 ] as const;
 
