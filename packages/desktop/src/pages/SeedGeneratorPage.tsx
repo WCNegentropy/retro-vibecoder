@@ -56,7 +56,7 @@ function SeedGeneratorPage() {
 
   const handlePreview = useCallback(async () => {
     if (!seed) return;
-    setStatus('Previewing seed ' + seed + '...', 0);
+    setStatus(`Previewing seed ${seed}...`, 0);
     const result = await preview({
       mode: 'procedural',
       seed: parseInt(seed, 10),
@@ -75,7 +75,7 @@ function SeedGeneratorPage() {
   const handleGenerate = useCallback(async () => {
     if (!seed) return;
     setGenerationResult(null);
-    setStatus('Generating from seed ' + seed + '...', 0);
+    setStatus(`Generating from seed ${seed}...`, 0);
     const result = await generate({
       mode: 'procedural',
       seed: parseInt(seed, 10),

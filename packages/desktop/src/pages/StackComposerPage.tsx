@@ -203,7 +203,7 @@ function StackComposerPage() {
       packaging,
     };
 
-    setStatus('Generating ' + archetype + ' project...', 0);
+    setStatus(`Generating ${archetype} project...`, 0);
     const result = await generate({
       mode: 'procedural',
       seed: generatedSeed,
