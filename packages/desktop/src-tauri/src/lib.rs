@@ -623,6 +623,7 @@ struct CLIPreviewResponse {
 #[derive(Debug, Clone, Deserialize)]
 struct CLIPreviewData {
     seed: u64,
+    #[allow(dead_code)]
     id: String,
     stack: serde_json::Value,
     files: std::collections::HashMap<String, String>,
