@@ -541,7 +541,10 @@ export async function seedAction(
       if (!validation.valid) {
         if (isJson) {
           console.log(
-            JSON.stringify({ success: false, error: validation.errors.join('; ') || 'Invalid constraints specified' })
+            JSON.stringify({
+              success: false,
+              error: validation.errors.join('; ') || 'Invalid constraints specified',
+            })
           );
           process.exit(1);
         } else {
