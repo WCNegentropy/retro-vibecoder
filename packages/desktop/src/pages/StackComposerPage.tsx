@@ -75,6 +75,9 @@ const FRAMEWORKS: FrameworkOption[] = [
   { id: 'commander', name: 'Commander', language: 'typescript', archetype: 'cli' },
   { id: 'yargs', name: 'Yargs', language: 'typescript', archetype: 'cli' },
   { id: 'tauri', name: 'Tauri', language: 'typescript', archetype: 'desktop' },
+  { id: 'electron', name: 'Electron', language: 'typescript', archetype: 'desktop' },
+  { id: 'qt', name: 'Qt', language: 'cpp', archetype: 'desktop' },
+  { id: 'flutter', name: 'Flutter', language: 'kotlin', archetype: 'desktop' },
   // Python
   { id: 'fastapi', name: 'FastAPI', language: 'python', archetype: 'backend' },
   { id: 'flask', name: 'Flask', language: 'python', archetype: 'backend' },

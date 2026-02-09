@@ -63,6 +63,15 @@ export {
 export { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 export { JetpackComposeStrategy } from './mobile/android.js';
 
+// Desktop strategies
+export {
+  DesktopStrategies,
+  ElectronStrategy,
+  TauriStrategy,
+  QtStrategy,
+  FlutterStrategy,
+} from './desktop/index.js';
+
 import { CommonStrategies } from './common/index.js';
 import { ApiStrategies } from './api/index.js';
 import { WebStrategies } from './web/index.js';
@@ -74,6 +83,7 @@ import { LaravelStrategy } from './backend/php.js';
 import { CliStrategies } from './cli/index.js';
 import { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 import { JetpackComposeStrategy } from './mobile/android.js';
+import { DesktopStrategies } from './desktop/index.js';
 import type { GenerationStrategy } from '../types.js';
 
 /**
@@ -98,6 +108,8 @@ export const AllStrategies: GenerationStrategy[] = [
   ExpoStrategy,
   SwiftUIStrategy,
   JetpackComposeStrategy,
+  // Desktop: Electron, Tauri, Qt, Flutter
+  ...DesktopStrategies,
 ];
 
 /**

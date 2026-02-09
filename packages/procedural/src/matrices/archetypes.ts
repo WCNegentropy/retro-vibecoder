@@ -71,7 +71,7 @@ export const ARCHETYPES: readonly ArchetypeEntry[] = [
     id: 'desktop',
     name: 'Desktop App',
     description: 'Cross-platform desktop application',
-    compatibleLanguages: ['typescript', 'rust', 'cpp'],
+    compatibleLanguages: ['typescript', 'rust', 'cpp', 'kotlin'],
     frameworks: DESKTOP_FRAMEWORKS,
   },
   {

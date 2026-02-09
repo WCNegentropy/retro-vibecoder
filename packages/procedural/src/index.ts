@@ -134,6 +134,11 @@ export {
   ClickStrategy,
   ArgparseStrategy,
   JetpackComposeStrategy,
+  DesktopStrategies,
+  ElectronStrategy,
+  TauriStrategy,
+  QtStrategy,
+  FlutterStrategy,
 } from './strategies/index.js';
 
 // Renderer

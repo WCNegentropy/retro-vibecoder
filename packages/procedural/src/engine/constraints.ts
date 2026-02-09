@@ -19,7 +19,11 @@ import type {
 } from '../types.js';
 import { FRAMEWORK_MAP, getCompatibleFrameworks } from '../matrices/frameworks.js';
 import { getOrmsForStack } from '../matrices/databases.js';
-import { isLanguageCompatible, getLanguagesForArchetype } from '../matrices/archetypes.js';
+import {
+  isLanguageCompatible,
+  getLanguagesForArchetype,
+  getFrameworksForArchetype,
+} from '../matrices/archetypes.js';
 import { languageSupportsRuntime, getRuntimesForLanguage } from '../matrices/languages.js';
 
 // ============================================================================
@@ -701,7 +705,9 @@ export function validateConstraints(
   // Validate framework-archetype compatibility
   if (framework && archetype && framework !== 'none') {
     const frameworkEntry = FRAMEWORK_MAP.get(framework);
-    if (frameworkEntry && frameworkEntry.archetype !== archetype) {
+    const archetypeFrameworks = getFrameworksForArchetype(archetype);
+    const inArchetypeList = archetypeFrameworks.includes(framework);
+    if (frameworkEntry && frameworkEntry.archetype !== archetype && !inArchetypeList) {
       errors.push(
         `Framework '${framework}' is for archetype '${frameworkEntry.archetype}', not '${archetype}'`
       );

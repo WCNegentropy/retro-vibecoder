@@ -290,6 +290,14 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
     defaultBuildTool: 'vite',
     defaultTesting: 'vitest',
   },
+  {
+    id: 'qt',
+    name: 'Qt',
+    language: 'cpp',
+    archetype: 'desktop',
+    defaultBuildTool: 'cmake',
+    defaultTesting: 'vitest',
+  },
 
   // Mobile Frameworks
   {
