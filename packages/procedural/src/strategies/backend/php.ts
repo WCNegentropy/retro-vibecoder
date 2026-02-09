@@ -31,10 +31,10 @@ export const LaravelStrategy: GenerationStrategy = {
       'fakerphp/faker': '^1.23',
       'laravel/pint': '^1.13',
       'laravel/sail': '^1.26',
-      mockery: '^1.6',
-      nunomaduro: '^2.0',
-      pestphp: '^2.0',
-      phpunit: '^10.5',
+      'mockery/mockery': '^1.6',
+      'nunomaduro/collision': '^2.0',
+      'pestphp/pest': '^2.0',
+      'phpunit/phpunit': '^10.5',
     };
 
     if (stack.database === 'postgres') {
