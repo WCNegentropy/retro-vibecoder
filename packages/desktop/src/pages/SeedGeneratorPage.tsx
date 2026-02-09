@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Preview from '../components/Preview';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import { useSettings } from '../hooks/useSettings';
+import { useStatus } from '../hooks/useStatus';
 import type { TechStack, GenerationResult } from '../types';
 
 /**
@@ -24,6 +25,7 @@ function SeedGeneratorPage() {
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
   const { settings, isLoaded: settingsLoaded } = useSettings();
+  const { setStatus } = useStatus();
 
   // Apply persisted settings as defaults once loaded
   useEffect(() => {
@@ -54,6 +56,7 @@ function SeedGeneratorPage() {
 
   const handlePreview = useCallback(async () => {
     if (!seed) return;
+    setStatus('Previewing seed ' + seed + '...', 0);
     const result = await preview({
       mode: 'procedural',
       seed: parseInt(seed, 10),
@@ -62,12 +65,17 @@ function SeedGeneratorPage() {
     if (result) {
       setPreviewStack(result.stack || null);
       setPreviewFiles(result.files || {});
+      const fileCount = Object.keys(result.files || {}).length;
+      setStatus(`✓ Preview: ${fileCount} files from seed ${seed}`);
+    } else {
+      setStatus('Preview failed');
     }
-  }, [seed, outputPath, preview]);
+  }, [seed, outputPath, preview, setStatus]);
 
   const handleGenerate = useCallback(async () => {
     if (!seed) return;
     setGenerationResult(null);
+    setStatus('Generating from seed ' + seed + '...', 0);
     const result = await generate({
       mode: 'procedural',
       seed: parseInt(seed, 10),
@@ -75,8 +83,15 @@ function SeedGeneratorPage() {
     });
     if (result) {
       setGenerationResult(result);
+      if (result.success) {
+        setStatus(`✓ Generated ${result.files_generated.length} files in ${result.duration_ms}ms`);
+      } else {
+        setStatus('Generation failed');
+      }
+    } else {
+      setStatus('Generation failed');
     }
-  }, [seed, outputPath, generate]);
+  }, [seed, outputPath, generate, setStatus]);
 
   return (
     <div className="page seed-generator-page">

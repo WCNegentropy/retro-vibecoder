@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import { useSettings } from '../hooks/useSettings';
+import { useStatus } from '../hooks/useStatus';
 import type { TechStack, Archetype, Language, Database, CICD, Packaging } from '../types';
 
 /**
@@ -127,6 +128,7 @@ function StackComposerPage() {
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
   const { settings, isLoaded: settingsLoaded } = useSettings();
+  const { setStatus } = useStatus();
 
   // Apply persisted settings as defaults once loaded
   useEffect(() => {
@@ -141,7 +143,12 @@ function StackComposerPage() {
         setLanguage(settings.defaultLanguage as Language);
       }
     }
-  }, [settingsLoaded, settings.defaultOutputDir, settings.defaultArchetype, settings.defaultLanguage]);
+  }, [
+    settingsLoaded,
+    settings.defaultOutputDir,
+    settings.defaultArchetype,
+    settings.defaultLanguage,
+  ]);
 
   // Filter languages based on selected archetype
   const availableLanguages = useMemo(() => {
@@ -196,12 +203,18 @@ function StackComposerPage() {
       packaging,
     };
 
-    await generate({
+    setStatus('Generating ' + archetype + ' project...', 0);
+    const result = await generate({
       mode: 'procedural',
       seed: generatedSeed,
       stack,
       output_path: outputPath,
     });
+    if (result?.success) {
+      setStatus(`✓ Generated ${result.files_generated.length} files in ${result.duration_ms}ms`);
+    } else {
+      setStatus('Generation failed');
+    }
   };
 
   const handlePreview = async () => {
@@ -216,12 +229,19 @@ function StackComposerPage() {
       packaging,
     };
 
-    await preview({
+    setStatus('Previewing stack...', 0);
+    const result = await preview({
       mode: 'procedural',
       seed: generatedSeed,
       stack,
       output_path: outputPath,
     });
+    if (result) {
+      const fileCount = Object.keys(result.files || {}).length;
+      setStatus(`✓ Preview: ${fileCount} files`);
+    } else {
+      setStatus('Preview failed');
+    }
   };
 
   return (
@@ -463,8 +483,7 @@ function StackComposerPage() {
               {language || 'typescript'} --framework {framework || 'express'}
               {database !== 'none' ? ` --database ${database}` : ''}
               {cicd !== 'none' ? ` --cicd ${cicd}` : ''}
-              {packaging !== 'none' ? ` --packaging ${packaging}` : ''}
-              {' '}--output {outputPath}
+              {packaging !== 'none' ? ` --packaging ${packaging}` : ''} --output {outputPath}
             </span>
           </div>
         </div>

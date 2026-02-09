@@ -294,7 +294,7 @@ function SettingsPage() {
       </div>
 
       {/* About Section */}
-      <section className="win95-window" style={{ marginTop: '24px' }}>
+      <section id="about-upg" className="win95-window" style={{ marginTop: '24px' }}>
         <div className="win95-window-title">
           <span className="win95-window-title-icon">?</span>
           About UPG Desktop
