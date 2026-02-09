@@ -61,7 +61,7 @@ const CLI_COMMANDS: CLICommand[] = [
         flag: '--archetype',
         description: 'Force specific archetype',
         type: 'select',
-        choices: ['web', 'backend', 'cli', 'mobile', 'desktop', 'library'],
+        choices: ['web', 'backend', 'cli', 'mobile', 'desktop', 'library', 'game'],
       },
       {
         flag: '--language',
