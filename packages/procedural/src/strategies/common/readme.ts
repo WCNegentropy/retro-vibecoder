@@ -143,7 +143,8 @@ swift test
 \`\`\``;
 
     case 'ruby':
-      return `\`\`\`bash
+      if (stack.framework === 'rails') {
+        return `\`\`\`bash
 # Install dependencies
 bundle install
 
@@ -153,14 +154,37 @@ bundle exec rails server
 # Run tests
 bundle exec rspec
 \`\`\``;
+      }
+      return `\`\`\`bash
+# Install dependencies
+bundle install
+
+# Run the application
+ruby main.rb
+
+# Run tests
+bundle exec rspec
+\`\`\``;
 
     case 'php':
-      return `\`\`\`bash
+      if (stack.framework === 'laravel') {
+        return `\`\`\`bash
 # Install dependencies
 composer install
 
 # Run the application
 php artisan serve
+
+# Run tests
+./vendor/bin/phpunit
+\`\`\``;
+      }
+      return `\`\`\`bash
+# Install dependencies
+composer install
+
+# Run the application
+php -S localhost:8000
 
 # Run tests
 ./vendor/bin/phpunit

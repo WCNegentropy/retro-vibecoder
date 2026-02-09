@@ -243,7 +243,11 @@ ENTRYPOINT ["dotnet", "${projectName}.dll"]
 `;
 }
 
-function generateRubyDockerfile(_stack: TechStack, _projectName: string): string {
+function generateRubyDockerfile(stack: TechStack, _projectName: string): string {
+  const cmd =
+    stack.framework === 'rails'
+      ? '["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]'
+      : '["ruby", "main.rb"]';
   return `FROM ruby:3.2-slim
 
 WORKDIR /app
@@ -261,11 +265,15 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
+CMD ${cmd}
 `;
 }
 
-function generatePhpDockerfile(_stack: TechStack, _projectName: string): string {
+function generatePhpDockerfile(stack: TechStack, _projectName: string): string {
+  const cmd =
+    stack.framework === 'laravel'
+      ? '["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]'
+      : '["php", "-S", "0.0.0.0:8000", "-t", "public"]';
   return `FROM php:8.2-fpm
 
 WORKDIR /app
@@ -289,7 +297,7 @@ RUN composer dump-autoload --optimize
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ${cmd}
 `;
 }
 
