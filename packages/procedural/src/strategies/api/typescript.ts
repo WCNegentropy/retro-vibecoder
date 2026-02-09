@@ -31,6 +31,32 @@ function buildTemplateContext(
 }
 
 /**
+ * Apply rendered template files, filtering for TypeScript or JavaScript.
+ * Skips JS-only files for TS projects and vice versa.
+ */
+function applyRenderedFiles(
+  files: Record<string, string>,
+  rendered: Record<string, string>,
+  isTypeScript: boolean
+): void {
+  for (const [path, content] of Object.entries(rendered)) {
+    if (isTypeScript) {
+      // Skip JS-only files
+      if (path === 'src/index.mjs' || path === 'jsconfig.json') continue;
+    } else {
+      // Skip TS-only files
+      if (path === 'src/index.ts' || path === 'tsconfig.json' || path === 'tsup.config.ts') continue;
+      // Rename test file for JS
+      if (path === 'src/index.test.ts') {
+        files['src/index.test.mjs'] = content;
+        continue;
+      }
+    }
+    files[path] = content;
+  }
+}
+
+/**
  * Express.js backend strategy
  * Supports both TypeScript and JavaScript
  */
@@ -53,22 +79,7 @@ export const ExpressStrategy: GenerationStrategy = {
     if (templateSetId) {
       const rendered = renderTemplateSet(templateSetId, templateCtx);
       if (Object.keys(rendered).length > 0) {
-        // Apply rendered templates - pick correct files based on TS/JS
-        for (const [path, content] of Object.entries(rendered)) {
-          if (isTypeScript) {
-            // Skip JS-only files
-            if (path === 'src/index.mjs' || path === 'jsconfig.json') continue;
-          } else {
-            // Skip TS-only files
-            if (path === 'src/index.ts' || path === 'tsconfig.json' || path === 'tsup.config.ts') continue;
-            // Rename test file for JS
-            if (path === 'src/index.test.ts') {
-              files['src/index.test.mjs'] = content;
-              continue;
-            }
-          }
-          files[path] = content;
-        }
+        applyRenderedFiles(files, rendered, isTypeScript);
 
         // Add database setup if needed (not templated yet)
         if (stack.orm === 'prisma' && stack.database !== 'none') {
@@ -293,18 +304,7 @@ export const FastifyStrategy: GenerationStrategy = {
     if (templateSetId) {
       const rendered = renderTemplateSet(templateSetId, templateCtx);
       if (Object.keys(rendered).length > 0) {
-        for (const [path, content] of Object.entries(rendered)) {
-          if (isTypeScript) {
-            if (path === 'src/index.mjs' || path === 'jsconfig.json') continue;
-          } else {
-            if (path === 'src/index.ts' || path === 'tsconfig.json' || path === 'tsup.config.ts') continue;
-            if (path === 'src/index.test.ts') {
-              files['src/index.test.mjs'] = content;
-              continue;
-            }
-          }
-          files[path] = content;
-        }
+        applyRenderedFiles(files, rendered, isTypeScript);
 
         if (stack.orm === 'prisma' && stack.database !== 'none') {
           addPrismaSetup(files, projectName, stack.database, isTypeScript);

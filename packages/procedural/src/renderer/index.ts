@@ -58,7 +58,8 @@ function resolveTemplatesDir(): string {
   }
 
   throw new Error(
-    'Could not find templates/procedural directory. ' +
+    'Could not find templates/procedural directory. Checked: ' +
+    candidates.join(', ') + '. ' +
     'Ensure you are running from the monorepo root or the templates are installed.'
   );
 }
