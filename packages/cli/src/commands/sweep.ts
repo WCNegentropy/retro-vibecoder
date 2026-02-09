@@ -512,11 +512,10 @@ export async function seedAction(
   if (isNaN(seed) || seed < 1) {
     if (isJson) {
       console.log(JSON.stringify({ success: false, error: 'Seed must be a positive integer' }));
-      process.exit(1);
     } else {
       console.error(pc.red('Error: Seed must be a positive integer'));
-      process.exit(1);
     }
+    process.exit(1);
   }
 
   const spinner = isJson ? null : ora('Generating project...').start();
