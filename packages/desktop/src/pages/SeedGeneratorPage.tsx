@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Preview from '../components/Preview';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
+import { useSettings } from '../hooks/useSettings';
 import type { TechStack, GenerationResult } from '../types';
 
 /**
@@ -22,6 +23,16 @@ function SeedGeneratorPage() {
   const [generationResult, setGenerationResult] = useState<GenerationResult | null>(null);
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
+  const { settings, isLoaded: settingsLoaded } = useSettings();
+
+  // Apply persisted settings as defaults once loaded
+  useEffect(() => {
+    if (settingsLoaded) {
+      if (settings.defaultOutputDir) {
+        setOutputPath(settings.defaultOutputDir);
+      }
+    }
+  }, [settingsLoaded, settings.defaultOutputDir]);
 
   // Handle seed from URL query param
   useEffect(() => {

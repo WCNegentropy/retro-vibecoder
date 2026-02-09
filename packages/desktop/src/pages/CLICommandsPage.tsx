@@ -1,11 +1,5 @@
 import { useState, useCallback } from 'react';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
-}
+import { isTauri } from '../hooks/useTauriGenerate';
 
 /**
  * CLI execution result from Tauri backend

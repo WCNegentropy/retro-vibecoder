@@ -1,12 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
-}
+import { isTauri } from '../hooks/useTauriGenerate';
 
 /**
  * Windows 95 style window chrome with RGB animated border

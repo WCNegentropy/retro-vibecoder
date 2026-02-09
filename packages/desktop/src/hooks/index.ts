@@ -3,3 +3,4 @@
  */
 
 export { useTauriGenerate } from './useTauriGenerate';
+export { useSettings } from './useSettings';

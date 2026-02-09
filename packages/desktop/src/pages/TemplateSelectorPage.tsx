@@ -1,13 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isTauri } from '../hooks/useTauriGenerate';
 import type { TemplateEntry } from '../types';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
-}
 
 /** Result from template generation */
 interface TemplateGenerationResult {
