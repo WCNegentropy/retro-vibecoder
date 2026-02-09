@@ -15,6 +15,8 @@
 
 import pc from 'picocolors';
 import ora from 'ora';
+import { writeFile, readFile, mkdir } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
 import type { Archetype, Language, Framework } from '@retro-vibecoder/procedural';
 
 interface SweepOptions {
@@ -229,9 +231,6 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
 
         // Write output to file if specified (skip in dry-run mode)
         if (options.output && !options.dryRun) {
-          const { writeFile, mkdir } = await import('node:fs/promises');
-          const { join, dirname } = await import('node:path');
-
           const outputDir = join(options.output, project.id);
           await mkdir(outputDir, { recursive: true });
 
@@ -425,9 +424,6 @@ async function saveToRegistry(
   }>,
   registryPath: string
 ): Promise<string> {
-  const { writeFile, readFile, mkdir } = await import('node:fs/promises');
-  const { dirname } = await import('node:path');
-
   // Ensure registry directory exists
   await mkdir(dirname(registryPath), { recursive: true });
 
@@ -609,9 +605,6 @@ export async function seedAction(
 
     if (isJson) {
       if (options.output) {
-        const { writeFile, mkdir } = await import('node:fs/promises');
-        const { join, dirname } = await import('node:path');
-
         const outputDir = options.output;
         await mkdir(outputDir, { recursive: true });
 
@@ -668,9 +661,6 @@ export async function seedAction(
 
     // Write output if specified
     if (options.output) {
-      const { writeFile, mkdir } = await import('node:fs/promises');
-      const { join, dirname } = await import('node:path');
-
       const outputDir = options.output;
       await mkdir(outputDir, { recursive: true });
 

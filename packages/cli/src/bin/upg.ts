@@ -9,6 +9,7 @@
 
 import { Command } from 'commander';
 import pc from 'picocolors';
+import { writeFile } from 'fs/promises';
 import { version } from '../../package.json';
 import { validateAction } from '../commands/validate.js';
 import { generateAction } from '../commands/generate.js';
@@ -106,7 +107,6 @@ export function createCli(): Command {
 
       if (result.success) {
         if (options.output) {
-          const { writeFile } = await import('fs/promises');
           await writeFile(options.output, result.content);
           console.log(`Documentation written to ${options.output}`);
         } else {
