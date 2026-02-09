@@ -110,15 +110,20 @@ fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), Stri
         let binary_name = format!("upg-{}", target);
 
         let binary_path = resource_dir.join(&binary_name);
+        let bundled_binary_path = resource_dir.join("binaries").join(&binary_name);
 
-        if !binary_path.exists() {
-            return Err(format!(
-                "CLI binary not found: {:?}. This is a packaging error.",
-                binary_path
-            ));
+        if binary_path.exists() {
+            return Ok((binary_path.to_string_lossy().to_string(), vec![]));
         }
 
-        Ok((binary_path.to_string_lossy().to_string(), vec![]))
+        if bundled_binary_path.exists() {
+            return Ok((bundled_binary_path.to_string_lossy().to_string(), vec![]));
+        }
+
+        Err(format!(
+            "CLI binary not found: {:?} or {:?}. This is a packaging error.",
+            binary_path, bundled_binary_path
+        ))
     }
 }
 
