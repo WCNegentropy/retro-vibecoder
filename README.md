@@ -1,4 +1,4 @@
-## ⚠️ IMPORTANT NOTICE (January 27, 2026)
+## IMPORTANT NOTICE (January 27, 2026)
 
 **This project is currently undergoing critical remediation.** 
 
