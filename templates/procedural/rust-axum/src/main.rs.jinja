@@ -1,0 +1,68 @@
+use axum::{
+    routing::get,
+    Json, Router,
+};
+use serde::Serialize;
+use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+#[derive(Serialize)]
+struct HealthResponse {
+    status: String,
+    timestamp: String,
+}
+
+#[derive(Serialize)]
+struct ApiResponse {
+    message: String,
+}
+
+async fn health_check() -> Json<HealthResponse> {
+    Json(HealthResponse {
+        status: "ok".to_string(),
+        timestamp: chrono::Utc::now().to_rfc3339(),
+    })
+}
+
+async fn root() -> Json<ApiResponse> {
+    Json(ApiResponse {
+        message: "Welcome to {{ projectName }} API".to_string(),
+    })
+}
+
+#[tokio::main]
+async fn main() {
+    // Initialize tracing
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    // Build router
+    let app = Router::new()
+        .route("/health", get(health_check))
+        .route("/api", get(root))
+        .layer(CorsLayer::permissive())
+        .layer(TraceLayer::new_for_http());
+
+    // Run server
+    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 8080));
+    tracing::info!("Listening on {}", addr);
+
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_health_check() {
+        let response = health_check().await;
+        assert_eq!(response.0.status, "ok");
+    }
+}

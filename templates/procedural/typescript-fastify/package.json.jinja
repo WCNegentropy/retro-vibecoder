@@ -1,0 +1,38 @@
+{
+  "name": "{{ projectName }}",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+{%- if isTypeScript %}
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+{%- else %}
+    "dev": "node --watch src/index.mjs",
+    "start": "node src/index.mjs",
+    "test": "vitest",
+    "lint": "eslint src/"
+{%- endif %}
+  },
+  "dependencies": {
+    "fastify": "^4.25.0",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1"
+  },
+  "devDependencies": {
+{%- if isTypeScript %}
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0",
+    "eslint": "^8.56.0"
+{%- else %}
+    "vitest": "^1.2.0",
+    "eslint": "^8.56.0"
+{%- endif %}
+  }
+}

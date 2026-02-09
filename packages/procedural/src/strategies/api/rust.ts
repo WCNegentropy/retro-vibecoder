@@ -2,9 +2,33 @@
  * Rust Backend Strategies
  *
  * Generates Rust backend projects (Axum, Actix).
+ * Tier 1 stacks (Axum) load templates from templates/procedural/.
  */
 
 import type { GenerationStrategy } from '../../types.js';
+import { renderTemplateSet, getTemplateSetId, type TemplateContext } from '../../renderer/index.js';
+
+/**
+ * Build a TemplateContext from the generation context
+ */
+function buildTemplateContext(
+  projectName: string,
+  stack: { language: string; database: string; orm: string; framework: string; archetype: string; runtime: string; transport: string; packaging: string; cicd: string }
+): TemplateContext {
+  return {
+    projectName,
+    isTypeScript: false,
+    database: stack.database,
+    orm: stack.orm,
+    framework: stack.framework,
+    archetype: stack.archetype,
+    language: stack.language,
+    runtime: stack.runtime,
+    transport: stack.transport,
+    packaging: stack.packaging,
+    cicd: stack.cicd,
+  };
+}
 
 /**
  * Axum backend strategy
@@ -18,6 +42,27 @@ export const AxumStrategy: GenerationStrategy = {
     stack.language === 'rust' && stack.archetype === 'backend' && stack.framework === 'axum',
 
   apply: async ({ files, projectName, stack }) => {
+    const templateCtx = buildTemplateContext(projectName, stack);
+
+    // Try to load from Nunjucks templates
+    const templateSetId = getTemplateSetId(stack.archetype, stack.language, stack.framework);
+    if (templateSetId) {
+      const rendered = renderTemplateSet(templateSetId, templateCtx);
+      if (Object.keys(rendered).length > 0) {
+        for (const [path, content] of Object.entries(rendered)) {
+          files[path] = content;
+        }
+
+        // Add database setup if needed (not yet templated)
+        if (stack.database !== 'none' && stack.database !== 'mongodb') {
+          addSqlxSetup(files, stack.database, projectName);
+        }
+
+        return;
+      }
+    }
+
+    // Fallback: inline generation (original code)
     // Cargo.toml
     const dependencies: string[] = [
       'axum = "0.7"',

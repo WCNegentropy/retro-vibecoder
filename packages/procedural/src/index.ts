@@ -128,6 +128,14 @@ export {
   CobraStrategy,
 } from './strategies/index.js';
 
+// Renderer
+export {
+  renderTemplateSet,
+  getTemplateSetId,
+  hasTemplateSet,
+  type TemplateContext,
+} from './renderer/index.js';
+
 // Sweeper
 export {
   Sweeper,
