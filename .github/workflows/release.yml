@@ -51,7 +51,7 @@ jobs:
         run: pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        continue-on-error: true  # Don't fail release if npm publish fails (e.g., version already exists)
+        continue-on-error: true # Don't fail release if npm publish fails (e.g., version already exists)
 
   # Build CLI sidecar binary for each platform
   build-cli-binary:

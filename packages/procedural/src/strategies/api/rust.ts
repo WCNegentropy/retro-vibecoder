@@ -13,7 +13,17 @@ import { renderTemplateSet, getTemplateSetId, type TemplateContext } from '../..
  */
 function buildTemplateContext(
   projectName: string,
-  stack: { language: string; database: string; orm: string; framework: string; archetype: string; runtime: string; transport: string; packaging: string; cicd: string }
+  stack: {
+    language: string;
+    database: string;
+    orm: string;
+    framework: string;
+    archetype: string;
+    runtime: string;
+    transport: string;
+    packaging: string;
+    cicd: string;
+  }
 ): TemplateContext {
   return {
     projectName,

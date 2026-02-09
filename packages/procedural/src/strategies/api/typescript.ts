@@ -13,7 +13,17 @@ import { renderTemplateSet, getTemplateSetId, type TemplateContext } from '../..
  */
 function buildTemplateContext(
   projectName: string,
-  stack: { language: string; database: string; orm: string; framework: string; archetype: string; runtime: string; transport: string; packaging: string; cicd: string }
+  stack: {
+    language: string;
+    database: string;
+    orm: string;
+    framework: string;
+    archetype: string;
+    runtime: string;
+    transport: string;
+    packaging: string;
+    cicd: string;
+  }
 ): TemplateContext {
   return {
     projectName,
@@ -45,7 +55,8 @@ function applyRenderedFiles(
       if (path === 'src/index.mjs' || path === 'jsconfig.json') continue;
     } else {
       // Skip TS-only files
-      if (path === 'src/index.ts' || path === 'tsconfig.json' || path === 'tsup.config.ts') continue;
+      if (path === 'src/index.ts' || path === 'tsconfig.json' || path === 'tsup.config.ts')
+        continue;
       // Rename test file for JS
       if (path === 'src/index.test.ts') {
         files['src/index.test.mjs'] = content;

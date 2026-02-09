@@ -13,7 +13,17 @@ import { renderTemplateSet, getTemplateSetId, type TemplateContext } from '../..
  */
 function buildTemplateContext(
   projectName: string,
-  stack: { language: string; database: string; orm: string; framework: string; archetype: string; runtime: string; transport: string; packaging: string; cicd: string }
+  stack: {
+    language: string;
+    database: string;
+    orm: string;
+    framework: string;
+    archetype: string;
+    runtime: string;
+    transport: string;
+    packaging: string;
+    cicd: string;
+  }
 ): TemplateContext {
   return {
     projectName,
@@ -54,7 +64,11 @@ export const FastAPIStrategy: GenerationStrategy = {
         }
 
         // Add SQLAlchemy models if using SQL database (not yet templated)
-        if (stack.orm === 'sqlalchemy' && stack.database !== 'none' && stack.database !== 'mongodb') {
+        if (
+          stack.orm === 'sqlalchemy' &&
+          stack.database !== 'none' &&
+          stack.database !== 'mongodb'
+        ) {
           addSQLAlchemySetup(files, stack.database);
         }
 

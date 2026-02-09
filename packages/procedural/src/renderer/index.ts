@@ -59,8 +59,9 @@ function resolveTemplatesDir(): string {
 
   throw new Error(
     'Could not find templates/procedural directory. Checked: ' +
-    candidates.join(', ') + '. ' +
-    'Ensure you are running from the monorepo root or the templates are installed.'
+      candidates.join(', ') +
+      '. ' +
+      'Ensure you are running from the monorepo root or the templates are installed.'
   );
 }
 
@@ -96,7 +97,8 @@ function renderTemplate(template: string, context: TemplateContext): string {
 function processConditionals(template: string, context: TemplateContext): string {
   // Match outermost {% if %} ... {% endif %} blocks
   // Handles whitespace control: {%- trims leading whitespace, -%} trims trailing whitespace
-  const ifPattern = /[ \t]*\{%-?\s*if\s+(.+?)\s*-?%\}[ \t]*\n?([\s\S]*?)[ \t]*\{%-?\s*endif\s*-?%\}[ \t]*\n?/g;
+  const ifPattern =
+    /[ \t]*\{%-?\s*if\s+(.+?)\s*-?%\}[ \t]*\n?([\s\S]*?)[ \t]*\{%-?\s*endif\s*-?%\}[ \t]*\n?/g;
 
   let result = template;
   let lastResult = '';
@@ -147,11 +149,17 @@ function splitConditionalBody(body: string): {
   const elifPattern = /[ \t]*\{%-?\s*elif\s+(.+?)\s*-?%\}[ \t]*\n?/g;
   const elsePattern = /[ \t]*\{%-?\s*else\s*-?%\}[ \t]*\n?/g;
 
-  const markers: Array<{ type: 'elif' | 'else'; index: number; end: number; condition?: string }> = [];
+  const markers: Array<{ type: 'elif' | 'else'; index: number; end: number; condition?: string }> =
+    [];
 
   let match;
   while ((match = elifPattern.exec(body)) !== null) {
-    markers.push({ type: 'elif', index: match.index, end: match.index + match[0].length, condition: match[1].trim() });
+    markers.push({
+      type: 'elif',
+      index: match.index,
+      end: match.index + match[0].length,
+      condition: match[1].trim(),
+    });
   }
   while ((match = elsePattern.exec(body)) !== null) {
     markers.push({ type: 'else', index: match.index, end: match.index + match[0].length });
@@ -249,12 +257,19 @@ function applyFilter(value: string, filterExpr: string): string {
 
   // Handle slug
   if (filterExpr === 'slug') {
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 
   // Handle snake
   if (filterExpr === 'snake') {
-    return value.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    return value
+      .replace(/([a-z])([A-Z])/g, '$1_$2')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
   }
 
   return value;
@@ -329,7 +344,11 @@ export function renderTemplateSet(
  * Get the template set ID for a given stack combination.
  * Maps (archetype, language, framework) to a template directory name.
  */
-export function getTemplateSetId(_archetype: string, language: string, framework: string): string | null {
+export function getTemplateSetId(
+  _archetype: string,
+  language: string,
+  framework: string
+): string | null {
   // Map specific combinations to template set directories
   const key = `${language}-${framework}`;
 
