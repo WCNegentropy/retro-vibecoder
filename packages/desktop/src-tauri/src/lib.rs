@@ -110,6 +110,11 @@ fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), Stri
         let binary_name = format!("upg-{}", target);
 
         let binary_path = resource_dir.join(&binary_name);
+        let binary_path = if binary_path.exists() {
+            binary_path
+        } else {
+            resource_dir.join("binaries").join(&binary_name)
+        };
 
         if !binary_path.exists() {
             return Err(format!(

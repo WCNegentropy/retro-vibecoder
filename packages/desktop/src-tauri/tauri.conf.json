@@ -38,11 +38,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": [
-      { "src": "../../../registry", "target": "registry" },
-      { "src": "../../../templates", "target": "templates" },
-      { "src": "binaries/upg-*", "target": "" }
-    ]
+    "resources": ["../../../registry", "../../../templates", "binaries/upg-*"]
   },
   "plugins": {}
 }
