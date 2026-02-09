@@ -503,16 +503,22 @@ export async function seedAction(
     archetype?: string;
     language?: string;
     framework?: string;
+    json?: boolean;
   }
 ): Promise<void> {
   const seed = parseInt(seedStr, 10);
+  const isJson = options.json ?? false;
 
   if (isNaN(seed) || seed < 1) {
+    if (isJson) {
+      console.log(JSON.stringify({ success: false, error: 'Seed must be a positive integer' }));
+      process.exit(1);
+    }
     console.error(pc.red('Error: Seed must be a positive integer'));
     process.exit(1);
   }
 
-  const spinner = ora('Generating project...').start();
+  const spinner = isJson ? null : ora('Generating project...').start();
 
   try {
     const {
@@ -533,7 +539,15 @@ export async function seedAction(
       );
 
       if (!validation.valid) {
-        spinner.fail('Invalid constraints specified');
+        if (isJson) {
+          console.log(
+            JSON.stringify({ success: false, error: validation.errors.join('; ') || 'Invalid constraints specified' })
+          );
+          process.exit(1);
+        }
+        if (spinner) {
+          spinner.fail('Invalid constraints specified');
+        }
         console.error();
         for (const error of validation.errors) {
           console.error(pc.red(`  ✗ ${error}`));
@@ -583,7 +597,39 @@ export async function seedAction(
 
     const project = await assembler.generate();
 
-    spinner.stop();
+    if (spinner) {
+      spinner.stop();
+    }
+
+    const files = Object.keys(project.files).sort();
+
+    if (isJson) {
+      if (options.output) {
+        const { writeFile, mkdir } = await import('node:fs/promises');
+        const { join, dirname } = await import('node:path');
+
+        const outputDir = options.output;
+        await mkdir(outputDir, { recursive: true });
+
+        for (const [filePath, content] of Object.entries(project.files)) {
+          const fullPath = join(outputDir, filePath);
+          await mkdir(dirname(fullPath), { recursive: true });
+          await writeFile(fullPath, content, 'utf-8');
+        }
+      }
+
+      console.log(
+        JSON.stringify({
+          success: true,
+          seed,
+          id: project.id,
+          stack: project.stack,
+          files_generated: files,
+          output_path: options.output ?? '',
+        })
+      );
+      return;
+    }
 
     console.log();
     console.log(pc.bold(pc.green(`✓ Generated: ${project.id}`)));
@@ -612,7 +658,6 @@ export async function seedAction(
     console.log();
     console.log(pc.bold('Generated Files:'));
 
-    const files = Object.keys(project.files).sort();
     for (const file of files) {
       console.log(pc.dim(`  ${file}`));
     }
@@ -664,10 +709,15 @@ export async function seedAction(
       }
     }
   } catch (error) {
-    spinner.fail('Generation failed');
-
     // Enhanced error message
     const errorMsg = error instanceof Error ? error.message : String(error);
+    if (isJson) {
+      console.log(JSON.stringify({ success: false, error: errorMsg }));
+      process.exit(1);
+    }
+    if (spinner) {
+      spinner.fail('Generation failed');
+    }
     console.error(pc.red(`Error: ${errorMsg}`));
 
     // Provide suggestions based on the error

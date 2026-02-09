@@ -86,6 +86,20 @@ describe('CLI seed command E2E', () => {
     expect(files.length).toBeGreaterThan(0);
   });
 
+  it('should output JSON when --json is set', async () => {
+    const outputDir = join(tmpDir, 'json-generated-project');
+
+    const result = runCli(['seed', '42', '--output', outputDir, '--json']);
+
+    expect(result.exitCode).toBe(0);
+
+    const payload = JSON.parse(result.stdout.trim());
+    expect(payload.success).toBe(true);
+    expect(payload.output_path).toBe(outputDir);
+    expect(Array.isArray(payload.files_generated)).toBe(true);
+    expect(payload.files_generated.length).toBeGreaterThan(0);
+  });
+
   it('should create anchor files based on the generated stack', async () => {
     const outputDir = join(tmpDir, 'generated-with-anchors');
 

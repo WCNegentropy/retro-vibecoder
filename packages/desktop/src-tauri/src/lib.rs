@@ -5,6 +5,7 @@
 //! resource (not sidecar), executed via std::process::Command from a single Rust function.
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -138,6 +139,7 @@ fn build_cli_args(
         seed.to_string(),
         "--output".to_string(),
         output_path.to_string(),
+        "--json".to_string(),
     ];
 
     // Add stack constraints if provided
@@ -209,7 +211,8 @@ fn list_files_recursive(dir: &PathBuf) -> Vec<String> {
 /// Resolve output path to an absolute path
 /// If relative, resolves against the user's home directory or current directory
 fn resolve_output_path(output_path: &str, app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let path = PathBuf::from(output_path);
+    let cleaned = output_path.strip_prefix("./").unwrap_or(output_path);
+    let path = PathBuf::from(cleaned);
 
     if path.is_absolute() {
         return Ok(path);
@@ -218,12 +221,12 @@ fn resolve_output_path(output_path: &str, app: &tauri::AppHandle) -> Result<Path
     // For relative paths, resolve against user's home directory or document directory
     // This gives users a predictable location for their generated projects
     if let Ok(home_dir) = app.path().home_dir() {
-        return Ok(home_dir.join(output_path));
+        return Ok(home_dir.join(cleaned));
     }
 
     // Fallback: resolve against current directory
     std::env::current_dir()
-        .map(|cwd| cwd.join(output_path))
+        .map(|cwd| cwd.join(cleaned))
         .map_err(|e| format!("Failed to resolve output path: {}", e))
 }
 
@@ -268,7 +271,54 @@ async fn generate_project(
 
             let duration_ms = start.elapsed().as_millis() as u64;
 
-            if success {
+            if let Ok(response) = serde_json::from_str::<Value>(&stdout) {
+                let cli_success = response
+                    .get("success")
+                    .and_then(|value| value.as_bool())
+                    .unwrap_or(false);
+
+                let files_generated = response
+                    .get("files_generated")
+                    .and_then(|value| value.as_array())
+                    .map(|files| {
+                        files
+                            .iter()
+                            .filter_map(|file| file.as_str().map(String::from))
+                            .collect::<Vec<String>>()
+                    })
+                    .unwrap_or_default();
+
+                if cli_success {
+                    let message = format!(
+                        "Generated {} files for seed {} in {}ms",
+                        files_generated.len(),
+                        seed,
+                        duration_ms
+                    );
+
+                    Ok(GenerationResult {
+                        success: true,
+                        message,
+                        files_generated,
+                        output_path: resolved_output_str,
+                        duration_ms,
+                    })
+                } else {
+                    let error_msg = response
+                        .get("error")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("Generation failed")
+                        .to_string();
+
+                    Ok(GenerationResult {
+                        success: false,
+                        message: error_msg,
+                        files_generated: vec![],
+                        output_path: resolved_output_str,
+                        duration_ms,
+                    })
+                }
+            } else if success {
                 // List generated files from the output directory
                 let files_generated = if resolved_output.exists() {
                     list_files_recursive(&resolved_output)
