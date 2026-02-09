@@ -42,10 +42,10 @@ const LANGUAGES: { id: Language; name: string; archetypes: Archetype[] }[] = [
   {
     id: 'typescript',
     name: 'TypeScript',
-    archetypes: ['backend', 'web', 'cli', 'library', 'desktop'],
+    archetypes: ['backend', 'web', 'cli', 'library', 'desktop', 'game'],
   },
   { id: 'python', name: 'Python', archetypes: ['backend', 'cli', 'library'] },
-  { id: 'rust', name: 'Rust', archetypes: ['backend', 'cli', 'library', 'desktop'] },
+  { id: 'rust', name: 'Rust', archetypes: ['backend', 'cli', 'library', 'desktop', 'game'] },
   { id: 'go', name: 'Go', archetypes: ['backend', 'cli', 'library'] },
   { id: 'java', name: 'Java', archetypes: ['backend', 'library', 'mobile'] },
   { id: 'csharp', name: 'C#', archetypes: ['backend', 'library', 'desktop', 'game'] },
@@ -103,6 +103,15 @@ const FRAMEWORKS: FrameworkOption[] = [
   // Mobile
   { id: 'react-native', name: 'React Native', language: 'typescript', archetype: 'mobile' },
   { id: 'jetpack-compose', name: 'Jetpack Compose', language: 'kotlin', archetype: 'mobile' },
+  // Game
+  { id: 'phaser', name: 'Phaser', language: 'typescript', archetype: 'game' },
+  { id: 'pixijs', name: 'PixiJS', language: 'typescript', archetype: 'game' },
+  { id: 'unity', name: 'Unity', language: 'csharp', archetype: 'game' },
+  { id: 'godot-mono', name: 'Godot Mono', language: 'csharp', archetype: 'game' },
+  { id: 'sdl2', name: 'SDL2', language: 'cpp', archetype: 'game' },
+  { id: 'sfml', name: 'SFML', language: 'cpp', archetype: 'game' },
+  { id: 'bevy', name: 'Bevy', language: 'rust', archetype: 'game' },
+  { id: 'macroquad', name: 'Macroquad', language: 'rust', archetype: 'game' },
 ];
 
 const DATABASES: { id: Database; name: string }[] = [

@@ -14,6 +14,7 @@ import type {
   CliFramework,
   DesktopFramework,
   MobileFramework,
+  GameFramework,
   BuildTool,
   TestingFramework,
   FrameworkEntry,
@@ -332,6 +333,72 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
     defaultBuildTool: 'gradle',
     defaultTesting: 'junit',
   },
+
+  // Game Frameworks
+  {
+    id: 'phaser',
+    name: 'Phaser',
+    language: 'typescript',
+    archetype: 'game',
+    defaultBuildTool: 'vite',
+    defaultTesting: 'vitest',
+  },
+  {
+    id: 'pixijs',
+    name: 'PixiJS',
+    language: 'typescript',
+    archetype: 'game',
+    defaultBuildTool: 'vite',
+    defaultTesting: 'vitest',
+  },
+  {
+    id: 'unity',
+    name: 'Unity',
+    language: 'csharp',
+    archetype: 'game',
+    defaultBuildTool: 'make',
+    defaultTesting: 'xunit',
+  },
+  {
+    id: 'godot-mono',
+    name: 'Godot Mono',
+    language: 'csharp',
+    archetype: 'game',
+    defaultBuildTool: 'make',
+    defaultTesting: 'xunit',
+  },
+  {
+    id: 'sdl2',
+    name: 'SDL2',
+    language: 'cpp',
+    archetype: 'game',
+    defaultBuildTool: 'cmake',
+    defaultTesting: 'vitest',
+  },
+  {
+    id: 'sfml',
+    name: 'SFML',
+    language: 'cpp',
+    archetype: 'game',
+    defaultBuildTool: 'cmake',
+    defaultTesting: 'vitest',
+  },
+  {
+    id: 'bevy',
+    name: 'Bevy',
+    language: 'rust',
+    archetype: 'game',
+    defaultBuildTool: 'cargo',
+    defaultTesting: 'rust-test',
+  },
+  {
+    id: 'macroquad',
+    name: 'Macroquad',
+    language: 'rust',
+    archetype: 'game',
+    defaultBuildTool: 'cargo',
+    defaultTesting: 'rust-test',
+  },
 ] as const;
 
 /**
@@ -444,4 +511,18 @@ export const MOBILE_FRAMEWORKS: readonly MobileFramework[] = [
   'flutter',
   'swiftui',
   'jetpack-compose',
+];
+
+/**
+ * Game framework IDs
+ */
+export const GAME_FRAMEWORKS: readonly GameFramework[] = [
+  'phaser',
+  'pixijs',
+  'unity',
+  'godot-mono',
+  'sdl2',
+  'sfml',
+  'bevy',
+  'macroquad',
 ];

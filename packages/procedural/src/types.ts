@@ -68,6 +68,17 @@ export type DesktopFramework = 'tauri' | 'electron' | 'flutter' | 'qt';
 /** Mobile frameworks */
 export type MobileFramework = 'react-native' | 'flutter' | 'swiftui' | 'jetpack-compose';
 
+/** Game frameworks/engines */
+export type GameFramework =
+  | 'phaser'
+  | 'pixijs'
+  | 'unity'
+  | 'godot-mono'
+  | 'sdl2'
+  | 'sfml'
+  | 'bevy'
+  | 'macroquad';
+
 /** All framework types union */
 export type Framework =
   | WebFramework
@@ -75,7 +86,8 @@ export type Framework =
   | CliFramework
   | DesktopFramework
   | MobileFramework
-  | 'none'; // For library/game archetypes or languages without framework support
+  | GameFramework
+  | 'none'; // For library archetypes or languages without framework support
 
 /** Database types */
 export type Database =

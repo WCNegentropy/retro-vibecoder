@@ -287,6 +287,47 @@ export const REQUIREMENT_RULES: readonly RequirementRule[] = [
     requires: { language: 'rust' },
     reason: 'Tauri backend is written in Rust',
   },
+  // Game framework constraints
+  {
+    when: { framework: 'bevy' },
+    requires: { language: 'rust' },
+    reason: 'Bevy is a Rust game engine',
+  },
+  {
+    when: { framework: 'macroquad' },
+    requires: { language: 'rust' },
+    reason: 'Macroquad is a Rust framework',
+  },
+  {
+    when: { framework: 'phaser' },
+    requires: { language: 'typescript' },
+    reason: 'Phaser uses TypeScript',
+  },
+  {
+    when: { framework: 'pixijs' },
+    requires: { language: 'typescript' },
+    reason: 'PixiJS uses TypeScript',
+  },
+  {
+    when: { framework: 'unity' },
+    requires: { language: 'csharp' },
+    reason: 'Unity scripting uses C#',
+  },
+  {
+    when: { framework: 'godot-mono' },
+    requires: { language: 'csharp' },
+    reason: 'Godot Mono uses C#',
+  },
+  {
+    when: { framework: 'sdl2' },
+    requires: { language: 'cpp' },
+    reason: 'SDL2 is a C/C++ library',
+  },
+  {
+    when: { framework: 'sfml' },
+    requires: { language: 'cpp' },
+    reason: 'SFML is a C++ library',
+  },
 ];
 
 // ============================================================================

@@ -76,6 +76,7 @@ export {
   CLI_FRAMEWORKS,
   DESKTOP_FRAMEWORKS,
   MOBILE_FRAMEWORKS,
+  GAME_FRAMEWORKS,
   getFrameworksByArchetype,
   getFrameworksByLanguage,
   getCompatibleFrameworks,
@@ -150,6 +151,15 @@ export {
   CppLibraryStrategy,
   RubyGemStrategy,
   PhpLibraryStrategy,
+  GameStrategies,
+  PhaserStrategy,
+  PixiJSStrategy,
+  UnityStrategy,
+  GodotMonoStrategy,
+  SDL2Strategy,
+  SFMLStrategy,
+  BevyStrategy,
+  MacroquadStrategy,
 } from './strategies/index.js';
 
 // Renderer

@@ -87,6 +87,19 @@ export {
   PhpLibraryStrategy,
 } from './library/index.js';
 
+// Game strategies
+export {
+  GameStrategies,
+  PhaserStrategy,
+  PixiJSStrategy,
+  UnityStrategy,
+  GodotMonoStrategy,
+  SDL2Strategy,
+  SFMLStrategy,
+  BevyStrategy,
+  MacroquadStrategy,
+} from './game/index.js';
+
 import { CommonStrategies } from './common/index.js';
 import { ApiStrategies } from './api/index.js';
 import { WebStrategies } from './web/index.js';
@@ -100,6 +113,7 @@ import { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 import { JetpackComposeStrategy } from './mobile/android.js';
 import { DesktopStrategies } from './desktop/index.js';
 import { LibraryStrategies } from './library/index.js';
+import { GameStrategies } from './game/index.js';
 import type { GenerationStrategy } from '../types.js';
 
 /**
@@ -128,6 +142,8 @@ export const AllStrategies: GenerationStrategy[] = [
   ...DesktopStrategies,
   // Library: All languages
   ...LibraryStrategies,
+  // Game: Phaser, PixiJS, Unity, Godot, SDL2, SFML, Bevy, Macroquad
+  ...GameStrategies,
 ];
 
 /**
