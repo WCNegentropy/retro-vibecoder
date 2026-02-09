@@ -38,12 +38,11 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/upg"],
-    "resources": ["../../../registry", "../../../templates"]
+    "resources": [
+      "../../../registry",
+      "../../../templates",
+      { "src": "binaries/upg-*", "target": "" }
+    ]
   },
-  "plugins": {
-    "shell": {
-      "open": true
-    }
-  }
+  "plugins": {}
 }

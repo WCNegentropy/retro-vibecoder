@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { isTauri } from '../hooks/useTauriGenerate';
 
 /**
  * Settings Page
@@ -8,6 +9,9 @@ import { useState, useEffect } from 'react';
  * - Theme preferences
  * - Generation defaults
  * - Output directory preferences
+ *
+ * Settings are persisted via Tauri's store plugin (electron-store equivalent).
+ * Falls back to localStorage when running outside Tauri (dev browser mode).
  */
 
 interface Settings {
@@ -24,10 +28,6 @@ interface Settings {
   autoPreview: boolean;
   verboseOutput: boolean;
 
-  // CLI Integration
-  cliPath: string;
-  nodeRuntime: 'node' | 'bun' | 'deno';
-
   // Validation
   autoValidate: boolean;
   validationTimeout: number;
@@ -43,26 +43,58 @@ const DEFAULT_SETTINGS: Settings = {
   defaultLanguage: '',
   autoPreview: true,
   verboseOutput: false,
-  cliPath: 'upg',
-  nodeRuntime: 'node',
   autoValidate: false,
   validationTimeout: 300,
 };
+
+/**
+ * Load settings — uses Tauri store in desktop, localStorage in browser
+ */
+async function loadSettings(): Promise<Settings> {
+  if (isTauri()) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const all = await invoke<Record<string, unknown>>('get_all_settings');
+      if (all && typeof all === 'object') {
+        return { ...DEFAULT_SETTINGS, ...(all as Partial<Settings>) };
+      }
+    } catch {
+      // Fall through to defaults
+    }
+  } else {
+    const stored = localStorage.getItem('upg-settings');
+    if (stored) {
+      try {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      } catch {
+        // Ignore invalid JSON
+      }
+    }
+  }
+  return DEFAULT_SETTINGS;
+}
+
+/**
+ * Save settings — uses Tauri store in desktop, localStorage in browser
+ */
+async function saveSettings(settings: Settings): Promise<void> {
+  if (isTauri()) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    for (const [key, value] of Object.entries(settings)) {
+      await invoke('set_setting', { key, value });
+    }
+  } else {
+    localStorage.setItem('upg-settings', JSON.stringify(settings));
+  }
+}
 
 function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
 
-  // Load settings from localStorage on mount
+  // Load settings on mount
   useEffect(() => {
-    const stored = localStorage.getItem('upg-settings');
-    if (stored) {
-      try {
-        setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(stored) });
-      } catch {
-        // Ignore invalid JSON
-      }
-    }
+    loadSettings().then(setSettings);
   }, []);
 
   // Apply RGB speed to CSS variable
@@ -109,17 +141,17 @@ function SettingsPage() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    localStorage.setItem('upg-settings', JSON.stringify(settings));
+  const handleSave = useCallback(async () => {
+    await saveSettings(settings);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  };
+  }, [settings]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(async () => {
     setSettings(DEFAULT_SETTINGS);
-    localStorage.removeItem('upg-settings');
+    await saveSettings(DEFAULT_SETTINGS);
     setSaved(false);
-  };
+  }, []);
 
   return (
     <div className="page settings-page">
@@ -278,49 +310,6 @@ function SettingsPage() {
                 />
                 Verbose generation output
               </label>
-            </div>
-          </div>
-        </section>
-
-        {/* CLI Integration */}
-        <section className="win95-window">
-          <div className="win95-window-title">
-            <span className="win95-window-title-icon">&gt;</span>
-            CLI Integration
-          </div>
-          <div className="win95-window-content">
-            <div className="form-group">
-              <label className="form-label" htmlFor="cli-path">
-                CLI Path
-              </label>
-              <input
-                id="cli-path"
-                type="text"
-                className="form-input"
-                value={settings.cliPath}
-                onChange={e => handleChange('cliPath', e.target.value)}
-                placeholder="upg"
-              />
-              <p className="form-help">Path to the UPG CLI executable</p>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="node-runtime">
-                Node.js Runtime
-              </label>
-              <select
-                id="node-runtime"
-                className="form-select"
-                value={settings.nodeRuntime}
-                onChange={e =>
-                  handleChange('nodeRuntime', e.target.value as Settings['nodeRuntime'])
-                }
-              >
-                <option value="node">Node.js</option>
-                <option value="bun">Bun</option>
-                <option value="deno">Deno</option>
-              </select>
-              <p className="form-help">Runtime used for procedural generation engine</p>
             </div>
           </div>
         </section>
