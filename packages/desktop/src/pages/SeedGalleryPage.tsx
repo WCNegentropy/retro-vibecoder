@@ -120,8 +120,16 @@ function SeedGalleryPage() {
     return matchesArchetype && matchesLanguage;
   });
 
-  // Get unique values for filters
-  const archetypes = Array.from(new Set(seeds.map(s => s.stack.archetype)));
+  // Get unique values for filters — always show all archetypes
+  const ALL_ARCHETYPES: Archetype[] = [
+    'backend',
+    'web',
+    'cli',
+    'mobile',
+    'library',
+    'desktop',
+    'game',
+  ];
   const languages = Array.from(new Set(seeds.map(s => s.stack.language)));
 
   const handleUseSeed = (seed: number) => {
@@ -207,7 +215,7 @@ function SeedGalleryPage() {
             onChange={e => setFilterArchetype(e.target.value as Archetype | 'all')}
           >
             <option value="all">All Archetypes</option>
-            {archetypes.map(arch => (
+            {ALL_ARCHETYPES.map(arch => (
               <option key={arch} value={arch}>
                 {arch}
               </option>

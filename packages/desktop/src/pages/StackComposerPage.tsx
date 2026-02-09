@@ -36,6 +36,7 @@ const ARCHETYPES: { id: Archetype; name: string; icon: string; description: stri
   { id: 'mobile', name: 'Mobile App', icon: '#', description: 'iOS/Android applications' },
   { id: 'library', name: 'Library', icon: '@', description: 'Reusable packages and libraries' },
   { id: 'desktop', name: 'Desktop App', icon: '~', description: 'Native desktop applications' },
+  { id: 'game', name: 'Game', icon: '♦', description: 'Games and interactive experiences' },
 ];
 
 const LANGUAGES: { id: Language; name: string; archetypes: Archetype[] }[] = [
@@ -44,16 +45,21 @@ const LANGUAGES: { id: Language; name: string; archetypes: Archetype[] }[] = [
     name: 'TypeScript',
     archetypes: ['backend', 'web', 'cli', 'library', 'desktop', 'game'],
   },
+  {
+    id: 'javascript',
+    name: 'JavaScript',
+    archetypes: ['web', 'backend', 'cli', 'library'],
+  },
   { id: 'python', name: 'Python', archetypes: ['backend', 'cli', 'library'] },
   { id: 'rust', name: 'Rust', archetypes: ['backend', 'cli', 'library', 'desktop', 'game'] },
   { id: 'go', name: 'Go', archetypes: ['backend', 'cli', 'library'] },
   { id: 'java', name: 'Java', archetypes: ['backend', 'library', 'mobile'] },
   { id: 'csharp', name: 'C#', archetypes: ['backend', 'library', 'desktop', 'game'] },
-  { id: 'kotlin', name: 'Kotlin', archetypes: ['backend', 'mobile', 'library'] },
+  { id: 'kotlin', name: 'Kotlin', archetypes: ['backend', 'mobile', 'library', 'desktop'] },
   { id: 'swift', name: 'Swift', archetypes: ['mobile', 'library'] },
   { id: 'cpp', name: 'C++', archetypes: ['library', 'desktop', 'game'] },
-  { id: 'ruby', name: 'Ruby', archetypes: ['backend'] },
-  { id: 'php', name: 'PHP', archetypes: ['backend'] },
+  { id: 'ruby', name: 'Ruby', archetypes: ['backend', 'library'] },
+  { id: 'php', name: 'PHP', archetypes: ['backend', 'library'] },
 ];
 
 interface FrameworkOption {
@@ -102,6 +108,8 @@ const FRAMEWORKS: FrameworkOption[] = [
   { id: 'laravel', name: 'Laravel', language: 'php', archetype: 'backend' },
   // Mobile
   { id: 'react-native', name: 'React Native', language: 'typescript', archetype: 'mobile' },
+  { id: 'flutter', name: 'Flutter', language: 'kotlin', archetype: 'mobile' },
+  { id: 'swiftui', name: 'SwiftUI', language: 'swift', archetype: 'mobile' },
   { id: 'jetpack-compose', name: 'Jetpack Compose', language: 'kotlin', archetype: 'mobile' },
   // Game
   { id: 'phaser', name: 'Phaser', language: 'typescript', archetype: 'game' },
@@ -190,7 +198,7 @@ function StackComposerPage() {
       case 1:
         return language !== null;
       case 2:
-        return framework !== null;
+        return framework !== null || availableFrameworks.length === 0;
       case 3:
         return true;
       case 4:
@@ -198,7 +206,7 @@ function StackComposerPage() {
       default:
         return false;
     }
-  }, [currentStep, archetype, language, framework]);
+  }, [currentStep, archetype, language, framework, availableFrameworks.length]);
 
   const handleNext = () => {
     if (canProceed() && currentStep < WIZARD_STEPS.length - 1) {
@@ -213,12 +221,14 @@ function StackComposerPage() {
   };
 
   const handleGenerate = async () => {
-    if (!archetype || !language || !framework) return;
+    if (!archetype || !language) return;
+
+    const effectiveFramework = framework || 'none';
 
     const stack: Partial<TechStack> = {
       archetype,
       language,
-      framework,
+      framework: effectiveFramework,
       database,
       cicd,
       packaging,
@@ -239,12 +249,14 @@ function StackComposerPage() {
   };
 
   const handlePreview = async () => {
-    if (!archetype || !language || !framework) return;
+    if (!archetype || !language) return;
+
+    const effectiveFramework = framework || 'none';
 
     const stack: Partial<TechStack> = {
       archetype,
       language,
-      framework,
+      framework: effectiveFramework,
       database,
       cicd,
       packaging,
@@ -346,7 +358,9 @@ function StackComposerPage() {
                 </button>
               ))}
               {availableFrameworks.length === 0 && (
-                <p className="no-options">No frameworks available for this combination</p>
+                <p className="no-options">
+                  No framework required for this combination. Click Next to continue.
+                </p>
               )}
             </div>
           )}
@@ -413,7 +427,7 @@ function StackComposerPage() {
                   </div>
                   <div className="summary-item">
                     <span className="label">Framework:</span>
-                    <span className="value">{framework}</span>
+                    <span className="value">{framework || 'none'}</span>
                   </div>
                   {database !== 'none' && (
                     <div className="summary-item">
@@ -501,7 +515,7 @@ function StackComposerPage() {
             <span className="cli-prompt">$</span>
             <span className="cli-text">
               upg seed {generatedSeed} --archetype {archetype || 'backend'} --language{' '}
-              {language || 'typescript'} --framework {framework || 'express'}
+              {language || 'typescript'} --framework {framework || 'none'}
               {database !== 'none' ? ` --database ${database}` : ''}
               {cicd !== 'none' ? ` --cicd ${cicd}` : ''}
               {packaging !== 'none' ? ` --packaging ${packaging}` : ''} --output {outputPath}

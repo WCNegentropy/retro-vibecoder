@@ -297,7 +297,7 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
     language: 'cpp',
     archetype: 'desktop',
     defaultBuildTool: 'cmake',
-    defaultTesting: 'vitest',
+    defaultTesting: 'catch2',
   },
 
   // Mobile Frameworks
@@ -315,7 +315,7 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
     language: 'kotlin', // Dart not yet in our language list, using Kotlin as proxy
     archetype: 'mobile',
     defaultBuildTool: 'gradle',
-    defaultTesting: 'junit',
+    defaultTesting: 'flutter-test',
   },
   {
     id: 'swiftui',
@@ -373,7 +373,7 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
     language: 'cpp',
     archetype: 'game',
     defaultBuildTool: 'cmake',
-    defaultTesting: 'vitest',
+    defaultTesting: 'catch2',
   },
   {
     id: 'sfml',
@@ -381,7 +381,7 @@ export const FRAMEWORKS: readonly FrameworkEntry[] = [
     language: 'cpp',
     archetype: 'game',
     defaultBuildTool: 'cmake',
-    defaultTesting: 'vitest',
+    defaultTesting: 'catch2',
   },
   {
     id: 'bevy',
