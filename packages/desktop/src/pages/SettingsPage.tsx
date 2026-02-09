@@ -304,7 +304,7 @@ function SettingsPage() {
             <h2 style={{ fontFamily: 'var(--font-retro)', fontSize: '18px', marginBottom: '12px' }}>
               Universal Project Generator
             </h2>
-            <p style={{ marginBottom: '8px' }}>Version 0.1.0</p>
+            <p style={{ marginBottom: '8px' }}>Version 0.2.0</p>
             <p style={{ fontSize: '10px', color: 'var(--bevel-dark)', marginBottom: '16px' }}>
               Transform integers into software
             </p>

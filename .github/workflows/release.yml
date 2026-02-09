@@ -318,11 +318,16 @@ jobs:
           npm install -g @retro-vibecoder/cli
           ```
 
-          ### What's New
+          ### What's New in v0.2.0
 
-          - Procedural engine with Nunjucks template rendering
-          - CLI binary embedded as resource (single execution path)
-          - Settings persistence via Tauri store plugin
+          - 40+ generation strategies across 7 archetypes and 12 languages
+          - Full project generation — real, buildable, runnable output
+          - Desktop, Game, Library, and Mobile archetypes fully wired
+          - Interactive Stack Composer with all languages/frameworks exposed
+          - Seed Gallery with sweeper integration
+          - Ruby on Rails, PHP Laravel, Flutter, SwiftUI, Jetpack Compose support
+          - C++ game engine strategies (SDL2, SFML, Unity, Godot)
+          - Rust game engines (Bevy, Macroquad)
           EOF
 
       - name: Create GitHub Release

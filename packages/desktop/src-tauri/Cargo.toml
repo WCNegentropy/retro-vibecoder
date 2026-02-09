@@ -1,6 +1,6 @@
 [package]
 name = "upg-desktop"
-version = "0.1.0"
+version = "0.2.0"
 description = "Universal Project Generator - Desktop Application"
 authors = ["WCNEGENTROPY HOLDINGS LLC"]
 license = "MIT"
