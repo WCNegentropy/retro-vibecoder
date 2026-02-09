@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Lint
@@ -14,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 
@@ -40,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 
@@ -63,7 +67,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 
@@ -79,14 +83,13 @@ jobs:
       - name: Build packages
         run: pnpm build
 
-      - name: Run tests
-        run: pnpm test
+      # Run the real vitest test suite (unit + integration + template validation)
+      - name: Run vitest suite
+        run: pnpm exec vitest run tests/ --config tests/vitest.config.ts
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        if: always()
-        with:
-          files: ./coverage/lcov.info
+      # Run CLI-specific E2E tests
+      - name: Run CLI E2E tests
+        run: pnpm exec vitest run packages/cli/src/__tests__/
 
   build:
     name: Build
@@ -95,7 +98,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 
@@ -119,7 +122,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 

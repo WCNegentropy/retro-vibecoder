@@ -9,6 +9,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use tauri::Manager;
+use tauri_plugin_store::StoreExt;
 
 /// Generation mode for projects
 ///
@@ -1002,31 +1003,20 @@ async fn run_sweeper(
     Ok(entries)
 }
 
-/// Settings value — wraps a JSON value for the store
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SettingsValue {
-    pub value: serde_json::Value,
-}
-
 /// Get a setting from the persistent store
 #[tauri::command]
 async fn get_setting(app: tauri::AppHandle, key: String) -> Result<serde_json::Value, String> {
-    let stores = app.store_builder("settings.json").build();
-    match stores {
-        Ok(store) => {
-            match store.get(&key) {
-                Some(val) => Ok(val.clone()),
-                None => Ok(serde_json::Value::Null),
-            }
-        },
-        Err(e) => Err(format!("Failed to open settings store: {}", e)),
+    let store = app.store("settings.json").map_err(|e| e.to_string())?;
+    match store.get(&key) {
+        Some(val) => Ok(val.clone()),
+        None => Ok(serde_json::Value::Null),
     }
 }
 
 /// Set a setting in the persistent store
 #[tauri::command]
 async fn set_setting(app: tauri::AppHandle, key: String, value: serde_json::Value) -> Result<(), String> {
-    let store = app.store_builder("settings.json").build().map_err(|e| e.to_string())?;
+    let store = app.store("settings.json").map_err(|e| e.to_string())?;
     store.set(&key, value);
     store.save().map_err(|e| format!("Failed to save settings: {}", e))?;
     Ok(())
@@ -1035,7 +1025,7 @@ async fn set_setting(app: tauri::AppHandle, key: String, value: serde_json::Valu
 /// Get all settings from the persistent store
 #[tauri::command]
 async fn get_all_settings(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
-    let store = app.store_builder("settings.json").build().map_err(|e| e.to_string())?;
+    let store = app.store("settings.json").map_err(|e| e.to_string())?;
     let mut settings = serde_json::Map::new();
     for (key, value) in store.entries() {
         settings.insert(key.clone(), value.clone());

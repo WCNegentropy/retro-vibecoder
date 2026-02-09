@@ -1,10 +1,10 @@
-name: Release Desktop App
+name: Release
 
 on:
   push:
     tags:
       - 'v*' # Trigger on version tags (e.g., v0.1.0, v1.0.0)
-  workflow_dispatch: # Allow manual trigger for testing
+  workflow_dispatch:
     inputs:
       release_tag:
         description: 'Tag to release (e.g., v0.1.0). Leave empty to skip release creation.'
@@ -12,30 +12,120 @@ on:
         default: ''
         type: string
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # Build Tauri app for each platform
-  build-tauri:
-    name: Build Tauri (${{ matrix.settings.platform }})
+  # Build and publish CLI to npm
+  publish-cli:
+    name: Publish CLI to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm build
+
+      - name: Publish CLI to npm
+        working-directory: packages/cli
+        run: pnpm publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true  # Don't fail release if npm publish fails (e.g., version already exists)
+
+  # Build CLI sidecar binary for each platform
+  build-cli-binary:
+    name: Build CLI Binary (${{ matrix.settings.artifact_suffix }})
     strategy:
       fail-fast: false
       matrix:
         settings:
-          # Windows x64
+          - platform: windows-latest
+            rust_target: x86_64-pc-windows-msvc
+            artifact_suffix: windows-x64
+
+          - platform: macos-latest
+            rust_target: aarch64-apple-darwin
+            artifact_suffix: macos-arm64
+
+          - platform: ubuntu-latest
+            rust_target: x86_64-unknown-linux-gnu
+            artifact_suffix: linux-x64
+
+    runs-on: ${{ matrix.settings.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm build
+
+      - name: Build UPG CLI binary
+        working-directory: packages/desktop
+        run: node scripts/build-sidecar.mjs ${{ matrix.settings.rust_target }}
+
+      - name: Upload CLI binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-binary-${{ matrix.settings.artifact_suffix }}
+          path: packages/desktop/src-tauri/binaries/upg-*
+          retention-days: 7
+          if-no-files-found: error
+
+  # Build Tauri desktop app with embedded CLI binary
+  build-tauri:
+    name: Build Tauri (${{ matrix.settings.artifact_suffix }})
+    needs: build-cli-binary
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
           - platform: windows-latest
             rust_target: x86_64-pc-windows-msvc
             tauri_args: ''
             artifact_suffix: windows-x64
 
-          # macOS ARM64 (Apple Silicon)
           - platform: macos-latest
             rust_target: aarch64-apple-darwin
             tauri_args: '--target aarch64-apple-darwin'
             artifact_suffix: macos-arm64
 
-          # Linux x64
           - platform: ubuntu-latest
             rust_target: x86_64-unknown-linux-gnu
             tauri_args: ''
@@ -59,9 +149,8 @@ jobs:
             libgtk-3-dev \
             imagemagick
 
-      # Setup Node.js and pnpm
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 
@@ -71,7 +160,6 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
-      # Setup Rust toolchain
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -83,19 +171,22 @@ jobs:
           workspaces: packages/desktop/src-tauri -> target
           cache-on-failure: true
 
-      # Install Node dependencies
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Build all workspace packages (core, procedural, shared, etc.)
       - name: Build workspace packages
         run: pnpm build
 
-      # Build the UPG CLI as a standalone native binary for Tauri sidecar use
-      # Uses esbuild (devDep) to bundle, then @yao-pkg/pkg to compile with Node.js runtime
-      - name: Build UPG CLI sidecar
-        working-directory: packages/desktop
-        run: node scripts/build-sidecar.mjs ${{ matrix.settings.rust_target }}
+      # Download the pre-built CLI binary for this platform
+      - name: Download CLI binary
+        uses: actions/download-artifact@v4
+        with:
+          name: cli-binary-${{ matrix.settings.artifact_suffix }}
+          path: packages/desktop/src-tauri/binaries/
+
+      - name: Make CLI binary executable
+        if: runner.os != 'Windows'
+        run: chmod +x packages/desktop/src-tauri/binaries/upg-*
 
       # Generate app icons if missing
       - name: Generate app icons
@@ -106,50 +197,34 @@ jobs:
             echo "Generating app icons..."
             mkdir -p "$ICONS_DIR"
 
-            # Install ImageMagick if not available
             if [[ "${{ runner.os }}" == "macOS" ]]; then
               brew install imagemagick
             fi
 
-            # Create a 1024x1024 source icon with gradient background and "UPG" text
             if [[ "${{ runner.os }}" == "Windows" ]]; then
-              # Windows: use magick command (ImageMagick is pre-installed)
               magick -size 1024x1024 gradient:'#4F46E5-#7C3AED' \
                 -gravity center -fill white -pointsize 300 -font Arial-Bold \
                 -annotate 0 'UPG' \
                 "$ICONS_DIR/app-icon.png"
             else
-              # Linux/macOS: use convert command
               convert -size 1024x1024 gradient:'#4F46E5-#7C3AED' \
                 -gravity center -fill white -pointsize 300 \
                 -annotate 0 'UPG' \
                 "$ICONS_DIR/app-icon.png"
             fi
 
-            # Generate all icon sizes using Tauri CLI
             cd packages/desktop
             pnpm tauri icon src-tauri/icons/app-icon.png
             rm -f src-tauri/icons/app-icon.png
-
-            echo "Generated icons:"
-            ls -la src-tauri/icons/
-          else
-            echo "Icons already exist, skipping generation"
           fi
 
-      # Bundle procedural bridge script for Tauri resources
-      - name: Bundle procedural bridge
-        working-directory: packages/desktop
-        run: pnpm bundle:bridge
-
-      # Build Tauri application
+      # Build Tauri application (CLI binary is bundled as a resource)
       - name: Build Tauri App
         working-directory: packages/desktop
         run: pnpm tauri build ${{ matrix.settings.tauri_args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Upload Windows artifacts (MSI + NSIS installer)
       - name: Upload Windows artifacts
         if: matrix.settings.platform == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -161,7 +236,6 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      # Upload macOS artifacts (DMG)
       - name: Upload macOS artifacts
         if: startsWith(matrix.settings.platform, 'macos')
         uses: actions/upload-artifact@v4
@@ -172,7 +246,6 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      # Upload Linux artifacts (DEB, AppImage)
       - name: Upload Linux artifacts
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
@@ -184,12 +257,11 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-  # Create GitHub Release with all artifacts
+  # Create GitHub Release with desktop app artifacts
   create-release:
     name: Create Release
-    needs: build-tauri
+    needs: [build-tauri, publish-cli]
     runs-on: ubuntu-latest
-    # Create release when: tag push OR workflow_dispatch with release_tag specified
     if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
 
     permissions:
@@ -205,14 +277,10 @@ jobs:
           pattern: app-*
           merge-multiple: false
 
-      - name: Display artifacts structure
-        run: find artifacts -type f | head -50
-
       - name: Prepare release files
         run: |
           mkdir -p release-files
 
-          # Flatten all platform artifacts into release-files/
           find artifacts -type f \( \
             -name "*.msi" -o \
             -name "*.exe" -o \
@@ -233,7 +301,6 @@ jobs:
             VERSION=${GITHUB_REF#refs/tags/}
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
 
       - name: Generate release notes
         run: |
@@ -244,43 +311,24 @@ jobs:
 
           ### Downloads
 
-          | Platform | Architecture | Format | Notes |
-          |----------|--------------|--------|-------|
-          | Windows | x64 | `.msi`, `.exe` | MSI for enterprise, EXE for personal |
-          | macOS | Apple Silicon | `.dmg` | For M1/M2/M3/M4 Macs (runs on Intel via Rosetta 2) |
-          | Linux | x64 | `.deb`, `.AppImage` | DEB for Debian/Ubuntu, AppImage for all distros |
+          | Platform | Architecture | Format |
+          |----------|--------------|--------|
+          | Windows | x64 | `.msi`, `.exe` |
+          | macOS | Apple Silicon | `.dmg` |
+          | Linux | x64 | `.deb`, `.AppImage` |
 
-          ### Installation
+          ### CLI
 
-          **Windows:**
-          - Download the `.msi` installer for standard installation
-          - Or download the `.exe` (NSIS installer) and run it
+          Install the CLI via npm:
+          ```
+          npm install -g @retro-vibecoder/cli
+          ```
 
-          **macOS:**
-          - Download the `.dmg` for your architecture
-          - Open the DMG and drag UPG Desktop to Applications
-          - On first run, right-click and select "Open" to bypass Gatekeeper
+          ### What's New
 
-          **Linux:**
-          - **Debian/Ubuntu:** `sudo dpkg -i upg-desktop_*.deb`
-          - **AppImage:** `chmod +x UPG*.AppImage && ./UPG*.AppImage`
-
-          ### Features
-
-          - **Procedural Generation:** Generate unique project configurations from numeric seeds
-          - **Stack Composer:** Manually select your tech stack components
-          - **Seed Gallery:** Browse pre-validated seed configurations
-          - **Template Generation:** Use Nunjucks-based UPG manifest templates for standardized projects
-
-          ### Requirements
-
-          - **Windows:** Windows 10 or later
-          - **macOS:** macOS 10.15 (Catalina) or later
-          - **Linux:** Modern distribution with GTK 3 and WebKit2GTK
-
-          ---
-
-          **Full Changelog:** https://github.com/${{ github.repository }}/compare/...v${{ steps.version.outputs.version }}
+          - Procedural engine with Nunjucks template rendering
+          - CLI binary embedded as resource (single execution path)
+          - Settings persistence via Tauri store plugin
           EOF
 
       - name: Create GitHub Release
