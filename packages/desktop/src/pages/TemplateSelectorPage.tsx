@@ -6,7 +6,7 @@ import type { TemplateEntry } from '../types';
  * Check if running in Tauri environment
  */
 function isTauri(): boolean {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
+  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
 }
 
 /** Result from template generation */
