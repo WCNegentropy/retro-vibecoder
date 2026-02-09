@@ -39,8 +39,8 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "../../../registry",
-      "../../../templates",
+      { "src": "../../../registry", "target": "registry" },
+      { "src": "../../../templates", "target": "templates" },
       { "src": "binaries/upg-*", "target": "" }
     ]
   },
