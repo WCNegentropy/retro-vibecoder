@@ -460,7 +460,11 @@ function StackComposerPage() {
             <span className="cli-prompt">$</span>
             <span className="cli-text">
               upg seed {generatedSeed} --archetype {archetype || 'backend'} --language{' '}
-              {language || 'typescript'} --framework {framework || 'express'} --output {outputPath}
+              {language || 'typescript'} --framework {framework || 'express'}
+              {database !== 'none' ? ` --database ${database}` : ''}
+              {cicd !== 'none' ? ` --cicd ${cicd}` : ''}
+              {packaging !== 'none' ? ` --packaging ${packaging}` : ''}
+              {' '}--output {outputPath}
             </span>
           </div>
         </div>

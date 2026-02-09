@@ -89,10 +89,16 @@ export function useSettings(): { settings: Settings; isLoaded: boolean } {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    loadSettings().then(loaded => {
-      setSettings(loaded);
-      setIsLoaded(true);
-    });
+    loadSettings()
+      .then(loaded => {
+        setSettings(loaded);
+      })
+      .catch(() => {
+        // On error, keep DEFAULT_SETTINGS
+      })
+      .finally(() => {
+        setIsLoaded(true);
+      });
   }, []);
 
   return { settings, isLoaded };
