@@ -30,7 +30,7 @@ export function createCli(): Command {
     .version(version)
     .hook('preAction', (_thisCommand, actionCommand) => {
       // Skip disclaimer for preview command (needs clean JSON output)
-      if (actionCommand.name() === 'preview') {
+      if (actionCommand.name() === 'preview' || actionCommand.opts().json) {
         return;
       }
       // Print disclaimer on stderr so it doesn't break piping stdout
@@ -142,6 +142,7 @@ export function createCli(): Command {
     .description('Generate a single project from a seed number')
     .option('-o, --output <path>', 'Output directory for generated project')
     .option('-v, --verbose', 'Show file content previews', false)
+    .option('--json', 'Output machine-readable JSON (for desktop app integration)', false)
     .option('--archetype <type>', 'Force specific archetype')
     .option('--language <lang>', 'Force specific language')
     .option('--framework <fw>', 'Force specific framework')
