@@ -9,7 +9,7 @@ import type { GenerationRequest, GenerationResult, PreviewResult } from '../type
  * Check if running in Tauri environment
  */
 export function isTauri(): boolean {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
+  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
 }
 
 /**
