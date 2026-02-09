@@ -23,8 +23,8 @@ function HomePage() {
       </header>
 
       <section className="mode-selector">
-        {/* Procedural Mode Card - The only supported mode in v1 */}
-        <div className="mode-card mode-card-wide">
+        {/* Procedural Mode Card */}
+        <div className="mode-card">
           <div className="mode-card-header">
             <span className="icon">#</span>
             Procedural Generation
@@ -49,6 +49,31 @@ function HomePage() {
                 <li>Constraint-validated combinations</li>
                 <li>31+ technology strategies (Tier 1-5)</li>
                 <li>Pre-validated seed gallery</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Template Mode Card */}
+        <div className="mode-card">
+          <div className="mode-card-header">
+            <span className="icon">T</span>
+            Template Generation
+          </div>
+          <div className="mode-card-body">
+            <p>Generate projects from UPG manifest templates using Nunjucks</p>
+            <div className="mode-actions">
+              <Link to="/templates" className="btn btn-primary">
+                Browse Templates
+              </Link>
+            </div>
+            <div className="mode-features">
+              <ul>
+                <li>Declarative YAML manifests</li>
+                <li>Nunjucks template engine</li>
+                <li>Custom variables and prompts</li>
+                <li>Tag-based filtering</li>
+                <li>Manifest preview and validation</li>
               </ul>
             </div>
           </div>
