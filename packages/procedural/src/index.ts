@@ -139,6 +139,17 @@ export {
   TauriStrategy,
   QtStrategy,
   FlutterStrategy,
+  LibraryStrategies,
+  TypeScriptLibraryStrategy,
+  PythonLibraryStrategy,
+  RustLibraryStrategy,
+  GoLibraryStrategy,
+  JavaLibraryStrategy,
+  KotlinLibraryStrategy,
+  CSharpLibraryStrategy,
+  CppLibraryStrategy,
+  RubyGemStrategy,
+  PhpLibraryStrategy,
 } from './strategies/index.js';
 
 // Renderer
