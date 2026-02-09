@@ -90,13 +90,18 @@ mod tests {
 `;
 
     // src/types.rs
+    const pascalName = crateName
+      .split('_')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join('');
+
     files['src/types.rs'] = `//! Common types for ${projectName}.
 
 use thiserror::Error;
 
 /// Library error type.
 #[derive(Error, Debug)]
-pub enum ${crateName.charAt(0).toUpperCase() + crateName.slice(1)}Error {
+pub enum ${pascalName}Error {
     /// An unknown error occurred.
     #[error("unknown error: {0}")]
     Unknown(String),

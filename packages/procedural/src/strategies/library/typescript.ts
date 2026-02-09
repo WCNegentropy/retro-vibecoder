@@ -185,11 +185,13 @@ dist/
 `;
 
     // Makefile
+    const buildTarget = isTypeScript ? 'build:\n\t$(NPM) run build\n\n' : '';
+
     files['Makefile'] = `NPM := npm
 
 .PHONY: build test lint format clean
 
-${isTypeScript ? 'build:\n\t$(NPM) run build\n\n' : ''}test:
+${buildTarget}test:
 \t$(NPM) test
 
 lint:
