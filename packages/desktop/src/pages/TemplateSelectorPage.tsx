@@ -1,13 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isTauri } from '../hooks/useTauriGenerate';
+import { useSettings } from '../hooks/useSettings';
+import { useStatus } from '../hooks/useStatus';
 import type { TemplateEntry } from '../types';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
-}
 
 /** Result from template generation */
 interface TemplateGenerationResult {
@@ -39,6 +35,16 @@ function TemplateSelectorPage() {
   const [outputPath, setOutputPath] = useState('./generated-project');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationResult, setGenerationResult] = useState<TemplateGenerationResult | null>(null);
+
+  const { settings, isLoaded: settingsLoaded } = useSettings();
+  const { setStatus } = useStatus();
+
+  // Apply persisted settings as defaults once loaded
+  useEffect(() => {
+    if (settingsLoaded && settings.defaultOutputDir) {
+      setOutputPath(settings.defaultOutputDir);
+    }
+  }, [settingsLoaded, settings.defaultOutputDir]);
 
   // Load templates from Tauri backend on mount
   useEffect(() => {
@@ -103,6 +109,7 @@ function TemplateSelectorPage() {
     setIsGenerating(true);
     setGenerationResult(null);
     setError(null);
+    setStatus(`Generating from template "${selectedTemplate.title}"...`, 0);
 
     try {
       const { invoke } = await import('@tauri-apps/api/core');
@@ -114,13 +121,19 @@ function TemplateSelectorPage() {
         force: false,
       });
       setGenerationResult(result);
+      if (result.success) {
+        setStatus(`✓ Generated ${result.files_generated.length} files in ${result.duration_ms}ms`);
+      } else {
+        setStatus('Template generation failed');
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Template generation failed';
       setError(message);
+      setStatus(`Error: ${message}`);
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedTemplate, outputPath]);
+  }, [selectedTemplate, outputPath, setStatus]);
 
   // Handle viewing manifest content
   const handleViewManifest = useCallback(async () => {

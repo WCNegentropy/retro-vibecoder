@@ -156,6 +156,18 @@ fn build_cli_args(
             args.push("--framework".to_string());
             args.push(framework.clone());
         }
+        if let Some(ref database) = config.database {
+            args.push("--database".to_string());
+            args.push(database.clone());
+        }
+        if let Some(ref packaging) = config.packaging {
+            args.push("--packaging".to_string());
+            args.push(packaging.clone());
+        }
+        if let Some(ref cicd) = config.cicd {
+            args.push("--cicd".to_string());
+            args.push(cicd.clone());
+        }
     }
 
     args

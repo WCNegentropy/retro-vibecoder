@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { isTauri } from '../hooks/useTauriGenerate';
+import { loadSettings, saveSettings, DEFAULT_SETTINGS } from '../hooks/useSettings';
+import type { Settings } from '../hooks/useSettings';
 
 /**
  * Settings Page
@@ -13,80 +14,6 @@ import { isTauri } from '../hooks/useTauriGenerate';
  * Settings are persisted via Tauri's store plugin (electron-store equivalent).
  * Falls back to localStorage when running outside Tauri (dev browser mode).
  */
-
-interface Settings {
-  // Appearance
-  rgbSpeed: number;
-  rgbEnabled: boolean;
-  theme: 'win95' | 'synthwave' | 'terminal';
-  showScanlines: boolean;
-
-  // Generation Defaults
-  defaultOutputDir: string;
-  defaultArchetype: string;
-  defaultLanguage: string;
-  autoPreview: boolean;
-  verboseOutput: boolean;
-
-  // Validation
-  autoValidate: boolean;
-  validationTimeout: number;
-}
-
-const DEFAULT_SETTINGS: Settings = {
-  rgbSpeed: 3,
-  rgbEnabled: true,
-  theme: 'win95',
-  showScanlines: true,
-  defaultOutputDir: './generated-project',
-  defaultArchetype: '',
-  defaultLanguage: '',
-  autoPreview: true,
-  verboseOutput: false,
-  autoValidate: false,
-  validationTimeout: 300,
-};
-
-/**
- * Load settings — uses Tauri store in desktop, localStorage in browser
- */
-async function loadSettings(): Promise<Settings> {
-  if (isTauri()) {
-    try {
-      const { invoke } = await import('@tauri-apps/api/core');
-      const all = await invoke<Record<string, unknown>>('get_all_settings');
-      if (all && typeof all === 'object') {
-        return { ...DEFAULT_SETTINGS, ...(all as Partial<Settings>) };
-      }
-    } catch {
-      // Fall through to defaults
-    }
-  } else {
-    const stored = localStorage.getItem('upg-settings');
-    if (stored) {
-      try {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
-      } catch {
-        // Ignore invalid JSON
-      }
-    }
-  }
-  return DEFAULT_SETTINGS;
-}
-
-/**
- * Save settings — uses Tauri store in desktop, localStorage in browser
- */
-async function saveSettings(settings: Settings): Promise<void> {
-  if (isTauri()) {
-    const { invoke } = await import('@tauri-apps/api/core');
-    for (const [key, value] of Object.entries(settings)) {
-      await invoke('set_setting', { key, value });
-    }
-  } else {
-    localStorage.setItem('upg-settings', JSON.stringify(settings));
-  }
-}
 
 function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -367,7 +294,7 @@ function SettingsPage() {
       </div>
 
       {/* About Section */}
-      <section className="win95-window" style={{ marginTop: '24px' }}>
+      <section id="about-upg" className="win95-window" style={{ marginTop: '24px' }}>
         <div className="win95-window-title">
           <span className="win95-window-title-icon">?</span>
           About UPG Desktop

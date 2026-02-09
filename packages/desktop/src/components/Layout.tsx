@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import WindowChrome from './WindowChrome';
 
@@ -5,10 +6,31 @@ import WindowChrome from './WindowChrome';
  * Main application layout with Windows 95 style navigation sidebar
  */
 function Layout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <WindowChrome title="Universal Project Generator">
       <div className="app-layout">
-        <aside className="sidebar">
+        {/* Hamburger toggle for small windows */}
+        <button
+          type="button"
+          className="sidebar-toggle"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        >
+          {sidebarOpen ? 'X' : '☰'}
+        </button>
+
+        {/* Overlay to close sidebar when clicking outside on mobile */}
+        {sidebarOpen && (
+          <div
+            className="sidebar-overlay"
+            role="presentation"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="logo">
             <h1>UPG</h1>
             <span className="version">v0.1.0</span>
@@ -19,6 +41,7 @@ function Layout() {
             <NavLink
               to="/"
               className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              onClick={() => setSidebarOpen(false)}
             >
               <span className="nav-link-icon">~</span>
               Home
@@ -29,6 +52,7 @@ function Layout() {
               <NavLink
                 to="/seed"
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                onClick={() => setSidebarOpen(false)}
               >
                 <span className="nav-link-icon">#</span>
                 Seed Generator
@@ -36,6 +60,7 @@ function Layout() {
               <NavLink
                 to="/compose"
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                onClick={() => setSidebarOpen(false)}
               >
                 <span className="nav-link-icon">+</span>
                 Stack Composer
@@ -43,6 +68,7 @@ function Layout() {
               <NavLink
                 to="/gallery"
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                onClick={() => setSidebarOpen(false)}
               >
                 <span className="nav-link-icon">@</span>
                 Seed Gallery
@@ -54,6 +80,7 @@ function Layout() {
               <NavLink
                 to="/cli"
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                onClick={() => setSidebarOpen(false)}
               >
                 <span className="nav-link-icon">&gt;</span>
                 CLI Commands
@@ -61,6 +88,7 @@ function Layout() {
               <NavLink
                 to="/settings"
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                onClick={() => setSidebarOpen(false)}
               >
                 <span className="nav-link-icon">*</span>
                 Settings

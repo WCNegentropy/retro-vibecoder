@@ -1,13 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isTauri } from '../hooks/useTauriGenerate';
 import type { SeedEntry, Archetype, Language, Runtime, TechStack } from '../types';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
-}
 
 /**
  * Seed Gallery Page
@@ -65,33 +59,33 @@ function SeedGalleryPage() {
   const [sweeperCount, setSweeperCount] = useState(10);
 
   // Load seeds from registry
-  useEffect(() => {
-    async function loadSeeds() {
-      setIsLoading(true);
-      setError(null);
+  const fetchSeeds = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        if (isTauri()) {
-          const { invoke } = await import('@tauri-apps/api/core');
-          const result = await invoke<SeedEntryResponse[]>('get_seeds');
-          setSeeds(result.map(convertSeedEntry));
-        } else {
-          setError(
-            'Seed gallery requires Tauri environment. Run the desktop app to see real seeds.'
-          );
-          setSeeds([]);
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load seeds';
-        setError(message);
+    try {
+      if (isTauri()) {
+        const { invoke } = await import('@tauri-apps/api/core');
+        const result = await invoke<SeedEntryResponse[]>('get_seeds');
+        setSeeds(result.map(convertSeedEntry));
+      } else {
+        setError(
+          'Seed gallery requires Tauri environment. Run the desktop app to see real seeds.'
+        );
         setSeeds([]);
-      } finally {
-        setIsLoading(false);
       }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load seeds';
+      setError(message);
+      setSeeds([]);
+    } finally {
+      setIsLoading(false);
     }
-
-    loadSeeds();
   }, []);
+
+  useEffect(() => {
+    fetchSeeds();
+  }, [fetchSeeds]);
 
   // Run sweeper to discover new seeds
   const handleRunSweeper = useCallback(async () => {
@@ -105,26 +99,21 @@ function SeedGalleryPage() {
 
     try {
       const { invoke } = await import('@tauri-apps/api/core');
-      const newSeeds = await invoke<SeedEntryResponse[]>('run_sweeper', {
+      await invoke<SeedEntryResponse[]>('run_sweeper', {
         count: sweeperCount,
         startSeed: null,
         validate: false,
       });
 
-      // Add new seeds to the list
-      setSeeds(prev => {
-        const existingIds = new Set(prev.map(s => s.seed));
-        const converted = newSeeds.map(convertSeedEntry);
-        const unique = converted.filter(s => !existingIds.has(s.seed));
-        return [...prev, ...unique];
-      });
+      // Re-fetch the full seed list to pick up newly discovered seeds
+      await fetchSeeds();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sweeper failed';
       setError(message);
     } finally {
       setIsRunningSweeper(false);
     }
-  }, [sweeperCount]);
+  }, [sweeperCount, fetchSeeds]);
 
   // Filter seeds
   const filteredSeeds = seeds.filter(entry => {

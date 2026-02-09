@@ -67,3 +67,4 @@ test-output/
 *.key
 credentials.json
 secrets.json
+packages/desktop/src-tauri/gen/

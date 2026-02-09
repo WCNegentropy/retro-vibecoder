@@ -1,12 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-/**
- * Check if running in Tauri environment
- */
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && ('__TAURI__' in window || 'isTauri' in window);
-}
+import { isTauri } from '../hooks/useTauriGenerate';
+import { useStatus } from '../hooks/useStatus';
 
 /**
  * Windows 95 style window chrome with RGB animated border
@@ -25,6 +20,7 @@ function WindowChrome({ children, title = 'Universal Project Generator' }: Windo
   const [isMaximized, setIsMaximized] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { status } = useStatus();
 
   const handleMinimize = useCallback(async () => {
     if (isTauri()) {
@@ -175,7 +171,19 @@ function WindowChrome({ children, title = 'Universal Project Generator' }: Windo
               </button>
               {activeMenu === 'help' && (
                 <div className="menu-dropdown-content">
-                  <button type="button" onClick={() => handleMenuClick('/settings')}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigate('/settings');
+                      setActiveMenu(null);
+                      // Scroll to the About section after navigation
+                      setTimeout(() => {
+                        document
+                          .getElementById('about-upg')
+                          ?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }}
+                  >
                     About UPG
                   </button>
                 </div>
@@ -190,7 +198,7 @@ function WindowChrome({ children, title = 'Universal Project Generator' }: Windo
 
           {/* Status Bar */}
           <div className="status-bar">
-            <div className="status-field flex">Ready</div>
+            <div className="status-field flex">{status}</div>
             <div className="status-field">UPG v0.1.0</div>
             <div className="status-field">Desktop</div>
           </div>

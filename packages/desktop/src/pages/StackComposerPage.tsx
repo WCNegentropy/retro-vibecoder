@@ -1,5 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
+import { useSettings } from '../hooks/useSettings';
+import { useStatus } from '../hooks/useStatus';
 import type { TechStack, Archetype, Language, Database, CICD, Packaging } from '../types';
 
 /**
@@ -122,8 +124,31 @@ function StackComposerPage() {
   const [cicd, setCicd] = useState<CICD>('github-actions');
   const [packaging, setPackaging] = useState<Packaging>('docker');
   const [outputPath, setOutputPath] = useState('./my-project');
+  const [generatedSeed] = useState<number>(() => Math.floor(Math.random() * 100000));
 
-  const { generate, isLoading, error } = useTauriGenerate();
+  const { generate, preview, isLoading, error } = useTauriGenerate();
+  const { settings, isLoaded: settingsLoaded } = useSettings();
+  const { setStatus } = useStatus();
+
+  // Apply persisted settings as defaults once loaded
+  useEffect(() => {
+    if (settingsLoaded) {
+      if (settings.defaultOutputDir) {
+        setOutputPath(settings.defaultOutputDir);
+      }
+      if (settings.defaultArchetype) {
+        setArchetype(settings.defaultArchetype as Archetype);
+      }
+      if (settings.defaultLanguage) {
+        setLanguage(settings.defaultLanguage as Language);
+      }
+    }
+  }, [
+    settingsLoaded,
+    settings.defaultOutputDir,
+    settings.defaultArchetype,
+    settings.defaultLanguage,
+  ]);
 
   // Filter languages based on selected archetype
   const availableLanguages = useMemo(() => {
@@ -178,11 +203,45 @@ function StackComposerPage() {
       packaging,
     };
 
-    await generate({
+    setStatus(`Generating ${archetype} project...`, 0);
+    const result = await generate({
       mode: 'procedural',
+      seed: generatedSeed,
       stack,
       output_path: outputPath,
     });
+    if (result?.success) {
+      setStatus(`✓ Generated ${result.files_generated.length} files in ${result.duration_ms}ms`);
+    } else {
+      setStatus('Generation failed');
+    }
+  };
+
+  const handlePreview = async () => {
+    if (!archetype || !language || !framework) return;
+
+    const stack: Partial<TechStack> = {
+      archetype,
+      language,
+      framework,
+      database,
+      cicd,
+      packaging,
+    };
+
+    setStatus('Previewing stack...', 0);
+    const result = await preview({
+      mode: 'procedural',
+      seed: generatedSeed,
+      stack,
+      output_path: outputPath,
+    });
+    if (result) {
+      const fileCount = Object.keys(result.files || {}).length;
+      setStatus(`✓ Preview: ${fileCount} files`);
+    } else {
+      setStatus('Preview failed');
+    }
   };
 
   return (
@@ -387,14 +446,24 @@ function StackComposerPage() {
               Next
             </button>
           ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleGenerate}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Generating...' : 'Generate Project'}
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handlePreview}
+                disabled={isLoading}
+              >
+                Preview Stack
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleGenerate}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Generating...' : 'Generate Project'}
+              </button>
+            </>
           )}
         </div>
 
@@ -410,8 +479,11 @@ function StackComposerPage() {
           <div className="cli-command">
             <span className="cli-prompt">$</span>
             <span className="cli-text">
-              upg seed --archetype {archetype || 'backend'} --language {language || 'typescript'}{' '}
-              --framework {framework || 'express'} --output {outputPath}
+              upg seed {generatedSeed} --archetype {archetype || 'backend'} --language{' '}
+              {language || 'typescript'} --framework {framework || 'express'}
+              {database !== 'none' ? ` --database ${database}` : ''}
+              {cicd !== 'none' ? ` --cicd ${cicd}` : ''}
+              {packaging !== 'none' ? ` --packaging ${packaging}` : ''} --output {outputPath}
             </span>
           </div>
         </div>
