@@ -69,9 +69,7 @@ function SeedGalleryPage() {
         const result = await invoke<SeedEntryResponse[]>('get_seeds');
         setSeeds(result.map(convertSeedEntry));
       } else {
-        setError(
-          'Seed gallery requires Tauri environment. Run the desktop app to see real seeds.'
-        );
+        setError('Seed gallery requires Tauri environment. Run the desktop app to see real seeds.');
         setSeeds([]);
       }
     } catch (err) {
