@@ -115,6 +115,81 @@ dotnet test
 dotnet run
 \`\`\``;
 
+    case 'cpp':
+      return `\`\`\`bash
+# Create build directory
+mkdir -p build && cd build
+
+# Configure with CMake
+cmake ..
+
+# Build
+cmake --build .
+
+# Run the application
+./bin/app
+\`\`\``;
+
+    case 'swift':
+      return `\`\`\`bash
+# Build
+swift build
+
+# Run the application
+swift run
+
+# Run tests
+swift test
+\`\`\``;
+
+    case 'ruby':
+      if (stack.framework === 'rails') {
+        return `\`\`\`bash
+# Install dependencies
+bundle install
+
+# Run the application
+bundle exec rails server
+
+# Run tests
+bundle exec rspec
+\`\`\``;
+      }
+      return `\`\`\`bash
+# Install dependencies
+bundle install
+
+# Run the application
+ruby main.rb
+
+# Run tests
+bundle exec rspec
+\`\`\``;
+
+    case 'php':
+      if (stack.framework === 'laravel') {
+        return `\`\`\`bash
+# Install dependencies
+composer install
+
+# Run the application
+php artisan serve
+
+# Run tests
+./vendor/bin/phpunit
+\`\`\``;
+      }
+      return `\`\`\`bash
+# Install dependencies
+composer install
+
+# Run the application
+php -S localhost:8000
+
+# Run tests
+./vendor/bin/phpunit
+\`\`\``;
+
     default:
       return `\`\`\`bash
 # See project-specific documentation
@@ -210,6 +285,14 @@ function getPrerequisites(stack: TechStack): string {
       return '- JDK 17+\n- ' + (stack.buildTool === 'gradle' ? 'Gradle' : 'Maven');
     case 'csharp':
       return '- .NET SDK 8.0+';
+    case 'cpp':
+      return '- C++ compiler (GCC 12+ or Clang 15+)\n- CMake 3.20+';
+    case 'swift':
+      return '- Swift 5.9+\n- Xcode 15+ (macOS)';
+    case 'ruby':
+      return '- Ruby 3.2+\n- Bundler';
+    case 'php':
+      return '- PHP 8.2+\n- Composer';
     default:
       return '- See project documentation';
   }

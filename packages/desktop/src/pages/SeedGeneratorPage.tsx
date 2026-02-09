@@ -269,6 +269,26 @@ function SeedGeneratorPage() {
             description="Java Spring Boot + MySQL"
             onClick={() => setSeed('44128')}
           />
+          <SeedExample
+            seed={67201}
+            description="Electron desktop app"
+            onClick={() => setSeed('67201')}
+          />
+          <SeedExample
+            seed={78543}
+            description="Rust + Bevy game engine"
+            onClick={() => setSeed('78543')}
+          />
+          <SeedExample
+            seed={21890}
+            description="TypeScript library package"
+            onClick={() => setSeed('21890')}
+          />
+          <SeedExample
+            seed={91234}
+            description="Ruby on Rails backend"
+            onClick={() => setSeed('91234')}
+          />
         </div>
       </section>
 

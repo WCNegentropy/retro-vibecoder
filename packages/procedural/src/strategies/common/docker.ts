@@ -24,6 +24,19 @@ function generateDockerfile(stack: TechStack, projectName: string): string {
     case 'rust':
       return generateRustDockerfile(stack, projectName);
 
+    case 'java':
+    case 'kotlin':
+      return generateJavaDockerfile(stack, projectName);
+
+    case 'csharp':
+      return generateDotnetDockerfile(stack, projectName);
+
+    case 'ruby':
+      return generateRubyDockerfile(stack, projectName);
+
+    case 'php':
+      return generatePhpDockerfile(stack, projectName);
+
     default:
       return generateGenericDockerfile(stack, projectName);
   }
@@ -154,6 +167,137 @@ COPY --from=builder /app/target/release/${projectName} .
 EXPOSE 8080
 
 CMD ["./${projectName}"]
+`;
+}
+
+function generateJavaDockerfile(stack: TechStack, _projectName: string): string {
+  if (stack.buildTool === 'gradle') {
+    return `# Build stage
+FROM gradle:8-jdk17 AS builder
+
+WORKDIR /app
+
+COPY . .
+
+RUN gradle build --no-daemon
+
+# Production stage
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+CMD ["java", "-jar", "app.jar"]
+`;
+  }
+  return `# Build stage
+FROM maven:3.9-eclipse-temurin-17 AS builder
+
+WORKDIR /app
+
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+COPY . .
+
+RUN mvn package -DskipTests
+
+# Production stage
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
+EXPOSE 8080
+
+CMD ["java", "-jar", "app.jar"]
+`;
+}
+
+function generateDotnetDockerfile(_stack: TechStack, projectName: string): string {
+  return `# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
+
+WORKDIR /app
+
+COPY *.csproj ./
+RUN dotnet restore
+
+COPY . .
+RUN dotnet publish -c Release -o /app/publish
+
+# Production stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+WORKDIR /app
+
+COPY --from=builder /app/publish .
+
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "${projectName}.dll"]
+`;
+}
+
+function generateRubyDockerfile(stack: TechStack, _projectName: string): string {
+  const cmd =
+    stack.framework === 'rails'
+      ? '["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]'
+      : '["ruby", "main.rb"]';
+  return `FROM ruby:3.2-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    build-essential \\
+    libpq-dev \\
+    && rm -rf /var/lib/apt/lists/*
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --without development test
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ${cmd}
+`;
+}
+
+function generatePhpDockerfile(stack: TechStack, _projectName: string): string {
+  const cmd =
+    stack.framework === 'laravel'
+      ? '["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]'
+      : '["php", "-S", "0.0.0.0:8000", "-t", "public"]';
+  return `FROM php:8.2-fpm
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    git \\
+    unzip \\
+    libpq-dev \\
+    && docker-php-ext-install pdo pdo_pgsql \\
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts
+
+COPY . .
+RUN composer dump-autoload --optimize
+
+EXPOSE 8000
+
+CMD ${cmd}
 `;
 }
 

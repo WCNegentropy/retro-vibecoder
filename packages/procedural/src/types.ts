@@ -158,7 +158,11 @@ export type TestingFramework =
   | 'xunit'
   | 'rspec'
   | 'phpunit'
-  | 'xctest';
+  | 'xctest'
+  | 'catch2'
+  | 'gtest'
+  | 'flutter-test'
+  | 'nunit';
 
 // ============================================================================
 // Tech Stack Configuration
