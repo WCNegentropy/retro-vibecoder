@@ -50,6 +50,15 @@ export { CSharpApiStrategy } from './backend/csharp.js';
 export { RailsStrategy } from './backend/ruby.js';
 export { LaravelStrategy } from './backend/php.js';
 
+// CLI strategies (TypeScript, Python)
+export {
+  CliStrategies,
+  CommanderStrategy,
+  YargsStrategy,
+  ClickStrategy,
+  ArgparseStrategy,
+} from './cli/index.js';
+
 // Mobile strategies
 export { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 
@@ -61,6 +70,7 @@ import { JavaSpringStrategy } from './backend/java.js';
 import { CSharpApiStrategy } from './backend/csharp.js';
 import { RailsStrategy } from './backend/ruby.js';
 import { LaravelStrategy } from './backend/php.js';
+import { CliStrategies } from './cli/index.js';
 import { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 import type { GenerationStrategy } from '../types.js';
 
@@ -80,6 +90,8 @@ export const AllStrategies: GenerationStrategy[] = [
   // Backend: Ruby, PHP
   RailsStrategy,
   LaravelStrategy,
+  // CLI: TypeScript (Commander, Yargs), Python (Click, Argparse)
+  ...CliStrategies,
   // Tier 4: Mobile
   ExpoStrategy,
   SwiftUIStrategy,

@@ -73,12 +73,14 @@ const FRAMEWORKS: FrameworkOption[] = [
   { id: 'svelte', name: 'Svelte', language: 'typescript', archetype: 'web' },
   { id: 'solid', name: 'Solid', language: 'typescript', archetype: 'web' },
   { id: 'commander', name: 'Commander', language: 'typescript', archetype: 'cli' },
+  { id: 'yargs', name: 'Yargs', language: 'typescript', archetype: 'cli' },
   { id: 'tauri', name: 'Tauri', language: 'typescript', archetype: 'desktop' },
   // Python
   { id: 'fastapi', name: 'FastAPI', language: 'python', archetype: 'backend' },
   { id: 'flask', name: 'Flask', language: 'python', archetype: 'backend' },
   { id: 'django', name: 'Django', language: 'python', archetype: 'backend' },
   { id: 'click', name: 'Click', language: 'python', archetype: 'cli' },
+  { id: 'argparse', name: 'argparse', language: 'python', archetype: 'cli' },
   // Rust
   { id: 'axum', name: 'Axum', language: 'rust', archetype: 'backend' },
   { id: 'actix', name: 'Actix', language: 'rust', archetype: 'backend' },

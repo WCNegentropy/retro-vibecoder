@@ -128,6 +128,11 @@ export {
   CobraStrategy,
   RailsStrategy,
   LaravelStrategy,
+  CliStrategies,
+  CommanderStrategy,
+  YargsStrategy,
+  ClickStrategy,
+  ArgparseStrategy,
 } from './strategies/index.js';
 
 // Renderer
