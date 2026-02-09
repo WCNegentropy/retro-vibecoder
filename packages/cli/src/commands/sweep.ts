@@ -489,6 +489,11 @@ async function saveToRegistry(
 
 /**
  * Seed command - generate a single project from a seed
+ *
+ * Pipeline: seed → stack resolution → pick template set → render with Nunjucks → write to disk
+ * This uses the same Nunjucks rendering pipeline as the 'generate' command.
+ * Strategies load .jinja templates from templates/procedural/ and render them
+ * with the resolved stack context.
  */
 export async function seedAction(
   seedStr: string,
@@ -516,6 +521,7 @@ export async function seedAction(
       validateConstraints,
       getValidLanguagesForArchetype,
       getSuggestedFrameworks,
+      hasTemplateSet,
     } = await import('@retro-vibecoder/procedural');
 
     // Early validation of user constraints
@@ -592,6 +598,17 @@ export async function seedAction(
     console.log(`  Transport: ${project.stack.transport}`);
     console.log(`  Packaging: ${project.stack.packaging}`);
     console.log(`  CI/CD: ${project.stack.cicd}`);
+
+    // Show template source info
+    const usesTemplates = hasTemplateSet(
+      project.stack.archetype,
+      project.stack.language,
+      project.stack.framework
+    );
+    if (options.verbose) {
+      console.log(`  Template source: ${usesTemplates ? 'Nunjucks (.jinja)' : 'inline'}`);
+    }
+
     console.log();
     console.log(pc.bold('Generated Files:'));
 

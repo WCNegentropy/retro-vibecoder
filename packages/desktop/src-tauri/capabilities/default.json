@@ -5,7 +5,12 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "shell:allow-open",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-delete",
+    "store:allow-entries",
+    "store:allow-save",
+    "store:allow-load",
     "core:window:allow-close",
     "core:window:allow-minimize",
     "core:window:allow-maximize",

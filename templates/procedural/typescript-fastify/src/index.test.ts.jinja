@@ -1,0 +1,12 @@
+import { describe, it, expect } from 'vitest';
+{%- if isTypeScript %}
+import { fastify } from './index.js';
+{%- else %}
+import { fastify } from './index.mjs';
+{%- endif %}
+
+describe('API', () => {
+  it('should respond to health check', async () => {
+    expect(fastify).toBeDefined();
+  });
+});

@@ -7,6 +7,7 @@ export default defineConfig({
     'src/matrices/index.ts',
     'src/strategies/index.ts',
     'src/sweeper/index.ts',
+    'src/renderer/index.ts',
   ],
   format: ['esm'],
   dts: true,

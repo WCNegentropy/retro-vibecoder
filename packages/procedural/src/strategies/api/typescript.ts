@@ -2,9 +2,59 @@
  * TypeScript Backend Strategies
  *
  * Generates TypeScript/Node.js backend projects (Express, Fastify, NestJS).
+ * Tier 1 stacks (Express, Fastify) load templates from templates/procedural/.
  */
 
 import type { GenerationStrategy } from '../../types.js';
+import { renderTemplateSet, getTemplateSetId, type TemplateContext } from '../../renderer/index.js';
+
+/**
+ * Build a TemplateContext from the generation context
+ */
+function buildTemplateContext(
+  projectName: string,
+  stack: { language: string; database: string; orm: string; framework: string; archetype: string; runtime: string; transport: string; packaging: string; cicd: string }
+): TemplateContext {
+  return {
+    projectName,
+    isTypeScript: stack.language === 'typescript',
+    database: stack.database,
+    orm: stack.orm,
+    framework: stack.framework,
+    archetype: stack.archetype,
+    language: stack.language,
+    runtime: stack.runtime,
+    transport: stack.transport,
+    packaging: stack.packaging,
+    cicd: stack.cicd,
+  };
+}
+
+/**
+ * Apply rendered template files, filtering for TypeScript or JavaScript.
+ * Skips JS-only files for TS projects and vice versa.
+ */
+function applyRenderedFiles(
+  files: Record<string, string>,
+  rendered: Record<string, string>,
+  isTypeScript: boolean
+): void {
+  for (const [path, content] of Object.entries(rendered)) {
+    if (isTypeScript) {
+      // Skip JS-only files
+      if (path === 'src/index.mjs' || path === 'jsconfig.json') continue;
+    } else {
+      // Skip TS-only files
+      if (path === 'src/index.ts' || path === 'tsconfig.json' || path === 'tsup.config.ts') continue;
+      // Rename test file for JS
+      if (path === 'src/index.test.ts') {
+        files['src/index.test.mjs'] = content;
+        continue;
+      }
+    }
+    files[path] = content;
+  }
+}
 
 /**
  * Express.js backend strategy
@@ -22,6 +72,23 @@ export const ExpressStrategy: GenerationStrategy = {
 
   apply: async ({ files, projectName, stack }) => {
     const isTypeScript = stack.language === 'typescript';
+    const templateCtx = buildTemplateContext(projectName, stack);
+
+    // Try to load from Nunjucks templates
+    const templateSetId = getTemplateSetId(stack.archetype, stack.language, stack.framework);
+    if (templateSetId) {
+      const rendered = renderTemplateSet(templateSetId, templateCtx);
+      if (Object.keys(rendered).length > 0) {
+        applyRenderedFiles(files, rendered, isTypeScript);
+
+        // Add database setup if needed (not templated yet)
+        if (stack.orm === 'prisma' && stack.database !== 'none') {
+          addPrismaSetup(files, projectName, stack.database, isTypeScript);
+        }
+
+        return;
+      }
+    }
 
     // package.json - different for TS vs JS
     const pkg: Record<string, unknown> = {
@@ -230,8 +297,24 @@ export const FastifyStrategy: GenerationStrategy = {
 
   apply: async ({ files, projectName, stack }) => {
     const isTypeScript = stack.language === 'typescript';
+    const templateCtx = buildTemplateContext(projectName, stack);
 
-    // package.json
+    // Try to load from Nunjucks templates
+    const templateSetId = getTemplateSetId(stack.archetype, stack.language, stack.framework);
+    if (templateSetId) {
+      const rendered = renderTemplateSet(templateSetId, templateCtx);
+      if (Object.keys(rendered).length > 0) {
+        applyRenderedFiles(files, rendered, isTypeScript);
+
+        if (stack.orm === 'prisma' && stack.database !== 'none') {
+          addPrismaSetup(files, projectName, stack.database, isTypeScript);
+        }
+
+        return;
+      }
+    }
+
+    // Fallback: inline generation (original code)
     const pkg: Record<string, unknown> = {
       name: projectName,
       version: '0.1.0',

@@ -1,0 +1,24 @@
+PYTHON := python3
+VENV := .venv
+
+.PHONY: setup dev test lint format clean
+
+setup:
+	$(PYTHON) -m venv $(VENV)
+	$(VENV)/bin/pip install -r requirements.txt -r requirements-dev.txt
+
+dev:
+	$(VENV)/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+test:
+	$(VENV)/bin/pytest
+
+lint:
+	$(VENV)/bin/ruff check .
+	$(VENV)/bin/mypy .
+
+format:
+	$(VENV)/bin/ruff format .
+
+clean:
+	rm -rf $(VENV) __pycache__ .pytest_cache .mypy_cache .ruff_cache

@@ -1,10 +1,14 @@
 import { useState, useCallback } from 'react';
 import type { GenerationRequest, GenerationResult, PreviewResult } from '../types';
 
+// ============================================================================
+// Tauri Environment Helpers
+// ============================================================================
+
 /**
  * Check if running in Tauri environment
  */
-function isTauri(): boolean {
+export function isTauri(): boolean {
   return typeof window !== 'undefined' && '__TAURI__' in window;
 }
 
@@ -20,6 +24,41 @@ class TauriNotAvailableError extends Error {
     );
     this.name = 'TauriNotAvailableError';
   }
+}
+
+// ============================================================================
+// Validation & Output Helpers
+// ============================================================================
+
+/**
+ * Validate a UPG manifest using the Tauri backend command
+ *
+ * Note: Requires Tauri environment - no mock fallback.
+ */
+export async function validateManifest(manifestPath: string): Promise<{
+  valid: boolean;
+  errors: Array<{ message: string; path: string }>;
+  warnings: Array<{ message: string; path: string }>;
+}> {
+  if (!isTauri()) {
+    throw new Error(
+      'Manifest validation requires Tauri environment. ' +
+        'Please run this application through the desktop app.'
+    );
+  }
+
+  const { invoke } = await import('@tauri-apps/api/core');
+  return invoke('validate_manifest', { path: manifestPath });
+}
+
+/**
+ * Format output for display
+ */
+export function formatOutput(output: string): string[] {
+  return output
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
 }
 
 /**

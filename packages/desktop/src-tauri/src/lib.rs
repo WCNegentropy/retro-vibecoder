@@ -1,13 +1,15 @@
 //! UPG Desktop - Tauri Backend
 //!
 //! This module provides the Rust backend for the Universal Project Generator desktop application.
-//! v1 uses the CLI (upg) as the single generation engine - no separate sidecars.
+//! v1 uses the CLI (upg) as the single generation engine — the CLI binary is bundled as a
+//! resource (not sidecar), executed via std::process::Command from a single Rust function.
 
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use tauri::Manager;
+use tauri_plugin_store::StoreExt;
 
 /// Generation mode for projects
 ///
@@ -71,7 +73,7 @@ fn get_target_triple() -> &'static str {
 
 /// Get the path to the UPG CLI executable
 /// In development: uses the built CLI from the monorepo via node
-/// In production: uses the bundled upg sidecar binary
+/// In production: uses the CLI binary bundled as a resource
 fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), String> {
     #[cfg(debug_assertions)]
     {
@@ -98,8 +100,7 @@ fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), Stri
 
     #[cfg(not(debug_assertions))]
     {
-        // In production, use the bundled sidecar binary
-        // Sidecar binaries are placed in the resource directory with platform-specific names
+        // In production, use the CLI binary bundled as a resource
         let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
         let target = get_target_triple();
 
@@ -108,16 +109,16 @@ fn get_cli_command(app: &tauri::AppHandle) -> Result<(String, Vec<String>), Stri
         #[cfg(not(windows))]
         let binary_name = format!("upg-{}", target);
 
-        let sidecar_path = resource_dir.join(&binary_name);
+        let binary_path = resource_dir.join(&binary_name);
 
-        if !sidecar_path.exists() {
+        if !binary_path.exists() {
             return Err(format!(
-                "Sidecar binary not found: {:?}. This is a packaging error.",
-                sidecar_path
+                "CLI binary not found: {:?}. This is a packaging error.",
+                binary_path
             ));
         }
 
-        Ok((sidecar_path.to_string_lossy().to_string(), vec![]))
+        Ok((binary_path.to_string_lossy().to_string(), vec![]))
     }
 }
 
@@ -1002,10 +1003,40 @@ async fn run_sweeper(
     Ok(entries)
 }
 
+/// Get a setting from the persistent store
+#[tauri::command]
+async fn get_setting(app: tauri::AppHandle, key: String) -> Result<serde_json::Value, String> {
+    let store = app.store("settings.json").map_err(|e| e.to_string())?;
+    match store.get(&key) {
+        Some(val) => Ok(val.clone()),
+        None => Ok(serde_json::Value::Null),
+    }
+}
+
+/// Set a setting in the persistent store
+#[tauri::command]
+async fn set_setting(app: tauri::AppHandle, key: String, value: serde_json::Value) -> Result<(), String> {
+    let store = app.store("settings.json").map_err(|e| e.to_string())?;
+    store.set(&key, value);
+    store.save().map_err(|e| format!("Failed to save settings: {}", e))?;
+    Ok(())
+}
+
+/// Get all settings from the persistent store
+#[tauri::command]
+async fn get_all_settings(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    let store = app.store("settings.json").map_err(|e| e.to_string())?;
+    let mut settings = serde_json::Map::new();
+    for (key, value) in store.entries() {
+        settings.insert(key.clone(), value.clone());
+    }
+    Ok(serde_json::Value::Object(settings))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|_app| {
             #[cfg(debug_assertions)]
             {
@@ -1024,7 +1055,10 @@ pub fn run() {
             read_manifest,
             execute_cli,
             execute_upg_cli,
-            run_sweeper
+            run_sweeper,
+            get_setting,
+            set_setting,
+            get_all_settings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

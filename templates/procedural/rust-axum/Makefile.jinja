@@ -1,0 +1,24 @@
+CARGO := cargo
+
+.PHONY: build run test lint fmt clean
+
+build:
+	$(CARGO) build --release
+
+run:
+	$(CARGO) run
+
+dev:
+	RUST_LOG=debug $(CARGO) watch -x run
+
+test:
+	$(CARGO) test
+
+lint:
+	$(CARGO) clippy -- -D warnings
+
+fmt:
+	$(CARGO) fmt
+
+clean:
+	$(CARGO) clean
