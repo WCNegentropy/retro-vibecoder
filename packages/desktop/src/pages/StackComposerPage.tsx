@@ -52,6 +52,8 @@ const LANGUAGES: { id: Language; name: string; archetypes: Archetype[] }[] = [
   { id: 'kotlin', name: 'Kotlin', archetypes: ['backend', 'mobile', 'library'] },
   { id: 'swift', name: 'Swift', archetypes: ['mobile', 'library'] },
   { id: 'cpp', name: 'C++', archetypes: ['library', 'desktop', 'game'] },
+  { id: 'ruby', name: 'Ruby', archetypes: ['backend'] },
+  { id: 'php', name: 'PHP', archetypes: ['backend'] },
 ];
 
 interface FrameworkOption {
@@ -89,6 +91,10 @@ const FRAMEWORKS: FrameworkOption[] = [
   { id: 'spring-boot', name: 'Spring Boot', language: 'java', archetype: 'backend' },
   // C#
   { id: 'aspnet-core', name: 'ASP.NET Core', language: 'csharp', archetype: 'backend' },
+  // Ruby
+  { id: 'rails', name: 'Ruby on Rails', language: 'ruby', archetype: 'backend' },
+  // PHP
+  { id: 'laravel', name: 'Laravel', language: 'php', archetype: 'backend' },
   // Mobile
   { id: 'react-native', name: 'React Native', language: 'typescript', archetype: 'mobile' },
 ];

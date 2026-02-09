@@ -46,6 +46,10 @@ export { CppStrategy } from './systems/cpp.js';
 export { JavaSpringStrategy } from './backend/java.js';
 export { CSharpApiStrategy } from './backend/csharp.js';
 
+// Additional backend strategies (Ruby, PHP)
+export { RailsStrategy } from './backend/ruby.js';
+export { LaravelStrategy } from './backend/php.js';
+
 // Mobile strategies
 export { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 
@@ -55,6 +59,8 @@ import { WebStrategies } from './web/index.js';
 import { CppStrategy } from './systems/cpp.js';
 import { JavaSpringStrategy } from './backend/java.js';
 import { CSharpApiStrategy } from './backend/csharp.js';
+import { RailsStrategy } from './backend/ruby.js';
+import { LaravelStrategy } from './backend/php.js';
 import { ExpoStrategy, SwiftUIStrategy } from './mobile/react-native.js';
 import type { GenerationStrategy } from '../types.js';
 
@@ -71,6 +77,9 @@ export const AllStrategies: GenerationStrategy[] = [
   // Tier 3: Enterprise (Java, C#)
   JavaSpringStrategy,
   CSharpApiStrategy,
+  // Backend: Ruby, PHP
+  RailsStrategy,
+  LaravelStrategy,
   // Tier 4: Mobile
   ExpoStrategy,
   SwiftUIStrategy,

@@ -126,6 +126,8 @@ export {
   GinStrategy,
   EchoStrategy,
   CobraStrategy,
+  RailsStrategy,
+  LaravelStrategy,
 } from './strategies/index.js';
 
 // Renderer
