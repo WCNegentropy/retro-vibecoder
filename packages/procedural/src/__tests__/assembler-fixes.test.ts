@@ -34,9 +34,17 @@ describe('pickFramework context-aware fallback', () => {
     const project = await assembler.generate();
 
     // Web + TypeScript should pick a web framework, not express
-    expect(['react', 'vue', 'svelte', 'solid', 'angular', 'qwik', 'nextjs', 'nuxt', 'sveltekit']).toContain(
-      project.stack.framework
-    );
+    expect([
+      'react',
+      'vue',
+      'svelte',
+      'solid',
+      'angular',
+      'qwik',
+      'nextjs',
+      'nuxt',
+      'sveltekit',
+    ]).toContain(project.stack.framework);
   });
 });
 
