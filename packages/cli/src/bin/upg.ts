@@ -146,6 +146,7 @@ export function createCli(): Command {
     .option('--archetype <type>', 'Force specific archetype')
     .option('--language <lang>', 'Force specific language')
     .option('--framework <fw>', 'Force specific framework')
+    .option('-n, --name <name>', 'Project name')
     .action(seedAction);
 
   // Preview command - generate project and output JSON to stdout (for desktop app integration)
@@ -155,11 +156,6 @@ export function createCli(): Command {
     .option('--archetype <type>', 'Force specific archetype')
     .option('--language <lang>', 'Force specific language')
     .option('--framework <fw>', 'Force specific framework')
-    .configureOutput({
-      // Suppress all non-JSON output for preview command
-      writeOut: () => {},
-      writeErr: () => {},
-    })
     .action(previewAction);
 
   return program;
@@ -184,4 +180,8 @@ program.configureOutput({
   },
 });
 
-program.parse();
+if (process.argv.length < 3) {
+  program.outputHelp();
+} else {
+  program.parse();
+}

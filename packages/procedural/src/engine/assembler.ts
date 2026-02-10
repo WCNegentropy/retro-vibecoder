@@ -310,19 +310,36 @@ export class ProjectAssembler {
 
     // For library/game archetypes, framework might be empty
     if (validFrameworks.length === 0) {
-      // Return a sensible default based on language
-      // Complete mapping for all supported languages
+      // Return a sensible default based on archetype AND language
+      if (archetype === 'cli') {
+        const cliDefaults: Partial<Record<Language, Framework>> = {
+          typescript: 'commander',
+          javascript: 'commander',
+          python: 'click',
+          go: 'cobra',
+          rust: 'clap',
+        };
+        return cliDefaults[language] ?? 'none';
+      }
+      if (archetype === 'web') {
+        const webDefaults: Partial<Record<Language, Framework>> = {
+          typescript: 'react',
+          javascript: 'react',
+        };
+        return webDefaults[language] ?? 'none';
+      }
+      // Fallback: default based on language (backend-oriented)
       const defaults: Record<Language, Framework> = {
         typescript: 'express',
-        javascript: 'express', // JS can use TS-compatible frameworks
+        javascript: 'express',
         python: 'fastapi',
         go: 'gin',
         rust: 'axum',
         java: 'spring-boot',
-        kotlin: 'spring-boot', // Kotlin works with Spring Boot
+        kotlin: 'spring-boot',
         csharp: 'aspnet-core',
-        cpp: 'none', // C++ doesn't have a web framework in our set
-        swift: 'none', // Swift backends not yet supported
+        cpp: 'none',
+        swift: 'none',
         ruby: 'rails',
         php: 'laravel',
       };
