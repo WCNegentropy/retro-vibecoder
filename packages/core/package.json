@@ -1,6 +1,6 @@
 {
   "name": "@retro-vibecoder/core",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Core package for UPG manifest validation and transpilation",
   "type": "module",
   "main": "./dist/index.js",
@@ -58,5 +58,11 @@
     "validation",
     "transpiler"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WCNegentropy/retro-vibecoder.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/WCNegentropy/retro-vibecoder#readme",
   "license": "MIT"
 }

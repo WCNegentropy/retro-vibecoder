@@ -1,6 +1,6 @@
 {
   "name": "@retro-vibecoder/procedural",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Universal Procedural Generation engine for composing software projects from capabilities",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,5 +60,11 @@
     "generation",
     "universal"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WCNegentropy/retro-vibecoder.git",
+    "directory": "packages/procedural"
+  },
+  "homepage": "https://github.com/WCNegentropy/retro-vibecoder#readme",
   "license": "MIT"
 }

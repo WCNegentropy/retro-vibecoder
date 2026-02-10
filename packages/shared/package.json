@@ -1,6 +1,6 @@
 {
   "name": "@retro-vibecoder/shared",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Shared types and utilities for the Retro Vibecoder UPG",
   "type": "module",
   "main": "./dist/index.js",
@@ -53,5 +53,11 @@
     "shared",
     "types"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WCNegentropy/retro-vibecoder.git",
+    "directory": "packages/shared"
+  },
+  "homepage": "https://github.com/WCNegentropy/retro-vibecoder#readme",
   "license": "MIT"
 }
