@@ -24,7 +24,7 @@ jobs:
   publish-npm:
     name: Publish packages to npm
     runs-on: ubuntu-latest
-    environment: npm-publish
+    environment: NPM-RELEASE
     permissions:
       contents: read
       id-token: write
