@@ -183,6 +183,7 @@ fn execute_cli_internal(
         .args(&args)
         .current_dir(working_dir)
         .env("NO_COLOR", "1") // Disable color output for easier parsing
+        .env("TERM", "dumb") // Suppress ora spinner ANSI codes on piped stdout
         .output()
         .map_err(|e| format!("Failed to execute CLI: {}. Command: {} {:?}", e, cmd, args))?;
 

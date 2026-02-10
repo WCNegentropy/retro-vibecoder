@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { isTauri } from '../hooks/useTauriGenerate';
+import { Link } from 'react-router-dom';
 
 /**
  * CLI execution result from Tauri backend
@@ -116,6 +117,13 @@ const CLI_COMMANDS: CLICommand[] = [
         default: 10,
       },
       {
+        flag: '--output',
+        shortFlag: '-o',
+        description: 'Output directory for generated projects',
+        type: 'string',
+        default: './sweep-output',
+      },
+      {
         flag: '--validate',
         description: 'Run validation pipeline on generated projects',
         type: 'boolean',
@@ -130,7 +138,7 @@ const CLI_COMMANDS: CLICommand[] = [
         flag: '--dry-run',
         description: 'Preview stacks without generating files',
         type: 'boolean',
-        default: false,
+        default: true,
       },
       {
         flag: '--only-valid',
@@ -200,7 +208,7 @@ const CLI_COMMANDS: CLICommand[] = [
   {
     id: 'init',
     name: 'Initialize Manifest',
-    description: 'Create a new UPG manifest file interactively',
+    description: 'Create a new UPG manifest file (use --template for non-interactive mode)',
     usage: 'upg init [options]',
     options: [
       {
@@ -215,6 +223,12 @@ const CLI_COMMANDS: CLICommand[] = [
         description: 'Use a template as starting point',
         type: 'select',
         choices: ['minimal', 'full', 'python-api', 'react-starter'],
+      },
+      {
+        flag: '--use-defaults',
+        description: 'Use default values (non-interactive)',
+        type: 'boolean',
+        default: true,
       },
     ],
   },
@@ -276,6 +290,12 @@ const CLI_COMMANDS: CLICommand[] = [
   },
 ];
 
+const MANIFEST_COMMAND_IDS = new Set(
+  CLI_COMMANDS.filter(cmd =>
+    ['generate', 'validate', 'init', 'search', 'docs', 'test'].includes(cmd.id)
+  ).map(cmd => cmd.id)
+);
+
 function CLICommandsPage() {
   const [selectedCommand, setSelectedCommand] = useState<CLICommand>(CLI_COMMANDS[0]);
   const [optionValues, setOptionValues] = useState<Record<string, string | number | boolean>>({});
@@ -302,15 +322,13 @@ function CLICommandsPage() {
 
     // Add options
     selectedCommand.options.forEach(opt => {
-      const value = optionValues[opt.flag];
-      if (value !== undefined && value !== '' && value !== opt.default) {
-        if (opt.type === 'boolean') {
-          if (value) {
-            parts.push(opt.flag);
-          }
-        } else {
-          parts.push(opt.flag, String(value));
+      const value = optionValues[opt.flag] ?? opt.default;
+      if (opt.type === 'boolean') {
+        if (value) {
+          parts.push(opt.flag);
         }
+      } else if (value !== undefined && value !== '' && value !== opt.default) {
+        parts.push(opt.flag, String(value));
       }
     });
 
@@ -345,15 +363,13 @@ function CLICommandsPage() {
 
         // Add options
         selectedCommand.options.forEach(opt => {
-          const value = optionValues[opt.flag];
-          if (value !== undefined && value !== '' && value !== opt.default) {
-            if (opt.type === 'boolean') {
-              if (value) {
-                args.push(opt.flag);
-              }
-            } else {
-              args.push(opt.flag, String(value));
+          const value = optionValues[opt.flag] ?? opt.default;
+          if (opt.type === 'boolean') {
+            if (value) {
+              args.push(opt.flag);
             }
+          } else if (value !== undefined && value !== '' && value !== opt.default) {
+            args.push(opt.flag, String(value));
           }
         });
 
@@ -425,7 +441,47 @@ function CLICommandsPage() {
           </div>
           <div className="win95-window-content">
             <div className="command-list">
-              {CLI_COMMANDS.map(cmd => (
+              <div
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  color: 'var(--bevel-dark)',
+                  padding: '4px 8px',
+                  borderBottom: '1px solid var(--bevel-dark)',
+                  marginBottom: '4px',
+                }}
+              >
+                Procedural Commands
+              </div>
+              {CLI_COMMANDS.filter(cmd => !MANIFEST_COMMAND_IDS.has(cmd.id)).map(cmd => (
+                <button
+                  key={cmd.id}
+                  type="button"
+                  className={`command-item btn ${selectedCommand.id === cmd.id ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedCommand(cmd);
+                    setOptionValues({});
+                  }}
+                  style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '4px' }}
+                >
+                  <code style={{ marginRight: '8px' }}>upg {cmd.id}</code>
+                  <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>{cmd.name}</span>
+                </button>
+              ))}
+              <div
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  color: 'var(--bevel-dark)',
+                  padding: '4px 8px',
+                  borderBottom: '1px solid var(--bevel-dark)',
+                  marginBottom: '4px',
+                  marginTop: '8px',
+                }}
+              >
+                Template / Manifest Commands
+              </div>
+              {CLI_COMMANDS.filter(cmd => MANIFEST_COMMAND_IDS.has(cmd.id)).map(cmd => (
                 <button
                   key={cmd.id}
                   type="button"
@@ -452,6 +508,25 @@ function CLICommandsPage() {
           </div>
           <div className="win95-window-content">
             <p style={{ marginBottom: '12px', fontSize: '11px' }}>{selectedCommand.description}</p>
+
+            {MANIFEST_COMMAND_IDS.has(selectedCommand.id) && (
+              <div
+                style={{
+                  marginBottom: '12px',
+                  padding: '8px',
+                  background: '#ffffcc',
+                  border: '1px solid #cccc00',
+                  fontSize: '11px',
+                }}
+              >
+                ⚠ This command requires a manifest file (upg.yaml). For a guided experience, use the{' '}
+                <Link to="/templates" style={{ color: 'var(--synth-blue)' }}>
+                  Template Selector
+                </Link>
+                .
+              </div>
+            )}
+
             <code
               style={{
                 display: 'block',

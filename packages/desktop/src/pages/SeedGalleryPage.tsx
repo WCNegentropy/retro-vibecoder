@@ -47,6 +47,21 @@ function convertSeedEntry(entry: SeedEntryResponse): SeedEntry {
   };
 }
 
+const ALL_LANGUAGES: Language[] = [
+  'typescript',
+  'javascript',
+  'python',
+  'rust',
+  'go',
+  'java',
+  'kotlin',
+  'swift',
+  'csharp',
+  'cpp',
+  'ruby',
+  'php',
+];
+
 function SeedGalleryPage() {
   const navigate = useNavigate();
   const [seeds, setSeeds] = useState<SeedEntry[]>([]);
@@ -130,7 +145,7 @@ function SeedGalleryPage() {
     'desktop',
     'game',
   ];
-  const languages = Array.from(new Set(seeds.map(s => s.stack.language)));
+  const languages = ALL_LANGUAGES;
 
   const handleUseSeed = (seed: number) => {
     navigate(`/seed?seed=${seed}`);

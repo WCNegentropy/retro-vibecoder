@@ -192,7 +192,11 @@ function WindowChrome({ children, title = 'Universal Project Generator' }: Windo
           </div>
 
           {/* Main Content Area - close menu when clicking outside */}
-          <div role="presentation" onClick={() => setActiveMenu(null)}>
+          <div
+            role="presentation"
+            onClick={() => setActiveMenu(null)}
+            style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+          >
             {children}
           </div>
 
