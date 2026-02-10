@@ -273,7 +273,7 @@ This section provides the "Explicit Actionable Instructions" requested. These in
 **Instruction:**
 
 1. Create packages/registry/scripts/seed.ts.  
-2. Import generateManifest from @retro-vibecoder/procedural.  
+2. Import generateManifest from @wcnegentropy/procedural.  
 3. Implement a loop (Count: 50). For each iteration:  
    * Generate a random seed.  
    * Call generateManifest(seed).  

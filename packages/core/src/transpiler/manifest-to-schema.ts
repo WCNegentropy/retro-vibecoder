@@ -4,7 +4,7 @@
  * Converts UPG Manifest prompts to JSON Schema for use with RJSF.
  */
 
-import type { UpgManifest, ManifestPrompt, PromptChoice } from '@retro-vibecoder/shared';
+import type { UpgManifest, ManifestPrompt, PromptChoice } from '@wcnegentropy/shared';
 import { transpileConditionalLogic } from './conditional-logic.js';
 
 /**

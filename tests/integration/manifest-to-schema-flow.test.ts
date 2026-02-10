@@ -12,8 +12,8 @@ import {
   transpileConditionalLogic,
   evaluateWhenClause,
   createValidator,
-} from '@retro-vibecoder/core';
-import { parseYaml, stringifyYaml, type UpgManifest } from '@retro-vibecoder/shared';
+} from '@wcnegentropy/core';
+import { parseYaml, stringifyYaml, type UpgManifest } from '@wcnegentropy/shared';
 
 describe('Manifest to Schema Flow', () => {
   describe('Complete Pipeline', () => {

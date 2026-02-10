@@ -1,5 +1,5 @@
 /**
- * @retro-vibecoder/cli
+ * @wcnegentropy/cli
  *
  * Command-line interface for the Universal Project Generator.
  */

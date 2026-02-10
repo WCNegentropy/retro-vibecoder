@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseYaml, stringifyYaml, isValidYaml, getLineForPath } from '@retro-vibecoder/shared';
+import { parseYaml, stringifyYaml, isValidYaml, getLineForPath } from '@wcnegentropy/shared';
 
 describe('YAML Parser Utilities', () => {
   describe('parseYaml', () => {

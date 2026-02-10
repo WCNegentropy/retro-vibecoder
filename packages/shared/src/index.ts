@@ -1,5 +1,5 @@
 /**
- * @retro-vibecoder/shared
+ * @wcnegentropy/shared
  *
  * Shared types, constants, and utilities for the Retro Vibecoder UPG.
  */

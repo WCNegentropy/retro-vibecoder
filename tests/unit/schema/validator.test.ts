@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { validateManifest } from '@retro-vibecoder/core';
+import { validateManifest } from '@wcnegentropy/core';
 
 const FIXTURES_DIR = join(__dirname, '../../__fixtures__/manifests');
 

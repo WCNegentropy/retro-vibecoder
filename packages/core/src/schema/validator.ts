@@ -11,7 +11,7 @@ import {
   type ValidationWarning,
   VALIDATION_ERRORS,
   parseYaml,
-} from '@retro-vibecoder/shared';
+} from '@wcnegentropy/shared';
 import { manifestSchema } from './upg-manifest-schema.js';
 
 /**

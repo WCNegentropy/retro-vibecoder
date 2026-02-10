@@ -16,7 +16,7 @@ import {
   removeTrailingSlash,
   matchesGlob,
   getParentDirs,
-} from '@retro-vibecoder/shared';
+} from '@wcnegentropy/shared';
 
 describe('Path Utilities', () => {
   describe('normalizePath', () => {

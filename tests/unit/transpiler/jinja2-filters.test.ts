@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { JINJA2_FILTERS, evaluateJinja2Expression } from '@retro-vibecoder/core/transpiler';
+import { JINJA2_FILTERS, evaluateJinja2Expression } from '@wcnegentropy/core/transpiler';
 
 describe('Jinja2 Filters', () => {
   describe('String Case Filters', () => {

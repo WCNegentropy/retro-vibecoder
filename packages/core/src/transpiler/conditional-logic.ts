@@ -4,7 +4,7 @@
  * Maps UPG `when` clauses to JSON Schema dependencies and oneOf blocks.
  */
 
-import type { ManifestPrompt } from '@retro-vibecoder/shared';
+import type { ManifestPrompt } from '@wcnegentropy/shared';
 
 /**
  * Conditional logic result

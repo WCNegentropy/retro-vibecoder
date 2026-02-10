@@ -2,7 +2,7 @@
  * Validate command action
  */
 
-import { validateCommand } from '@retro-vibecoder/core';
+import { validateCommand } from '@wcnegentropy/core';
 import pc from 'picocolors';
 
 interface ValidateOptions {

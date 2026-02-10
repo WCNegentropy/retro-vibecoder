@@ -9,7 +9,7 @@
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
 import { validateManifest } from '../schema/validator.js';
-import type { UpgManifest, ManifestPrompt, PromptChoice } from '@retro-vibecoder/shared';
+import type { UpgManifest, ManifestPrompt, PromptChoice } from '@wcnegentropy/shared';
 
 /**
  * Docs generation options

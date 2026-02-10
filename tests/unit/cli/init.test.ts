@@ -7,8 +7,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
 import { mkdir, rm, readFile, writeFile } from 'fs/promises';
-import { parseYaml, DEFAULT_MANIFEST_FILENAME } from '@retro-vibecoder/shared';
-import { validateManifest } from '@retro-vibecoder/core';
+import { parseYaml, DEFAULT_MANIFEST_FILENAME } from '@wcnegentropy/shared';
+import { validateManifest } from '@wcnegentropy/core';
 
 const TEMP_DIR = join(__dirname, '../../__temp__/init-test');
 
@@ -171,7 +171,7 @@ cd my-project
 
     it('generated manifest passes validation', async () => {
       const manifest = generateTestManifest('test-template');
-      const { stringifyYaml } = await import('@retro-vibecoder/shared');
+      const { stringifyYaml } = await import('@wcnegentropy/shared');
       const yaml = stringifyYaml(manifest);
 
       const result = validateManifest(yaml);
@@ -182,7 +182,7 @@ cd my-project
 
   describe('initAction file operations', () => {
     it('can write manifest to temp directory', async () => {
-      const { stringifyYaml } = await import('@retro-vibecoder/shared');
+      const { stringifyYaml } = await import('@wcnegentropy/shared');
 
       const manifest = {
         apiVersion: 'upg/v1',
@@ -218,7 +218,7 @@ cd my-project
     });
 
     it('written manifest can be parsed back', async () => {
-      const { stringifyYaml } = await import('@retro-vibecoder/shared');
+      const { stringifyYaml } = await import('@wcnegentropy/shared');
 
       const original = {
         apiVersion: 'upg/v1',
@@ -257,7 +257,7 @@ cd my-project
     });
 
     it('validates written manifest', async () => {
-      const { stringifyYaml } = await import('@retro-vibecoder/shared');
+      const { stringifyYaml } = await import('@wcnegentropy/shared');
 
       const manifest = {
         apiVersion: 'upg/v1',

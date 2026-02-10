@@ -22,7 +22,7 @@
  * }
  */
 
-import type { Archetype, Language, Framework } from '@retro-vibecoder/procedural';
+import type { Archetype, Language, Framework } from '@wcnegentropy/procedural';
 
 interface PreviewOptions {
   archetype?: string;
@@ -58,7 +58,7 @@ export async function previewAction(seedStr: string, options: PreviewOptions): P
 
   try {
     const { ProjectAssembler, AllStrategies, validateConstraints } =
-      await import('@retro-vibecoder/procedural');
+      await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
     if (options.archetype || options.language || options.framework) {

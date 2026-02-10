@@ -1,5 +1,5 @@
 /**
- * @retro-vibecoder/procedural
+ * @wcnegentropy/procedural
  *
  * Universal Procedural Generation engine for composing software projects from capabilities.
  *
@@ -9,7 +9,7 @@
  *
  * @example
  * ```typescript
- * import { ProjectAssembler, AllStrategies } from '@retro-vibecoder/procedural';
+ * import { ProjectAssembler, AllStrategies } from '@wcnegentropy/procedural';
  *
  * // Create assembler with a seed
  * const assembler = new ProjectAssembler(42);

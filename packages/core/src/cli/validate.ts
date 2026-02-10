@@ -7,7 +7,7 @@
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
 import { validateManifest, type ValidatorResult } from '../schema/validator.js';
-import { MANIFEST_FILENAMES, VALIDATION_ERRORS, getLineForPath } from '@retro-vibecoder/shared';
+import { MANIFEST_FILENAMES, VALIDATION_ERRORS, getLineForPath } from '@wcnegentropy/shared';
 
 /**
  * Validate command options

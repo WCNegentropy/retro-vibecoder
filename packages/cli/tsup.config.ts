@@ -8,5 +8,5 @@ export default defineConfig({
   sourcemap: true,
   splitting: false,
   treeshake: true,
-  external: ['@retro-vibecoder/core', '@retro-vibecoder/shared'],
+  external: ['@wcnegentropy/core', '@wcnegentropy/shared'],
 });

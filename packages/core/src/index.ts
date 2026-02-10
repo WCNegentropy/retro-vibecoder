@@ -1,5 +1,5 @@
 /**
- * @retro-vibecoder/core
+ * @wcnegentropy/core
  *
  * Core package for UPG manifest validation and transpilation.
  * This is the Phase 1 implementation of the Universal Project Generator.

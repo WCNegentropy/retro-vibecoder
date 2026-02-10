@@ -2,7 +2,7 @@
  * Test command action
  */
 
-import { testGenerateCommand } from '@retro-vibecoder/core';
+import { testGenerateCommand } from '@wcnegentropy/core';
 import pc from 'picocolors';
 
 interface TestOptions {

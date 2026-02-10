@@ -98,7 +98,7 @@ export function createCli(): Command {
     .option('-f, --format <format>', 'Output format (markdown|json)', 'markdown')
     .option('-o, --output <path>', 'Output file path')
     .action(async (manifest, options) => {
-      const { docsGenCommand } = await import('@retro-vibecoder/core');
+      const { docsGenCommand } = await import('@wcnegentropy/core');
       const result = await docsGenCommand({
         manifestPath: manifest,
         format: options.format,

@@ -1,5 +1,5 @@
 {
-  "name": "@retro-vibecoder/cli",
+  "name": "@wcnegentropy/cli",
   "version": "0.2.1",
   "description": "Command-line interface for the Universal Project Generator",
   "type": "module",
@@ -23,9 +23,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@retro-vibecoder/core": "workspace:*",
-    "@retro-vibecoder/procedural": "workspace:*",
-    "@retro-vibecoder/shared": "workspace:*",
+    "@wcnegentropy/core": "workspace:*",
+    "@wcnegentropy/procedural": "workspace:*",
+    "@wcnegentropy/shared": "workspace:*",
     "commander": "^11.1.0",
     "nunjucks": "^3.2.4",
     "ora": "^8.0.0",
@@ -54,5 +54,9 @@
     "directory": "packages/cli"
   },
   "homepage": "https://github.com/WCNegentropy/retro-vibecoder#readme",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

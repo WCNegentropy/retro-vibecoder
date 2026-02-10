@@ -2,7 +2,7 @@
  * Basic schema validation utilities
  *
  * This module provides simple validation helpers.
- * Full AJV-based validation is in @retro-vibecoder/core.
+ * Full AJV-based validation is in @wcnegentropy/core.
  */
 
 import type { ValidationError } from '../types/manifest.js';

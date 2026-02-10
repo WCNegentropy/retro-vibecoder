@@ -8,8 +8,8 @@
 import { describe, it, expect } from 'vitest';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { validateManifest, transpileManifestToSchema } from '@retro-vibecoder/core';
-import { parseYaml, type UpgManifest } from '@retro-vibecoder/shared';
+import { validateManifest, transpileManifestToSchema } from '@wcnegentropy/core';
+import { parseYaml, type UpgManifest } from '@wcnegentropy/shared';
 
 const TEMPLATES_DIR = join(__dirname, '../../templates');
 

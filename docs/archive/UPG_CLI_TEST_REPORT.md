@@ -48,10 +48,10 @@ pnpm build: 18.8s (4 packages)
 
 All packages built successfully:
 
-- @retro-vibecoder/shared
-- @retro-vibecoder/core
-- @retro-vibecoder/procedural
-- @retro-vibecoder/cli
+- @wcnegentropy/shared
+- @wcnegentropy/core
+- @wcnegentropy/procedural
+- @wcnegentropy/cli
 
 ### 2. Seed Command Testing
 
