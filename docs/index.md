@@ -25,13 +25,13 @@ pnpm install
 pnpm build
 
 # Generate a project from a seed
-pnpm --filter @retro-vibecoder/cli seed 82910 --output ./my-project
+pnpm --filter @wcnegentropy/cli seed 82910 --output ./my-project
 
 # Run a procedural sweep (discover multiple projects)
-pnpm --filter @retro-vibecoder/cli sweep --count 10 --verbose
+pnpm --filter @wcnegentropy/cli sweep --count 10 --verbose
 
 # Sweep with validation and registry persistence
-pnpm --filter @retro-vibecoder/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
 ```
 
 ### Manifest-Based Generation (Phase 1 - Validation tools available)

@@ -129,7 +129,7 @@ jobs:
         run: pnpm build
 
       - name: Validate react-starter template
-        run: pnpm --filter @retro-vibecoder/cli validate ./templates/react-starter
+        run: pnpm --filter @wcnegentropy/cli validate ./templates/react-starter
 
       - name: Validate python-api template
-        run: pnpm --filter @retro-vibecoder/cli validate ./templates/python-api
+        run: pnpm --filter @wcnegentropy/cli validate ./templates/python-api

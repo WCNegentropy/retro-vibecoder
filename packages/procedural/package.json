@@ -1,5 +1,5 @@
 {
-  "name": "@retro-vibecoder/procedural",
+  "name": "@wcnegentropy/procedural",
   "version": "0.2.1",
   "description": "Universal Procedural Generation engine for composing software projects from capabilities",
   "type": "module",
@@ -45,7 +45,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@retro-vibecoder/shared": "workspace:*"
+    "@wcnegentropy/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
@@ -66,5 +66,9 @@
     "directory": "packages/procedural"
   },
   "homepage": "https://github.com/WCNegentropy/retro-vibecoder#readme",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

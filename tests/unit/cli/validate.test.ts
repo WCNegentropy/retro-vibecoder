@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
 import { mkdir, writeFile, rm } from 'fs/promises';
-import { validateCommand } from '@retro-vibecoder/core';
+import { validateCommand } from '@wcnegentropy/core';
 
 const FIXTURES_DIR = join(__dirname, '../../__fixtures__/manifests');
 const TEMP_DIR = join(__dirname, '../../__temp__');

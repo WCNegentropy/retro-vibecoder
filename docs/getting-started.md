@@ -21,13 +21,13 @@ pnpm build
 ### Using npm (Coming in Phase 2)
 
 ```bash
-npm install -g @retro-vibecoder/cli
+npm install -g @wcnegentropy/cli
 ```
 
 ### Verify Installation
 
 ```bash
-pnpm --filter @retro-vibecoder/cli --version
+pnpm --filter @wcnegentropy/cli --version
 ```
 
 ## Your First Project
@@ -38,13 +38,13 @@ Generate a project from a seed number:
 
 ```bash
 # Generate a project from seed 82910 (Rust + Axum + PostgreSQL)
-pnpm --filter @retro-vibecoder/cli seed 82910 --output ./my-rust-api
+pnpm --filter @wcnegentropy/cli seed 82910 --output ./my-rust-api
 
 # Generate from seed 99123 (Python + FastAPI + MongoDB)
-pnpm --filter @retro-vibecoder/cli seed 99123 --output ./my-python-api
+pnpm --filter @wcnegentropy/cli seed 99123 --output ./my-python-api
 
 # Generate from seed 55782 (React + Vite + TypeScript)
-pnpm --filter @retro-vibecoder/cli seed 55782 --output ./my-react-app
+pnpm --filter @wcnegentropy/cli seed 55782 --output ./my-react-app
 ```
 
 You can also specify constraints:
@@ -63,10 +63,10 @@ Run a procedural sweep to generate and optionally validate multiple projects:
 
 ```bash
 # Generate 10 random projects
-pnpm --filter @retro-vibecoder/cli sweep --count 10 --output ./generated-projects
+pnpm --filter @wcnegentropy/cli sweep --count 10 --output ./generated-projects
 
 # Generate and validate 100 projects, save successful ones to registry
-pnpm --filter @retro-vibecoder/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json --verbose
+pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json --verbose
 ```
 
 ### Option 3: Manifest-Based Generation (Phase 2 - Coming Soon)

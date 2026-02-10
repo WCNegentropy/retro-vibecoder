@@ -47,13 +47,13 @@ importers:
 
   packages/cli:
     dependencies:
-      '@retro-vibecoder/core':
+      '@wcnegentropy/core':
         specifier: workspace:*
         version: link:../core
-      '@retro-vibecoder/procedural':
+      '@wcnegentropy/procedural':
         specifier: workspace:*
         version: link:../procedural
-      '@retro-vibecoder/shared':
+      '@wcnegentropy/shared':
         specifier: workspace:*
         version: link:../shared
       commander:
@@ -87,7 +87,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@retro-vibecoder/shared':
+      '@wcnegentropy/shared':
         specifier: workspace:*
         version: link:../shared
       ajv:
@@ -112,15 +112,6 @@ importers:
 
   packages/desktop:
     dependencies:
-      '@retro-vibecoder/core':
-        specifier: workspace:*
-        version: link:../core
-      '@retro-vibecoder/procedural':
-        specifier: workspace:*
-        version: link:../procedural
-      '@retro-vibecoder/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@rjsf/core':
         specifier: ^5.17.0
         version: 5.24.13(@rjsf/utils@5.24.13)(react@18.3.1)
@@ -136,6 +127,15 @@ importers:
       '@tauri-apps/plugin-store':
         specifier: ^2.0.0
         version: 2.4.2
+      '@wcnegentropy/core':
+        specifier: workspace:*
+        version: link:../core
+      '@wcnegentropy/procedural':
+        specifier: workspace:*
+        version: link:../procedural
+      '@wcnegentropy/shared':
+        specifier: workspace:*
+        version: link:../shared
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -170,7 +170,7 @@ importers:
 
   packages/procedural:
     dependencies:
-      '@retro-vibecoder/shared':
+      '@wcnegentropy/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:

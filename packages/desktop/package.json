@@ -1,5 +1,5 @@
 {
-  "name": "@retro-vibecoder/desktop",
+  "name": "@wcnegentropy/desktop",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,9 +15,9 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@retro-vibecoder/core": "workspace:*",
-    "@retro-vibecoder/procedural": "workspace:*",
-    "@retro-vibecoder/shared": "workspace:*",
+    "@wcnegentropy/core": "workspace:*",
+    "@wcnegentropy/procedural": "workspace:*",
+    "@wcnegentropy/shared": "workspace:*",
     "@rjsf/core": "^5.17.0",
     "@rjsf/utils": "^5.17.0",
     "@rjsf/validator-ajv8": "^5.17.0",

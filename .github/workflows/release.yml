@@ -47,28 +47,28 @@ jobs:
       - name: Build all packages
         run: pnpm build
 
-      - name: Publish @retro-vibecoder/shared
+      - name: Publish @wcnegentropy/shared
         working-directory: packages/shared
         run: pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true
 
-      - name: Publish @retro-vibecoder/core
+      - name: Publish @wcnegentropy/core
         working-directory: packages/core
         run: pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true
 
-      - name: Publish @retro-vibecoder/procedural
+      - name: Publish @wcnegentropy/procedural
         working-directory: packages/procedural
         run: pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true
 
-      - name: Publish @retro-vibecoder/cli
+      - name: Publish @wcnegentropy/cli
         working-directory: packages/cli
         run: pnpm publish --no-git-checks --access public
         env:
@@ -337,7 +337,7 @@ jobs:
 
           Install the CLI via npm:
           ```
-          npm install -g @retro-vibecoder/cli
+          npm install -g @wcnegentropy/cli
           ```
 
           ### What's New in v0.2.0

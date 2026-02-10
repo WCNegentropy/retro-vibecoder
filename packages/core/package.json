@@ -1,5 +1,5 @@
 {
-  "name": "@retro-vibecoder/core",
+  "name": "@wcnegentropy/core",
   "version": "0.2.1",
   "description": "Core package for UPG manifest validation and transpilation",
   "type": "module",
@@ -41,7 +41,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@retro-vibecoder/shared": "workspace:*",
+    "@wcnegentropy/shared": "workspace:*",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1"
   },
@@ -64,5 +64,9 @@
     "directory": "packages/core"
   },
   "homepage": "https://github.com/WCNegentropy/retro-vibecoder#readme",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

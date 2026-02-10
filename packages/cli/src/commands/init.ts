@@ -8,7 +8,7 @@ import { writeFile, access } from 'fs/promises';
 import { resolve, basename } from 'path';
 import pc from 'picocolors';
 import ora from 'ora';
-import { stringifyYaml, DEFAULT_MANIFEST_FILENAME } from '@retro-vibecoder/shared';
+import { stringifyYaml, DEFAULT_MANIFEST_FILENAME } from '@wcnegentropy/shared';
 
 interface InitOptions {
   name?: string;

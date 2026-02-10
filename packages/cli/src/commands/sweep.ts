@@ -17,7 +17,7 @@ import pc from 'picocolors';
 import ora from 'ora';
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
-import type { Archetype, Language, Framework } from '@retro-vibecoder/procedural';
+import type { Archetype, Language, Framework } from '@wcnegentropy/procedural';
 
 interface SweepOptions {
   count: string;
@@ -103,7 +103,7 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       runUniversalSweep,
       validateConstraints,
       getValidLanguagesForArchetype,
-    } = await import('@retro-vibecoder/procedural');
+    } = await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
     if (options.archetype || options.language || options.framework) {
@@ -525,7 +525,7 @@ export async function seedAction(
       getValidLanguagesForArchetype,
       getSuggestedFrameworks,
       hasTemplateSet,
-    } = await import('@retro-vibecoder/procedural');
+    } = await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
     if (options.archetype || options.language || options.framework) {

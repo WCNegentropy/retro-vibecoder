@@ -11,7 +11,7 @@ import { readFile } from 'fs/promises';
 import { resolve } from 'path';
 import { validateManifest } from '../schema/validator.js';
 import { transpileManifestToSchema } from '../transpiler/manifest-to-schema.js';
-import { parseYaml, type UpgManifest } from '@retro-vibecoder/shared';
+import { parseYaml, type UpgManifest } from '@wcnegentropy/shared';
 
 /**
  * Test generate command options

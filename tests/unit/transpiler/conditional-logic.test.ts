@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { transpileConditionalLogic, evaluateWhenClause } from '@retro-vibecoder/core/transpiler';
-import type { ManifestPrompt } from '@retro-vibecoder/shared';
+import { transpileConditionalLogic, evaluateWhenClause } from '@wcnegentropy/core/transpiler';
+import type { ManifestPrompt } from '@wcnegentropy/shared';
 
 describe('Conditional Logic Transpiler', () => {
   describe('transpileConditionalLogic', () => {

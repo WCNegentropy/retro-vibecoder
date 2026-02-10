@@ -11,9 +11,9 @@ import { spawn } from 'child_process';
 import pc from 'picocolors';
 import ora from 'ora';
 import nunjucks from 'nunjucks';
-import { validateCommand, transpileManifestToSchema } from '@retro-vibecoder/core';
-import { parseYaml } from '@retro-vibecoder/shared';
-import type { UpgManifest } from '@retro-vibecoder/shared';
+import { validateCommand, transpileManifestToSchema } from '@wcnegentropy/core';
+import { parseYaml } from '@wcnegentropy/shared';
+import type { UpgManifest } from '@wcnegentropy/shared';
 import { readFile, writeFile, readdir, mkdir, copyFile, access } from 'fs/promises';
 
 interface GenerateOptions {

@@ -16,9 +16,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@retro-vibecoder/shared': resolve(__dirname, '../packages/shared/src'),
-      '@retro-vibecoder/core': resolve(__dirname, '../packages/core/src'),
-      '@retro-vibecoder/cli': resolve(__dirname, '../packages/cli/src'),
+      '@wcnegentropy/shared': resolve(__dirname, '../packages/shared/src'),
+      '@wcnegentropy/core': resolve(__dirname, '../packages/core/src'),
+      '@wcnegentropy/cli': resolve(__dirname, '../packages/cli/src'),
     },
   },
 });

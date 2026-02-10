@@ -22,11 +22,11 @@ All CLI features have been thoroughly tested and are operational. The Universal 
 | `pnpm build` | PASS |
 
 All 5 workspace packages built successfully:
-- @retro-vibecoder/shared
-- @retro-vibecoder/core
-- @retro-vibecoder/procedural
-- @retro-vibecoder/cli
-- @retro-vibecoder/desktop
+- @wcnegentropy/shared
+- @wcnegentropy/core
+- @wcnegentropy/procedural
+- @wcnegentropy/cli
+- @wcnegentropy/desktop
 
 ---
 

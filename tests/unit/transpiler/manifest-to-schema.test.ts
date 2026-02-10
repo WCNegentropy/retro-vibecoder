@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { transpileManifestToSchema } from '@retro-vibecoder/core';
-import type { UpgManifest } from '@retro-vibecoder/shared';
+import { transpileManifestToSchema } from '@wcnegentropy/core';
+import type { UpgManifest } from '@wcnegentropy/shared';
 
 describe('Manifest to Schema Transpiler', () => {
   const baseManifest: UpgManifest = {
