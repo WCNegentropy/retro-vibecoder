@@ -130,7 +130,21 @@ function SeedGalleryPage() {
     'desktop',
     'game',
   ];
-  const languages = Array.from(new Set(seeds.map(s => s.stack.language)));
+  const ALL_LANGUAGES: Language[] = [
+    'typescript',
+    'javascript',
+    'python',
+    'rust',
+    'go',
+    'java',
+    'kotlin',
+    'swift',
+    'csharp',
+    'cpp',
+    'ruby',
+    'php',
+  ];
+  const languages = ALL_LANGUAGES;
 
   const handleUseSeed = (seed: number) => {
     navigate(`/seed?seed=${seed}`);
