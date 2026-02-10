@@ -277,7 +277,9 @@ export async function generateAction(
       console.log(pc.bold('Destination:'), destPath);
       console.log('');
       console.log(pc.bold('Variables:'));
-      console.log(JSON.stringify(context, null, 2));
+      const logContext = { ...context };
+      delete logContext.env;
+      console.log(JSON.stringify(logContext, null, 2));
       console.log('');
       console.log(pc.bold('Files that would be generated:'));
 

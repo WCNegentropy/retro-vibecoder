@@ -500,6 +500,7 @@ export async function seedAction(
     language?: string;
     framework?: string;
     json?: boolean;
+    name?: string;
   }
 ): Promise<void> {
   const seed = parseInt(seedStr, 10);
@@ -590,6 +591,9 @@ export async function seedAction(
     }
     if (options.framework) {
       assemblerOptions.framework = options.framework;
+    }
+    if (options.name) {
+      assemblerOptions.projectName = options.name;
     }
 
     const assembler = new ProjectAssembler(seed, assemblerOptions);

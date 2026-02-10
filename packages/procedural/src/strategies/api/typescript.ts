@@ -9,6 +9,21 @@ import type { GenerationStrategy } from '../../types.js';
 import { renderTemplateSet, getTemplateSetId, type TemplateContext } from '../../renderer/index.js';
 
 /**
+ * Shared ESLint flat config for generated TypeScript projects
+ */
+const eslintConfig = `import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    ignores: ['dist/**'],
+  }
+);
+`;
+
+/**
  * Build a TemplateContext from the generation context
  */
 function buildTemplateContext(
@@ -91,6 +106,11 @@ export const ExpressStrategy: GenerationStrategy = {
       const rendered = renderTemplateSet(templateSetId, templateCtx);
       if (Object.keys(rendered).length > 0) {
         applyRenderedFiles(files, rendered, isTypeScript);
+
+        // Add ESLint config if not already present
+        if (!files['eslint.config.js']) {
+          files['eslint.config.js'] = eslintConfig;
+        }
 
         // Add database setup if needed (not templated yet)
         if (stack.orm === 'prisma' && stack.database !== 'none') {
@@ -271,6 +291,9 @@ export { app };
       );
     }
 
+    // Add ESLint config
+    files['eslint.config.js'] = eslintConfig;
+
     // Add database setup if needed
     if (stack.orm === 'prisma' && stack.database !== 'none') {
       addPrismaSetup(files, projectName, stack.database, isTypeScript);
@@ -316,6 +339,11 @@ export const FastifyStrategy: GenerationStrategy = {
       const rendered = renderTemplateSet(templateSetId, templateCtx);
       if (Object.keys(rendered).length > 0) {
         applyRenderedFiles(files, rendered, isTypeScript);
+
+        // Add ESLint config if not already present
+        if (!files['eslint.config.js']) {
+          files['eslint.config.js'] = eslintConfig;
+        }
 
         if (stack.orm === 'prisma' && stack.database !== 'none') {
           addPrismaSetup(files, projectName, stack.database, isTypeScript);
@@ -494,6 +522,9 @@ export { fastify };
 `;
     }
 
+    // Add ESLint config
+    files['eslint.config.js'] = eslintConfig;
+
     // Add database setup if needed
     if (stack.orm === 'prisma' && stack.database !== 'none') {
       addPrismaSetup(files, projectName, stack.database, isTypeScript);
@@ -584,7 +615,7 @@ export const NestJSStrategy: GenerationStrategy = {
     stack.archetype === 'backend' &&
     stack.framework === 'nestjs',
 
-  apply: async ({ files, projectName }) => {
+  apply: async ({ files, projectName, stack }) => {
     // package.json
     files['package.json'] = JSON.stringify(
       {
@@ -716,5 +747,13 @@ export class AppService {
   }
 }
 `;
+
+    // Add ESLint config
+    files['eslint.config.js'] = eslintConfig;
+
+    // Add database setup if needed
+    if (stack.orm === 'prisma' && stack.database !== 'none') {
+      addPrismaSetup(files, projectName, stack.database, true);
+    }
   },
 };
