@@ -1,6 +1,6 @@
 {
   "name": "@retro-vibecoder/cli",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Command-line interface for the Universal Project Generator",
   "type": "module",
   "main": "./dist/index.js",
@@ -42,7 +42,17 @@
     "retro-vibecoder",
     "upg",
     "cli",
-    "scaffolding"
+    "scaffolding",
+    "project-generator",
+    "procedural",
+    "template",
+    "code-generation"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WCNegentropy/retro-vibecoder.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/WCNegentropy/retro-vibecoder#readme",
   "license": "MIT"
 }
