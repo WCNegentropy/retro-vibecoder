@@ -47,6 +47,21 @@ function convertSeedEntry(entry: SeedEntryResponse): SeedEntry {
   };
 }
 
+const ALL_LANGUAGES: Language[] = [
+  'typescript',
+  'javascript',
+  'python',
+  'rust',
+  'go',
+  'java',
+  'kotlin',
+  'swift',
+  'csharp',
+  'cpp',
+  'ruby',
+  'php',
+];
+
 function SeedGalleryPage() {
   const navigate = useNavigate();
   const [seeds, setSeeds] = useState<SeedEntry[]>([]);
@@ -129,20 +144,6 @@ function SeedGalleryPage() {
     'library',
     'desktop',
     'game',
-  ];
-  const ALL_LANGUAGES: Language[] = [
-    'typescript',
-    'javascript',
-    'python',
-    'rust',
-    'go',
-    'java',
-    'kotlin',
-    'swift',
-    'csharp',
-    'cpp',
-    'ruby',
-    'php',
   ];
   const languages = ALL_LANGUAGES;
 

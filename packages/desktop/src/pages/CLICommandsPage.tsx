@@ -290,7 +290,11 @@ const CLI_COMMANDS: CLICommand[] = [
   },
 ];
 
-const MANIFEST_COMMANDS = ['generate', 'validate', 'init', 'search', 'docs', 'test'];
+const MANIFEST_COMMAND_IDS = new Set(
+  CLI_COMMANDS.filter(cmd =>
+    ['generate', 'validate', 'init', 'search', 'docs', 'test'].includes(cmd.id)
+  ).map(cmd => cmd.id)
+);
 
 function CLICommandsPage() {
   const [selectedCommand, setSelectedCommand] = useState<CLICommand>(CLI_COMMANDS[0]);
@@ -449,7 +453,7 @@ function CLICommandsPage() {
               >
                 Procedural Commands
               </div>
-              {CLI_COMMANDS.filter(cmd => !MANIFEST_COMMANDS.includes(cmd.id)).map(cmd => (
+              {CLI_COMMANDS.filter(cmd => !MANIFEST_COMMAND_IDS.has(cmd.id)).map(cmd => (
                 <button
                   key={cmd.id}
                   type="button"
@@ -477,7 +481,7 @@ function CLICommandsPage() {
               >
                 Template / Manifest Commands
               </div>
-              {CLI_COMMANDS.filter(cmd => MANIFEST_COMMANDS.includes(cmd.id)).map(cmd => (
+              {CLI_COMMANDS.filter(cmd => MANIFEST_COMMAND_IDS.has(cmd.id)).map(cmd => (
                 <button
                   key={cmd.id}
                   type="button"
@@ -505,7 +509,7 @@ function CLICommandsPage() {
           <div className="win95-window-content">
             <p style={{ marginBottom: '12px', fontSize: '11px' }}>{selectedCommand.description}</p>
 
-            {MANIFEST_COMMANDS.includes(selectedCommand.id) && (
+            {MANIFEST_COMMAND_IDS.has(selectedCommand.id) && (
               <div
                 style={{
                   marginBottom: '12px',
