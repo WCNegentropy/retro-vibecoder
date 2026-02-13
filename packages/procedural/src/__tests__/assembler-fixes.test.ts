@@ -8,6 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { ProjectAssembler } from '../engine/assembler.js';
 import { AllStrategies } from '../strategies/index.js';
+import { validateConstraints } from '../engine/constraints.js';
 
 describe('pickFramework context-aware fallback', () => {
   it('should default to commander for cli+typescript when no valid frameworks found', async () => {
@@ -112,5 +113,85 @@ describe('ESLint config generation', () => {
 
     expect(project.files['eslint.config.js']).toBeDefined();
     expect(project.files['eslint.config.js']).toContain('typescript-eslint');
+  });
+});
+
+describe('Bug 10: --language constrains archetype selection', () => {
+  it('should not pick web archetype when language is python', async () => {
+    // Run multiple seeds with python forced — none should get 'web' archetype
+    for (const seed of [1, 2, 3, 10, 42, 100]) {
+      const assembler = new ProjectAssembler(seed, { language: 'python' });
+      assembler.registerStrategies(AllStrategies);
+      const project = await assembler.generate();
+      expect(project.stack.archetype).not.toBe('web');
+      expect(project.stack.language).toBe('python');
+    }
+  });
+});
+
+describe('Bug 11: empty files guard', () => {
+  it('should have files in generated projects', async () => {
+    const assembler = new ProjectAssembler(42, {
+      archetype: 'backend',
+      language: 'typescript',
+      framework: 'express',
+    });
+    assembler.registerStrategies(AllStrategies);
+    const project = await assembler.generate();
+    expect(Object.keys(project.files).length).toBeGreaterThan(0);
+  });
+});
+
+describe('Bug 17: NestJS always gets node runtime', () => {
+  it('should use node runtime for NestJS', async () => {
+    for (const seed of [1, 2, 3, 10, 42, 100]) {
+      const assembler = new ProjectAssembler(seed, {
+        archetype: 'backend',
+        language: 'typescript',
+        framework: 'nestjs',
+      });
+      assembler.registerStrategies(AllStrategies);
+      const project = await assembler.generate();
+      expect(project.stack.runtime).toBe('node');
+    }
+  });
+});
+
+describe('Bug 19: library archetype framework is none', () => {
+  it('should have framework=none for library archetype', async () => {
+    for (const seed of [1, 5, 10, 42]) {
+      const assembler = new ProjectAssembler(seed, {
+        archetype: 'library',
+        language: 'rust',
+      });
+      assembler.registerStrategies(AllStrategies);
+      const project = await assembler.generate();
+      expect(project.stack.framework).toBe('none');
+    }
+  });
+});
+
+describe('Bug 18: unknown archetype/language/framework validation', () => {
+  it('should reject unknown archetype', () => {
+    const result = validateConstraints('nonexistent' as any);
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('Unknown archetype');
+  });
+
+  it('should reject unknown language', () => {
+    const result = validateConstraints(undefined, 'fortran' as any);
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('Unknown language');
+  });
+
+  it('should reject unknown framework', () => {
+    const result = validateConstraints(undefined, undefined, 'nonexistent' as any);
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('Unknown framework');
+  });
+
+  it('should accept valid constraints', () => {
+    const result = validateConstraints('backend', 'typescript', 'express');
+    expect(result.valid).toBe(true);
   });
 });
