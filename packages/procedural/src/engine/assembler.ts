@@ -38,6 +38,12 @@ import { getDefaultBuildTool, getDefaultTesting } from '../matrices/frameworks.j
 import { isLanguageCompatible } from '../matrices/archetypes.js';
 
 /**
+ * Frameworks that only support Node.js runtime (Bug 17).
+ * These will have their runtime forced to 'node' regardless of what pickRuntime selects.
+ */
+const NODE_ONLY_FRAMEWORKS: readonly Framework[] = ['nestjs', 'express', 'fastify'];
+
+/**
  * Configuration options for the assembler
  */
 export interface AssemblerOptions {
@@ -212,8 +218,7 @@ export class ProjectAssembler {
     const framework = this.options.framework ?? this.pickFramework(archetype, language);
 
     // 4b. Post-resolution fixup: Node-only frameworks override runtime (Bug 17)
-    const nodeOnlyFrameworks: Framework[] = ['nestjs', 'express', 'fastify'];
-    if (nodeOnlyFrameworks.includes(framework) && runtime !== 'node') {
+    if (NODE_ONLY_FRAMEWORKS.includes(framework) && runtime !== 'node') {
       runtime = 'node';
     }
 

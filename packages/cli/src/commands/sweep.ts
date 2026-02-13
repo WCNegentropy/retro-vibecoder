@@ -16,7 +16,7 @@
 import pc from 'picocolors';
 import ora from 'ora';
 import { writeFile, readFile, mkdir, readdir, rm } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import type { Archetype, Language, Framework } from '@wcnegentropy/procedural';
 import { parseSeed } from '@wcnegentropy/shared';
 
@@ -75,6 +75,18 @@ function createProgressBar(current: number, total: number, width: number = 30): 
   const empty = width - filled;
   const bar = pc.green('█'.repeat(filled)) + pc.dim('░'.repeat(empty));
   return `[${bar}] ${percentage}% (${current}/${total})`;
+}
+
+/**
+ * Safely remove a directory, rejecting dangerous paths
+ */
+async function safeRmDir(dir: string): Promise<void> {
+  const resolved = resolve(dir);
+  // Refuse to remove root-level or system directories
+  if (resolved === '/' || resolved.split('/').filter(Boolean).length < 2) {
+    throw new Error(`Refusing to remove directory '${resolved}': path is too shallow`);
+  }
+  await rm(resolved, { recursive: true, force: true });
 }
 
 /**
@@ -650,7 +662,7 @@ export async function seedAction(
       if (options.output) {
         const outputDir = options.output;
         if (options.force) {
-          await rm(outputDir, { recursive: true, force: true });
+          await safeRmDir(outputDir);
         }
         await mkdir(outputDir, { recursive: true });
 
@@ -709,7 +721,7 @@ export async function seedAction(
     if (options.output) {
       const outputDir = options.output;
       if (options.force) {
-        await rm(outputDir, { recursive: true, force: true });
+        await safeRmDir(outputDir);
       }
       await mkdir(outputDir, { recursive: true });
 
