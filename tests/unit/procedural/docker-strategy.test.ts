@@ -7,7 +7,11 @@
 
 import { describe, it, expect } from 'vitest';
 import { DockerStrategy } from '../../../packages/procedural/src/strategies/common/docker.js';
-import type { TechStack, GenerationContext, ProjectFiles } from '../../../packages/procedural/src/types.js';
+import type {
+  TechStack,
+  GenerationContext,
+  ProjectFiles,
+} from '../../../packages/procedural/src/types.js';
 
 function createStack(overrides: Partial<TechStack> = {}): TechStack {
   return {

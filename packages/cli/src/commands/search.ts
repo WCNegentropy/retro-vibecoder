@@ -254,9 +254,7 @@ export async function searchAction(query: string, options: SearchOptions): Promi
       const tagOnlyResults = registry.entries.filter(entry => entryMatchesTags(entry, tagFilter));
       if (tagOnlyResults.length > 0) {
         console.log(
-          pc.yellow(
-            `Did you mean: ${pc.cyan(`upg search "*" --tags "${tagFilter.join(',')}"`)}`
-          )
+          pc.yellow(`Did you mean: ${pc.cyan(`upg search "*" --tags "${tagFilter.join(',')}"`)}`)
         );
         console.log(
           pc.dim(`  (${tagOnlyResults.length} entries match the tags without the query filter)`)
