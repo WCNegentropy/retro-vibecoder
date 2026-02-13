@@ -359,8 +359,8 @@ export function getTemplateSetId(
     'javascript-fastify': 'typescript-fastify',
     'python-fastapi': 'python-fastapi',
     'rust-axum': 'rust-axum',
-    'rust-actix': 'rust-axum', // Actix uses Axum templates as a base
-    'rust-clap': 'rust-axum', // Clap CLI falls back to Axum templates
+    'rust-actix': 'rust-axum', // Shares similar Rust backend project layout
+    'rust-clap': 'rust-axum', // Shares similar Rust project layout
   };
 
   return templateMap[key] ?? null;

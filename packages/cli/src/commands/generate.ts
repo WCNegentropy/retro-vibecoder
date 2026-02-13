@@ -361,7 +361,7 @@ export async function generateAction(
           spinner.warn(`Warning: Failed to render ${relativePath}: ${errorMsg}`);
           continue;
         }
-      } else if (BINARY_EXTENSIONS.includes(extname(relativePath).toLowerCase() as typeof BINARY_EXTENSIONS[number])) {
+      } else if ((BINARY_EXTENSIONS as readonly string[]).includes(extname(relativePath).toLowerCase())) {
         // Copy binary file as-is
         await copyFile(filePath, outputPath);
       } else {

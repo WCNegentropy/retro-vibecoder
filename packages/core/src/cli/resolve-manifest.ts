@@ -5,7 +5,7 @@
  * If the path is a directory, it searches for known manifest filenames within it.
  */
 
-import { readFile, stat } from 'fs/promises';
+import { access, stat } from 'fs/promises';
 import { resolve } from 'path';
 import { MANIFEST_FILENAMES } from '@wcnegentropy/shared';
 
@@ -16,7 +16,7 @@ async function findManifestFile(dirPath: string): Promise<string | null> {
   for (const filename of MANIFEST_FILENAMES) {
     const filePath = resolve(dirPath, filename);
     try {
-      await readFile(filePath);
+      await access(filePath);
       return filePath;
     } catch {
       // File doesn't exist, try next
