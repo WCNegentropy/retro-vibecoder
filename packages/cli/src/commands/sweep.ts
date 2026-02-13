@@ -15,9 +15,10 @@
 
 import pc from 'picocolors';
 import ora from 'ora';
-import { writeFile, readFile, mkdir } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { writeFile, readFile, mkdir, readdir, rm } from 'node:fs/promises';
+import { join, dirname, resolve } from 'node:path';
 import type { Archetype, Language, Framework } from '@wcnegentropy/procedural';
+import { parseSeed } from '@wcnegentropy/shared';
 
 interface SweepOptions {
   count: string;
@@ -77,21 +78,37 @@ function createProgressBar(current: number, total: number, width: number = 30): 
 }
 
 /**
+ * Safely remove a directory, rejecting dangerous paths
+ */
+async function safeRmDir(dir: string): Promise<void> {
+  const resolved = resolve(dir);
+  // Refuse to remove root-level or system directories
+  if (resolved === '/' || resolved.split('/').filter(Boolean).length < 2) {
+    throw new Error(`Refusing to remove directory '${resolved}': path is too shallow`);
+  }
+  await rm(resolved, { recursive: true, force: true });
+}
+
+/**
  * Sweep action - generate projects procedurally
  */
 export async function sweepAction(options: SweepOptions): Promise<void> {
   const count = parseInt(options.count, 10);
-  const startSeed = options.startSeed ? parseInt(options.startSeed, 10) : 1;
+  const startSeedParsed = options.startSeed
+    ? parseSeed(options.startSeed)
+    : { valid: true, seed: 1 };
 
   if (isNaN(count) || count < 1) {
     console.error(pc.red('Error: Count must be a positive integer'));
     process.exit(1);
   }
 
-  if (isNaN(startSeed) || startSeed < 1) {
-    console.error(pc.red('Error: Start seed must be a positive integer'));
+  if (!startSeedParsed.valid) {
+    console.error(pc.red(`Error: ${startSeedParsed.error}`));
     process.exit(1);
   }
+
+  const startSeed = startSeedParsed.seed!;
 
   const spinner = ora('Initializing procedural generation engine...').start();
 
@@ -505,19 +522,22 @@ export async function seedAction(
     framework?: string;
     json?: boolean;
     name?: string;
+    force?: boolean;
   }
 ): Promise<void> {
-  const seed = parseInt(seedStr, 10);
+  const parsed = parseSeed(seedStr);
   const isJson = options.json ?? false;
 
-  if (isNaN(seed) || seed < 1) {
+  if (!parsed.valid) {
     if (isJson) {
-      console.log(JSON.stringify({ success: false, error: 'Seed must be a positive integer' }));
+      console.log(JSON.stringify({ success: false, error: parsed.error }));
     } else {
-      console.error(pc.red('Error: Seed must be a positive integer'));
+      console.error(pc.red(`Error: ${parsed.error}`));
     }
     process.exit(1);
   }
+
+  const seed = parsed.seed!;
 
   const spinner = isJson ? null : ora('Generating project...').start();
 
@@ -585,6 +605,33 @@ export async function seedAction(
       }
     }
 
+    // Check if output directory is non-empty (Bug 12: zombie hybrid projects)
+    if (options.output && !options.force) {
+      try {
+        const entries = await readdir(options.output);
+        if (entries.length > 0) {
+          if (isJson) {
+            console.log(
+              JSON.stringify({
+                success: false,
+                error: `Output directory '${options.output}' already contains files. Use --force to overwrite.`,
+              })
+            );
+          } else {
+            if (spinner) spinner.fail('Output directory not empty');
+            console.error(
+              pc.red(
+                `Error: Output directory '${options.output}' already contains files. Use --force to overwrite.`
+              )
+            );
+          }
+          process.exit(1);
+        }
+      } catch {
+        // Directory doesn't exist yet — that's fine
+      }
+    }
+
     const assemblerOptions: Record<string, unknown> = {};
 
     if (options.archetype) {
@@ -614,6 +661,9 @@ export async function seedAction(
     if (isJson) {
       if (options.output) {
         const outputDir = options.output;
+        if (options.force) {
+          await safeRmDir(outputDir);
+        }
         await mkdir(outputDir, { recursive: true });
 
         for (const [filePath, content] of Object.entries(project.files)) {
@@ -670,6 +720,9 @@ export async function seedAction(
     // Write output if specified
     if (options.output) {
       const outputDir = options.output;
+      if (options.force) {
+        await safeRmDir(outputDir);
+      }
       await mkdir(outputDir, { recursive: true });
 
       for (const [filePath, content] of Object.entries(project.files)) {

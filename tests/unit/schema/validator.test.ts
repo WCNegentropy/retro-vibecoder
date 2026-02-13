@@ -106,4 +106,49 @@ describe('Schema Validator', () => {
       expect(result.warnings.some(w => w.code === 'DEPRECATED_TEMPLATE')).toBe(true);
     });
   });
+
+  describe('Bug 14: duplicate prompt IDs', () => {
+    it('should reject manifest with duplicate prompt IDs', () => {
+      const manifest = {
+        apiVersion: 'upg/v1',
+        metadata: {
+          name: 'dupe-ids-test',
+          version: '1.0.0',
+          description: 'A template with duplicate prompt IDs',
+          tags: ['test'],
+        },
+        prompts: [
+          { id: 'name', type: 'string', message: 'Name?' },
+          { id: 'name', type: 'string', message: 'Name again?' },
+        ],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
+      };
+
+      const result = validateManifest(manifest);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.code === 'DUPLICATE_PROMPT_ID')).toBe(true);
+    });
+  });
+
+  describe('Bug 15: invalid regex validator', () => {
+    it('should reject manifest with invalid regex in prompt validator', () => {
+      const manifest = {
+        apiVersion: 'upg/v1',
+        metadata: {
+          name: 'bad-regex-test',
+          version: '1.0.0',
+          description: 'A template with invalid regex validator',
+          tags: ['test'],
+        },
+        prompts: [{ id: 'name', type: 'string', message: 'Name?', validator: '[invalid(' }],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
+      };
+
+      const result = validateManifest(manifest);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.code === 'INVALID_VALIDATOR_REGEX')).toBe(true);
+    });
+  });
 });

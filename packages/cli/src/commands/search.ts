@@ -10,6 +10,7 @@ import pc from 'picocolors';
 import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { version as cliVersion } from '../../package.json';
 
 /**
  * Registry entry structure
@@ -225,6 +226,20 @@ export async function searchAction(query: string, options: SearchOptions): Promi
 
   // Filter entries
   let results = registry.entries;
+
+  // Bug 13: Warn if registry was built with a different engine version
+  const registryVersions = new Set(registry.entries.map(e => e.upgVersion).filter(Boolean));
+  for (const regVersion of registryVersions) {
+    if (regVersion !== cliVersion) {
+      console.log(
+        pc.yellow(
+          `Note: Registry was built with engine v${regVersion}, current is v${cliVersion}. Seed outputs may differ.`
+        )
+      );
+      console.log('');
+      break;
+    }
+  }
 
   // Apply query filter
   if (query && query !== '*') {

@@ -23,8 +23,15 @@ import {
   isLanguageCompatible,
   getLanguagesForArchetype,
   getFrameworksForArchetype,
+  ARCHETYPE_MAP,
+  ARCHETYPE_IDS,
 } from '../matrices/archetypes.js';
-import { languageSupportsRuntime, getRuntimesForLanguage } from '../matrices/languages.js';
+import {
+  languageSupportsRuntime,
+  getRuntimesForLanguage,
+  LANGUAGE_MAP,
+  LANGUAGE_IDS,
+} from '../matrices/languages.js';
 
 // ============================================================================
 // Incompatibility Rules
@@ -720,6 +727,22 @@ export function validateConstraints(
 ): ConstraintValidationResult {
   const errors: string[] = [];
   const suggestions: string[] = [];
+
+  // Validate that provided values are known (Bug 18)
+  if (archetype && !ARCHETYPE_MAP.has(archetype)) {
+    errors.push(`Unknown archetype '${archetype}'. Valid: ${ARCHETYPE_IDS.join(', ')}`);
+  }
+  if (language && !LANGUAGE_MAP.has(language)) {
+    errors.push(`Unknown language '${language}'. Valid: ${LANGUAGE_IDS.join(', ')}`);
+  }
+  if (framework && framework !== 'none' && !FRAMEWORK_MAP.has(framework)) {
+    errors.push(`Unknown framework '${framework}'.`);
+  }
+
+  // Short-circuit if values themselves are invalid
+  if (errors.length > 0) {
+    return { valid: false, errors, suggestions };
+  }
 
   // Validate archetype-language compatibility
   if (archetype && language) {
