@@ -603,6 +603,95 @@ model User {
 }
 
 /**
+ * Add TypeORM setup to a NestJS project (Bug 16)
+ */
+function addTypeOrmSetup(
+  files: Record<string, string>,
+  _projectName: string,
+  database: string
+): void {
+  const pkg = JSON.parse(files['package.json']);
+
+  pkg.dependencies['@nestjs/typeorm'] = '^10.0.1';
+  pkg.dependencies['typeorm'] = '^0.3.20';
+
+  // Add database driver
+  if (database === 'postgres') {
+    pkg.dependencies['pg'] = '^8.11.3';
+  } else if (database === 'mysql') {
+    pkg.dependencies['mysql2'] = '^3.7.0';
+  } else if (database === 'sqlite') {
+    pkg.dependencies['better-sqlite3'] = '^9.4.3';
+  }
+
+  pkg.scripts['db:migration:generate'] = 'typeorm migration:generate';
+  pkg.scripts['db:migration:run'] = 'typeorm migration:run';
+  files['package.json'] = JSON.stringify(pkg, null, 2);
+
+  // Determine connection config
+  let dbType = 'postgres';
+  let url = 'postgresql://user:password@localhost:5432/db';
+  if (database === 'mysql') {
+    dbType = 'mysql';
+    url = 'mysql://user:password@localhost:3306/db';
+  } else if (database === 'sqlite') {
+    dbType = 'sqlite';
+    url = './dev.db';
+  }
+
+  // Sample entity
+  files['src/entities/user.entity.ts'] = `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ nullable: true })
+  name: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+`;
+
+  // Update app.module.ts to include TypeOrmModule
+  if (files['src/app.module.ts']) {
+    files['src/app.module.ts'] = `import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { User } from './entities/user.entity';
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: '${dbType}',
+      url: process.env.DATABASE_URL,
+      entities: [User],
+      synchronize: process.env.NODE_ENV !== 'production',
+    }),
+    TypeOrmModule.forFeature([User]),
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+`;
+  }
+
+  // .env example
+  files['.env.example'] = `DATABASE_URL="${url}"
+`;
+}
+
+/**
  * NestJS backend strategy
  */
 export const NestJSStrategy: GenerationStrategy = {
@@ -754,6 +843,11 @@ export class AppService {
     // Add database setup if needed
     if (stack.orm === 'prisma' && stack.database !== 'none') {
       addPrismaSetup(files, projectName, stack.database, true);
+    }
+
+    // Bug 16: Add TypeORM setup if needed
+    if (stack.orm === 'typeorm' && stack.database !== 'none') {
+      addTypeOrmSetup(files, projectName, stack.database);
     }
   },
 };

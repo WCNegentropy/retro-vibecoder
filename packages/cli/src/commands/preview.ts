@@ -23,6 +23,7 @@
  */
 
 import type { Archetype, Language, Framework } from '@wcnegentropy/procedural';
+import { parseSeed } from '@wcnegentropy/shared';
 
 interface PreviewOptions {
   archetype?: string;
@@ -45,16 +46,18 @@ interface PreviewOutput {
  * Preview action - generate a project and output JSON to stdout
  */
 export async function previewAction(seedStr: string, options: PreviewOptions): Promise<void> {
-  const seed = parseInt(seedStr, 10);
+  const parsed = parseSeed(seedStr);
 
-  if (isNaN(seed) || seed < 1) {
+  if (!parsed.valid) {
     const output: PreviewOutput = {
       success: false,
-      error: 'Seed must be a positive integer',
+      error: parsed.error!,
     };
     console.log(JSON.stringify(output));
     process.exit(1);
   }
+
+  const seed = parsed.seed!;
 
   try {
     const { ProjectAssembler, AllStrategies, validateConstraints } =

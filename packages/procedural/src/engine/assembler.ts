@@ -35,6 +35,7 @@ import {
   applyDefaults,
 } from './constraints.js';
 import { getDefaultBuildTool, getDefaultTesting } from '../matrices/frameworks.js';
+import { isLanguageCompatible } from '../matrices/archetypes.js';
 
 /**
  * Configuration options for the assembler
@@ -158,6 +159,13 @@ export class ProjectAssembler {
       }
     }
 
+    // 5b. Post-generate validation: ensure files were generated (Bug 11)
+    if (Object.keys(files).length === 0) {
+      throw new Error(
+        `No files were generated for stack ${stack.archetype}/${stack.language}/${stack.framework}. This stack combination may not be fully supported yet.`
+      );
+    }
+
     // 6. Build metadata
     const metadata: GenerationMetadata = {
       generatedAt: new Date().toISOString(),
@@ -184,17 +192,30 @@ export class ProjectAssembler {
    * This is the "constraint solver loop" that ensures valid combinations.
    */
   private resolveStack(): TechStack {
-    // 1. Pick archetype
-    const archetype = this.options.archetype ?? this.pickArchetype();
+    // 1. Pick archetype (Bug 10: constrained by language if language is forced)
+    let archetype: Archetype;
+    if (this.options.archetype) {
+      archetype = this.options.archetype;
+    } else if (this.options.language) {
+      archetype = this.pickArchetypeForLanguage(this.options.language);
+    } else {
+      archetype = this.pickArchetype();
+    }
 
     // 2. Pick language (constrained by archetype)
     const language = this.options.language ?? this.pickLanguage(archetype);
 
     // 3. Pick runtime (constrained by language)
-    const runtime = this.pickRuntime(language);
+    let runtime = this.pickRuntime(language);
 
     // 4. Pick framework (constrained by archetype and language)
     const framework = this.options.framework ?? this.pickFramework(archetype, language);
+
+    // 4b. Post-resolution fixup: Node-only frameworks override runtime (Bug 17)
+    const nodeOnlyFrameworks: Framework[] = ['nestjs', 'express', 'fastify'];
+    if (nodeOnlyFrameworks.includes(framework) && runtime !== 'node') {
+      runtime = 'node';
+    }
 
     // 5. Pick database (constrained by archetype)
     const database = this.pickDatabase(archetype);
@@ -257,6 +278,29 @@ export class ProjectAssembler {
   }
 
   /**
+   * Pick an archetype compatible with a forced language (Bug 10).
+   * Filters the weighted archetype list to only those supporting the language.
+   */
+  private pickArchetypeForLanguage(language: Language): Archetype {
+    const allArchetypes: { value: Archetype; weight: number }[] = [
+      { value: 'backend' as Archetype, weight: 30 },
+      { value: 'web' as Archetype, weight: 25 },
+      { value: 'cli' as Archetype, weight: 20 },
+      { value: 'library' as Archetype, weight: 15 },
+      { value: 'desktop' as Archetype, weight: 5 },
+      { value: 'mobile' as Archetype, weight: 4 },
+      { value: 'game' as Archetype, weight: 1 },
+    ];
+
+    const compatible = allArchetypes.filter(a => isLanguageCompatible(a.value, language));
+    if (compatible.length === 0) {
+      throw new Error(`No compatible archetypes for language: ${language}`);
+    }
+
+    return this.rng.pickWeighted(compatible);
+  }
+
+  /**
    * Pick a language compatible with the archetype.
    */
   private pickLanguage(archetype: Archetype): Language {
@@ -306,6 +350,11 @@ export class ProjectAssembler {
    * Now provides sensible defaults for ALL languages instead of falling back to 'express'
    */
   private pickFramework(archetype: Archetype, language: Language): Framework {
+    // Bug 19: Libraries don't have frameworks in the traditional sense
+    if (archetype === 'library') {
+      return 'none';
+    }
+
     const validFrameworks = getValidFrameworks(archetype, language);
 
     // For library/game archetypes, framework might be empty

@@ -11,6 +11,8 @@ import {
   type ValidationWarning,
   VALIDATION_ERRORS,
   parseYaml,
+  hasUniqueValues,
+  isValidRegex,
 } from '@wcnegentropy/shared';
 import { manifestSchema } from './upg-manifest-schema.js';
 
@@ -202,8 +204,38 @@ export function validateManifest(
     }
   }
 
+  // If schema-valid, run post-schema checks (Bugs 14 & 15)
+  if (valid) {
+    const manifest = data as UpgManifest;
+
+    // Bug 14: Check for duplicate prompt IDs
+    if (manifest.prompts && manifest.prompts.length > 0) {
+      const promptIds = manifest.prompts.map(p => p.id);
+      if (!hasUniqueValues(promptIds)) {
+        const dupes = promptIds.filter((id, i) => promptIds.indexOf(id) !== i);
+        errors.push({
+          code: 'DUPLICATE_PROMPT_ID',
+          message: `Duplicate prompt ID: '${dupes[0]}'`,
+          path: 'prompts',
+        });
+      }
+
+      // Bug 15: Check for invalid regex validators
+      for (let i = 0; i < manifest.prompts.length; i++) {
+        const prompt = manifest.prompts[i];
+        if (prompt.validator && !isValidRegex(prompt.validator)) {
+          errors.push({
+            code: 'INVALID_VALIDATOR_REGEX',
+            message: `Invalid regex in prompt '${prompt.id}': ${prompt.validator}`,
+            path: `prompts[${i}].validator`,
+          });
+        }
+      }
+    }
+  }
+
   // If valid, check for warnings
-  if (valid && options.includeWarnings !== false) {
+  if (valid && errors.length === 0 && options.includeWarnings !== false) {
     warnings.push(...checkWarnings(data as UpgManifest));
   }
 
@@ -211,6 +243,6 @@ export function validateManifest(
     valid: errors.length === 0,
     errors,
     warnings,
-    manifest: valid ? (data as UpgManifest) : undefined,
+    manifest: errors.length === 0 ? (data as UpgManifest) : undefined,
   };
 }

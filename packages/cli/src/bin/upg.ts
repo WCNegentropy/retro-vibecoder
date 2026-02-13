@@ -147,6 +147,7 @@ export function createCli(): Command {
     .option('--language <lang>', 'Force specific language')
     .option('--framework <fw>', 'Force specific framework')
     .option('-n, --name <name>', 'Project name')
+    .option('--force', 'Overwrite existing output directory', false)
     .action(seedAction);
 
   // Preview command - generate project and output JSON to stdout (for desktop app integration)
