@@ -5,3 +5,4 @@
 export { validateCommand, type ValidateCommandOptions } from './validate.js';
 export { testGenerateCommand, type TestGenerateOptions } from './test-generate.js';
 export { docsGenCommand, type DocsGenOptions } from './docs-gen.js';
+export { resolveManifestPath } from './resolve-manifest.js';

@@ -385,6 +385,10 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       }
 
       // Save to registry if requested (skip in dry-run mode)
+      if (options.saveRegistry && options.dryRun) {
+        console.log();
+        console.log(pc.dim('Note: --save-registry skipped in dry-run mode'));
+      }
       if (options.saveRegistry && !options.dryRun) {
         // Filter out failed and include only validated (or all successful if not validating)
         const validResults = results.filter(

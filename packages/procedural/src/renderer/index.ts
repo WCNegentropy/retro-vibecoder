@@ -359,6 +359,8 @@ export function getTemplateSetId(
     'javascript-fastify': 'typescript-fastify',
     'python-fastapi': 'python-fastapi',
     'rust-axum': 'rust-axum',
+    'rust-actix': 'rust-axum', // Actix uses Axum templates as a base
+    'rust-clap': 'rust-axum', // Clap CLI falls back to Axum templates
   };
 
   return templateMap[key] ?? null;

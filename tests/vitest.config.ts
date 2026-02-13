@@ -19,6 +19,7 @@ export default defineConfig({
       '@wcnegentropy/shared': resolve(__dirname, '../packages/shared/src'),
       '@wcnegentropy/core': resolve(__dirname, '../packages/core/src'),
       '@wcnegentropy/cli': resolve(__dirname, '../packages/cli/src'),
+      '@wcnegentropy/procedural': resolve(__dirname, '../packages/procedural/src'),
     },
   },
 });

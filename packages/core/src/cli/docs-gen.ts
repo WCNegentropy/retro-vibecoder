@@ -7,8 +7,8 @@
  */
 
 import { readFile } from 'fs/promises';
-import { resolve } from 'path';
 import { validateManifest } from '../schema/validator.js';
+import { resolveManifestPath } from './resolve-manifest.js';
 import type { UpgManifest, ManifestPrompt, PromptChoice } from '@wcnegentropy/shared';
 
 /**
@@ -220,8 +220,19 @@ function generateJson(manifest: UpgManifest): string {
 export async function docsGenCommand(options: DocsGenOptions): Promise<DocsGenResult> {
   const { manifestPath, format = 'markdown', includeExamples = true } = options;
 
+  // Resolve manifest path (handles directories)
+  let filePath: string;
+  try {
+    filePath = await resolveManifestPath(manifestPath);
+  } catch (error) {
+    return {
+      success: false,
+      content: '',
+      error: `Failed to resolve manifest: ${(error as Error).message}`,
+    };
+  }
+
   // Read manifest file
-  const filePath = resolve(manifestPath);
   let content: string;
   try {
     content = await readFile(filePath, 'utf-8');

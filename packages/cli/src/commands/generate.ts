@@ -6,13 +6,13 @@
  * This is a REAL implementation that writes actual files.
  */
 
-import { resolve, dirname, join, relative } from 'path';
+import { resolve, dirname, join, relative, extname } from 'path';
 import { spawn } from 'child_process';
 import pc from 'picocolors';
 import ora from 'ora';
 import nunjucks from 'nunjucks';
 import { validateCommand, transpileManifestToSchema } from '@wcnegentropy/core';
-import { parseYaml } from '@wcnegentropy/shared';
+import { parseYaml, BINARY_EXTENSIONS } from '@wcnegentropy/shared';
 import type { UpgManifest } from '@wcnegentropy/shared';
 import { readFile, writeFile, readdir, mkdir, copyFile, access } from 'fs/promises';
 
@@ -361,9 +361,19 @@ export async function generateAction(
           spinner.warn(`Warning: Failed to render ${relativePath}: ${errorMsg}`);
           continue;
         }
-      } else {
-        // Copy non-template file as-is
+      } else if (BINARY_EXTENSIONS.includes(extname(relativePath).toLowerCase() as typeof BINARY_EXTENSIONS[number])) {
+        // Copy binary file as-is
         await copyFile(filePath, outputPath);
+      } else {
+        // Render non-.jinja text file through Nunjucks (variables may be present)
+        try {
+          const textContent = await readFile(filePath, 'utf-8');
+          const rendered = nunjucksEnv.renderString(textContent, context);
+          await writeFile(outputPath, rendered, 'utf-8');
+        } catch {
+          // If rendering fails, fall back to copying as-is
+          await copyFile(filePath, outputPath);
+        }
       }
 
       filesGenerated.push(outputRelPath);
