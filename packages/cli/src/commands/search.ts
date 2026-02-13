@@ -94,6 +94,27 @@ async function loadLocalRegistry(): Promise<RegistryManifest | null> {
 /**
  * Check if an entry matches the search query
  */
+/**
+ * Common search term aliases that map to stack field values
+ */
+const SEARCH_ALIASES: Record<string, string[]> = {
+  api: ['backend', 'rest', 'graphql'],
+  server: ['backend'],
+  frontend: ['web'],
+  ui: ['web'],
+  database: ['postgres', 'mysql', 'sqlite', 'mongodb', 'redis'],
+  db: ['postgres', 'mysql', 'sqlite', 'mongodb', 'redis'],
+  js: ['javascript'],
+  ts: ['typescript'],
+  py: ['python'],
+  rs: ['rust'],
+  node: ['node'],
+  react: ['react'],
+};
+
+/**
+ * Check if an entry matches the search query
+ */
 function entryMatchesQuery(entry: RegistryEntry, query: string): boolean {
   const searchTerms = query.toLowerCase().split(/\s+/);
 
@@ -111,8 +132,16 @@ function entryMatchesQuery(entry: RegistryEntry, query: string): boolean {
     .join(' ')
     .toLowerCase();
 
-  // All search terms must match
-  return searchTerms.every(term => searchableText.includes(term));
+  // All search terms must match (directly or via alias)
+  return searchTerms.every(term => {
+    if (searchableText.includes(term)) return true;
+    // Check aliases
+    const aliases = SEARCH_ALIASES[term];
+    if (aliases) {
+      return aliases.some(alias => searchableText.includes(alias));
+    }
+    return false;
+  });
 }
 
 /**
@@ -219,6 +248,21 @@ export async function searchAction(query: string, options: SearchOptions): Promi
   if (results.length === 0) {
     console.log(pc.yellow('No matching projects found.'));
     console.log('');
+
+    // Check if relaxing query (tags-only) would produce matches
+    if (query && query !== '*' && tagFilter.length > 0) {
+      const tagOnlyResults = registry.entries.filter(entry => entryMatchesTags(entry, tagFilter));
+      if (tagOnlyResults.length > 0) {
+        console.log(
+          pc.yellow(`Did you mean: ${pc.cyan(`upg search "*" --tags "${tagFilter.join(',')}"`)}`)
+        );
+        console.log(
+          pc.dim(`  (${tagOnlyResults.length} entries match the tags without the query filter)`)
+        );
+        console.log('');
+      }
+    }
+
     console.log('Tips:');
     console.log('  - Try a broader search term');
     console.log('  - Search by archetype: backend, web, cli, mobile, desktop');

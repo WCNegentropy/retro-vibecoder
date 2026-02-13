@@ -322,9 +322,27 @@ function generateDockerCompose(stack: TechStack, projectName: string): string | 
     return null;
   }
 
+  // Databases that require a container service
+  const containerDatabases = ['postgres', 'mysql', 'mongodb', 'redis'];
+  const needsDbService = containerDatabases.includes(stack.database);
+
+  // For sqlite and other embedded databases, only generate an app service (no db dependency)
+  if (!needsDbService) {
+    return `version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=\${DATABASE_URL}
+`;
+  }
+
   const services: string[] = [];
 
-  // App service
+  // App service with db dependency
   services.push(`  app:
     build: .
     ports:

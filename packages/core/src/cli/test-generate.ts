@@ -8,9 +8,9 @@
  */
 
 import { readFile } from 'fs/promises';
-import { resolve } from 'path';
 import { validateManifest } from '../schema/validator.js';
 import { transpileManifestToSchema } from '../transpiler/manifest-to-schema.js';
+import { resolveManifestPath } from './resolve-manifest.js';
 import { parseYaml, type UpgManifest } from '@wcnegentropy/shared';
 
 /**
@@ -68,8 +68,18 @@ export async function testGenerateCommand(
     output: '',
   };
 
+  // Resolve manifest path (handles directories)
+  let filePath: string;
+  try {
+    filePath = await resolveManifestPath(manifestPath);
+  } catch (error) {
+    errors.push(`Failed to resolve manifest: ${(error as Error).message}`);
+    result.errors = errors;
+    result.output = formatOutput(result, format, verbose);
+    return result;
+  }
+
   // Read manifest file
-  const filePath = resolve(manifestPath);
   let content: string;
   try {
     content = await readFile(filePath, 'utf-8');
