@@ -141,9 +141,7 @@ describe('Schema Validator', () => {
           description: 'A template with invalid regex validator',
           tags: ['test'],
         },
-        prompts: [
-          { id: 'name', type: 'string', message: 'Name?', validator: '[invalid(' },
-        ],
+        prompts: [{ id: 'name', type: 'string', message: 'Name?', validator: '[invalid(' }],
         actions: [{ type: 'generate', src: 'template/', dest: './' }],
       };
 

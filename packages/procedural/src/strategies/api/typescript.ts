@@ -640,7 +640,8 @@ function addTypeOrmSetup(
   }
 
   // Sample entity
-  files['src/entities/user.entity.ts'] = `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+  files['src/entities/user.entity.ts'] =
+    `import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class User {

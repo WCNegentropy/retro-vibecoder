@@ -26,7 +26,12 @@ import {
   ARCHETYPE_MAP,
   ARCHETYPE_IDS,
 } from '../matrices/archetypes.js';
-import { languageSupportsRuntime, getRuntimesForLanguage, LANGUAGE_MAP, LANGUAGE_IDS } from '../matrices/languages.js';
+import {
+  languageSupportsRuntime,
+  getRuntimesForLanguage,
+  LANGUAGE_MAP,
+  LANGUAGE_IDS,
+} from '../matrices/languages.js';
 
 // ============================================================================
 // Incompatibility Rules

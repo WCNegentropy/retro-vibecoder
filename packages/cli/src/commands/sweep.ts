@@ -82,7 +82,9 @@ function createProgressBar(current: number, total: number, width: number = 30): 
  */
 export async function sweepAction(options: SweepOptions): Promise<void> {
   const count = parseInt(options.count, 10);
-  const startSeedParsed = options.startSeed ? parseSeed(options.startSeed) : { valid: true, seed: 1 };
+  const startSeedParsed = options.startSeed
+    ? parseSeed(options.startSeed)
+    : { valid: true, seed: 1 };
 
   if (isNaN(count) || count < 1) {
     console.error(pc.red('Error: Count must be a positive integer'));
