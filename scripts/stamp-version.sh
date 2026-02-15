@@ -35,10 +35,10 @@ if [ -f "$TAURI_CONF" ]; then
   echo "  ✓ $TAURI_CONF → $VERSION"
 fi
 
-# Cargo.toml (TOML — sed-based, surgical)
+# Cargo.toml (TOML — sed-based, only in [package] section)
 CARGO_TOML="packages/desktop/src-tauri/Cargo.toml"
 if [ -f "$CARGO_TOML" ]; then
-  sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" "$CARGO_TOML"
+  sed -i.bak '/^\[package\]/,/^\[/{s/^version = ".*"/version = "'"$VERSION"'"/;}' "$CARGO_TOML"
   rm -f "$CARGO_TOML.bak"
   echo "  ✓ $CARGO_TOML → $VERSION"
 fi
