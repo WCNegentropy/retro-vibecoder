@@ -33,7 +33,7 @@ function Layout() {
         <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="logo">
             <h1>UPG</h1>
-            <span className="version">v0.2.0</span>
+            <span className="version">v{__APP_VERSION__}</span>
             <span className="tagline">Transform integers into software</span>
           </div>
 
@@ -97,7 +97,7 @@ function Layout() {
           </nav>
 
           <div className="sidebar-footer">
-            <span>v0.2.0 — Universal Engine</span>
+            <span>v{__APP_VERSION__} — Universal Engine</span>
           </div>
         </aside>
 

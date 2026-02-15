@@ -203,7 +203,7 @@ function WindowChrome({ children, title = 'Universal Project Generator' }: Windo
           {/* Status Bar */}
           <div className="status-bar">
             <div className="status-field flex">{status}</div>
-            <div className="status-field">UPG v0.2.0</div>
+            <div className="status-field">UPG v{__APP_VERSION__}</div>
             <div className="status-field">Desktop</div>
           </div>
         </div>
