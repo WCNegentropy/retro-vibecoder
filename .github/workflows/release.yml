@@ -324,6 +324,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -357,39 +359,61 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Determine previous release tag
+        id: prev_tag
+        run: |
+          CURRENT_TAG="${{ steps.version.outputs.version }}"
+          # Normalize: strip leading 'v' for comparison since tags may or may not use the prefix
+          CURRENT_NORMALIZED="${CURRENT_TAG#v}"
+          # Find the most recent tag before the current one by version order
+          PREV_TAG=$(git tag --sort=-v:refname | awk -v cur="$CURRENT_TAG" -v curNorm="$CURRENT_NORMALIZED" \
+            '{t=$0; sub(/^v/,"",t)} found{print;exit} ($0==cur || t==curNorm){found=1}')
+          if [ -z "$PREV_TAG" ]; then
+            # Current tag not found or is the earliest; use the latest existing tag as the base
+            PREV_TAG=$(git tag --sort=-v:refname | head -n1)
+          fi
+          if [ -z "$PREV_TAG" ]; then
+            # No tags at all; fall back to first commit
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous release tag: $PREV_TAG"
+
       - name: Generate release notes
         run: |
-          cat << 'EOF' > release-notes.md
-          ## UPG Desktop ${{ steps.version.outputs.version }}
+          CURRENT_TAG="${{ steps.version.outputs.version }}"
+          PREV_TAG="${{ steps.prev_tag.outputs.prev_tag }}"
 
-          Universal Project Generator - Desktop Application
+          # Build the "What's New" section from commit messages since the last release
+          CHANGES=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges)
+          if [ -z "$CHANGES" ]; then
+            CHANGES="- No notable changes since the previous release."
+          fi
 
-          ### Downloads
-
-          | Platform | Architecture | Format |
-          |----------|--------------|--------|
-          | Windows | x64 | `.msi`, `.exe` |
-          | macOS | Apple Silicon | `.dmg` |
-          | Linux | x64 | `.deb`, `.AppImage` |
-
-          ### CLI
-
-          Install the CLI via npm:
-          ```
-          npm install -g @wcnegentropy/cli
-          ```
-
-          ### What's New in ${{ steps.version.outputs.version }}
-
-          - 40+ generation strategies across 7 archetypes and 12 languages
-          - Full project generation — real, buildable, runnable output
-          - Desktop, Game, Library, and Mobile archetypes fully wired
-          - Interactive Stack Composer with all languages/frameworks exposed
-          - Seed Gallery with sweeper integration
-          - Ruby on Rails, PHP Laravel, Flutter, SwiftUI, Jetpack Compose support
-          - C++ game engine strategies (SDL2, SFML, Unity, Godot)
-          - Rust game engines (Bevy, Macroquad)
-          EOF
+          {
+            echo "## UPG Desktop ${CURRENT_TAG}"
+            echo ""
+            echo "Universal Project Generator - Desktop Application"
+            echo ""
+            echo "### Downloads"
+            echo ""
+            echo "| Platform | Architecture | Format |"
+            echo "|----------|--------------|--------|"
+            echo "| Windows | x64 | \`.msi\`, \`.exe\` |"
+            echo "| macOS | Apple Silicon | \`.dmg\` |"
+            echo "| Linux | x64 | \`.deb\`, \`.AppImage\` |"
+            echo ""
+            echo "### CLI"
+            echo ""
+            echo "Install the CLI via npm:"
+            echo "\`\`\`"
+            echo "npm install -g @wcnegentropy/cli"
+            echo "\`\`\`"
+            echo ""
+            echo "### What's New in ${CURRENT_TAG}"
+            echo ""
+            echo "${CHANGES}"
+          } > release-notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
