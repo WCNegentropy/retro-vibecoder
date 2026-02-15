@@ -31,6 +31,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.release_tag }}" ]]; then
+            VERSION="${{ inputs.release_tag }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Stamp version into packages
+        run: bash scripts/stamp-version.sh "${{ steps.version.outputs.version }}"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -99,6 +112,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.release_tag }}" ]]; then
+            VERSION="${{ inputs.release_tag }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Stamp version into packages
+        run: bash scripts/stamp-version.sh "${{ steps.version.outputs.version }}"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -153,6 +179,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.release_tag }}" ]]; then
+            VERSION="${{ inputs.release_tag }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Stamp version into packages
+        run: bash scripts/stamp-version.sh "${{ steps.version.outputs.version }}"
 
       # Linux-specific dependencies for Tauri/WebKit
       - name: Install Linux dependencies
@@ -340,7 +379,7 @@ jobs:
           npm install -g @wcnegentropy/cli
           ```
 
-          ### What's New in v0.2.0
+          ### What's New in ${{ steps.version.outputs.version }}
 
           - 40+ generation strategies across 7 archetypes and 12 languages
           - Full project generation — real, buildable, runnable output
