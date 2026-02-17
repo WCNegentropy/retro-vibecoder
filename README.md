@@ -176,7 +176,7 @@ Generate a single project from a seed:
 upg seed 12345 --output ./my-project --verbose
 ```
 
-Options:
+**Options:**
 
 - `-o, --output <path>` - Output directory
 - `-v, --verbose` - Show file previews
@@ -195,7 +195,7 @@ Generate multiple projects procedurally:
 upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
 ```
 
-Options:
+**Options:**
 
 - `-c, --count <n>` - Number of projects (default: 5)
 - `--validate` - Validate generated projects
@@ -226,7 +226,7 @@ upg generate my-template --dest ./output
 upg generate my-template --dest ./output --json
 ```
 
-Options:
+**Options:**
 
 - `-d, --dest <path>` - Destination directory
 - `--data <json>` - JSON data for prompts (non-interactive)
@@ -244,7 +244,7 @@ upg search "backend typescript"
 upg search "rust" --format json
 ```
 
-Options:
+**Options:**
 
 - `-t, --tags <tags>` - Filter by tags (comma-separated)
 - `-l, --limit <number>` - Maximum results (default: 10)
@@ -261,7 +261,7 @@ upg init
 upg init --name my-template --json
 ```
 
-Options:
+**Options:**
 
 - `-n, --name <name>` - Template name
 - `-f, --force` - Overwrite existing manifest
