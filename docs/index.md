@@ -34,7 +34,7 @@ pnpm --filter @wcnegentropy/cli sweep --count 10 --verbose
 pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
 ```
 
-### Manifest-Based Generation (Phase 1 - Validation tools available)
+### Manifest-Based Generation
 
 ```bash
 # Validate a manifest
@@ -43,8 +43,8 @@ upg validate ./upg.yaml
 # Initialize a new template
 upg init
 
-# Generate from manifest (Phase 2 - Coming soon)
-upg generate react-starter
+# Generate from a manifest template
+upg generate react-starter --dest ./output
 ```
 
 ## Documentation Sections

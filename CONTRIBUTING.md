@@ -155,16 +155,17 @@ pnpm test:watch
 
 ```
 packages/
-├── shared/    # Shared types and utilities
-├── core/      # Schema validation and transpiler
-├── cli/       # Command-line interface
-├── engine/    # (Phase 2) Tauri desktop app
-└── registry/  # (Phase 3) Marketplace registry
+├── shared/      # Shared types and utilities
+├── core/        # Schema validation and transpiler
+├── procedural/  # Universal Procedural Generation engine
+├── cli/         # Command-line interface
+└── desktop/     # Tauri desktop app
 
-templates/     # Example templates
-tests/         # Test suites and fixtures
-docs/          # Documentation
-scripts/       # Build and utility scripts
+registry/        # Validated project registry
+templates/       # Example templates
+tests/           # Test suites and fixtures
+docs/            # Documentation
+scripts/         # Build and utility scripts
 ```
 
 ## Questions?
