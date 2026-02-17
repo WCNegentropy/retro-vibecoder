@@ -13,6 +13,7 @@ import { stringifyYaml, DEFAULT_MANIFEST_FILENAME } from '@wcnegentropy/shared';
 interface InitOptions {
   name?: string;
   force?: boolean;
+  json?: boolean;
 }
 
 /**
@@ -91,7 +92,8 @@ cd my-project
  * Execute the init command
  */
 export async function initAction(options: InitOptions): Promise<void> {
-  const spinner = ora();
+  const isJson = options.json ?? false;
+  const spinner = isJson ? null : ora();
 
   try {
     // Determine template name
@@ -107,16 +109,25 @@ export async function initAction(options: InitOptions): Promise<void> {
     try {
       await access(manifestPath);
       if (!options.force) {
-        console.error(
-          pc.red(`Error: ${DEFAULT_MANIFEST_FILENAME} already exists. Use --force to overwrite.`)
-        );
+        if (isJson) {
+          console.log(
+            JSON.stringify({
+              success: false,
+              error: `${DEFAULT_MANIFEST_FILENAME} already exists. Use --force to overwrite.`,
+            })
+          );
+        } else {
+          console.error(
+            pc.red(`Error: ${DEFAULT_MANIFEST_FILENAME} already exists. Use --force to overwrite.`)
+          );
+        }
         process.exit(1);
       }
     } catch {
       // File doesn't exist, which is what we want
     }
 
-    spinner.start(`Creating ${DEFAULT_MANIFEST_FILENAME}...`);
+    if (spinner) spinner.start(`Creating ${DEFAULT_MANIFEST_FILENAME}...`);
 
     // Generate manifest
     const manifest = generateStarterManifest(name);
@@ -125,7 +136,17 @@ export async function initAction(options: InitOptions): Promise<void> {
     // Write file
     await writeFile(manifestPath, content);
 
-    spinner.succeed(`Created ${DEFAULT_MANIFEST_FILENAME}`);
+    if (spinner) spinner.succeed(`Created ${DEFAULT_MANIFEST_FILENAME}`);
+
+    if (isJson) {
+      console.log(
+        JSON.stringify({
+          success: true,
+          manifest_path: manifestPath,
+        })
+      );
+      return;
+    }
 
     console.log('');
     console.log(pc.green('Template initialized successfully!'));
@@ -137,8 +158,13 @@ export async function initAction(options: InitOptions): Promise<void> {
     console.log(`  4. Run ${pc.cyan('upg test .')} to test your template`);
     console.log('');
   } catch (error) {
-    spinner.fail('Initialization failed');
-    console.error(pc.red(`Error: ${(error as Error).message}`));
+    if (spinner) spinner.fail('Initialization failed');
+    const msg = (error as Error).message;
+    if (isJson) {
+      console.log(JSON.stringify({ success: false, error: msg }));
+    } else {
+      console.error(pc.red(`Error: ${msg}`));
+    }
     process.exit(1);
   }
 }

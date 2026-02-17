@@ -22,6 +22,7 @@ interface GenerateOptions {
   useDefaults?: boolean;
   dryRun?: boolean;
   force?: boolean;
+  json?: boolean;
 }
 
 interface UPGManifest {
@@ -195,13 +196,14 @@ export async function generateAction(
   template: string | undefined,
   options: GenerateOptions
 ): Promise<void> {
-  const spinner = ora();
+  const isJson = options.json ?? false;
+  const spinner = isJson ? null : ora();
 
   try {
     // If no template specified, look for upg.yaml in current directory
     const templatePath = template || '.';
 
-    spinner.start('Validating manifest...');
+    if (spinner) spinner.start('Validating manifest...');
 
     // Validate the manifest
     const validationResult = await validateCommand({
@@ -212,18 +214,22 @@ export async function generateAction(
     });
 
     if (!validationResult.success) {
-      spinner.fail('Manifest validation failed');
-      console.log(validationResult.output);
+      if (spinner) spinner.fail('Manifest validation failed');
+      if (isJson) {
+        console.log(JSON.stringify({ success: false, error: 'Manifest validation failed' }));
+      } else {
+        console.log(validationResult.output);
+      }
       process.exit(1);
     }
 
-    spinner.succeed('Manifest validated');
+    if (spinner) spinner.succeed('Manifest validated');
 
     // Read and parse manifest
     const manifestContent = await readFile(validationResult.filePath, 'utf-8');
     const manifest = parseYaml(manifestContent) as UPGManifest;
 
-    spinner.start('Processing template configuration...');
+    if (spinner) spinner.start('Processing template configuration...');
 
     // Transpile to JSON Schema to get default values
     const transpiled = transpileManifestToSchema(manifest as UpgManifest, {
@@ -231,15 +237,17 @@ export async function generateAction(
       includeConditionals: true,
     });
 
-    spinner.succeed('Template configuration processed');
+    if (spinner) spinner.succeed('Template configuration processed');
 
     // Parse user data if provided
     let userData: Record<string, unknown> = {};
     if (options.data) {
       try {
         userData = JSON.parse(options.data);
-      } catch {
-        console.error(pc.red('Error: Invalid JSON data'));
+      } catch (parseErr) {
+        const detail = parseErr instanceof SyntaxError ? parseErr.message : 'malformed JSON';
+        console.error(pc.red(`Error: Invalid JSON data — ${detail}`));
+        console.error(pc.dim(`→ Expected format: --data '{"key":"value"}'`));
         process.exit(1);
       }
     }
@@ -262,9 +270,18 @@ export async function generateAction(
     try {
       await access(templateDir);
     } catch {
-      spinner.fail('Template directory not found');
-      console.error(pc.red(`Error: Template directory not found: ${templateDir}`));
-      console.error(pc.dim('UPG templates require a "template/" subdirectory.'));
+      if (spinner) spinner.fail('Template directory not found');
+      if (isJson) {
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: `Template directory not found: ${templateDir}`,
+          })
+        );
+      } else {
+        console.error(pc.red(`Error: Template directory not found: ${templateDir}`));
+        console.error(pc.dim('UPG templates require a "template/" subdirectory.'));
+      }
       process.exit(1);
     }
 
@@ -304,9 +321,18 @@ export async function generateAction(
     }
 
     if (destExists && !options.force) {
-      console.log('');
-      console.log(pc.red(`Error: Destination already exists: ${destPath}`));
-      console.log(pc.dim('Use --force to overwrite existing files.'));
+      if (isJson) {
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: `Destination already exists: ${destPath}. Use --force to overwrite.`,
+          })
+        );
+      } else {
+        console.log('');
+        console.log(pc.red(`Error: Destination already exists: ${destPath}`));
+        console.log(pc.dim('Use --force to overwrite existing files.'));
+      }
       process.exit(1);
     }
 
@@ -324,7 +350,7 @@ export async function generateAction(
     }
 
     // Generate files
-    spinner.start('Generating project files...');
+    if (spinner) spinner.start('Generating project files...');
 
     const filesGenerated: string[] = [];
     let fileCount = 0;
@@ -358,7 +384,7 @@ export async function generateAction(
           await writeFile(outputPath, rendered, 'utf-8');
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : String(err);
-          spinner.warn(`Warning: Failed to render ${relativePath}: ${errorMsg}`);
+          if (spinner) spinner.warn(`Warning: Failed to render ${relativePath}: ${errorMsg}`);
           continue;
         }
       } else if (
@@ -381,12 +407,12 @@ export async function generateAction(
       filesGenerated.push(outputRelPath);
       fileCount++;
 
-      if (fileCount % 5 === 0) {
+      if (fileCount % 5 === 0 && spinner) {
         spinner.text = `Generating project files... (${fileCount} files)`;
       }
     }
 
-    spinner.succeed(`Generated ${filesGenerated.length} files`);
+    if (spinner) spinner.succeed(`Generated ${filesGenerated.length} files`);
 
     // Execute post-generation commands
     if (manifest.actions) {
@@ -397,7 +423,7 @@ export async function generateAction(
           }
 
           const desc = action.description || action.command;
-          spinner.start(desc);
+          if (spinner) spinner.start(desc);
 
           try {
             await new Promise<void>((resolve, reject) => {
@@ -412,7 +438,7 @@ export async function generateAction(
                 if (code === 0) {
                   resolve();
                 } else if (action.on_error === 'warn') {
-                  spinner.warn(`${desc} (exit code ${code})`);
+                  if (spinner) spinner.warn(`${desc} (exit code ${code})`);
                   resolve();
                 } else {
                   reject(new Error(`Command failed with exit code ${code}`));
@@ -422,10 +448,10 @@ export async function generateAction(
               proc.on('error', reject);
             });
 
-            spinner.succeed(desc);
+            if (spinner) spinner.succeed(desc);
           } catch (err) {
             if (action.on_error === 'warn') {
-              spinner.warn(`${desc} (failed)`);
+              if (spinner) spinner.warn(`${desc} (failed)`);
             } else {
               throw err;
             }
@@ -435,6 +461,17 @@ export async function generateAction(
     }
 
     // Success message
+    if (isJson) {
+      console.log(
+        JSON.stringify({
+          success: true,
+          output_path: destPath,
+          files_generated: filesGenerated,
+        })
+      );
+      return;
+    }
+
     console.log('');
     console.log(pc.green(`✓ Project generated successfully!`));
     console.log('');
@@ -445,13 +482,36 @@ export async function generateAction(
     console.log(pc.cyan(`  cd ${dest}`));
 
     // Show template-specific instructions if available
-    if (manifest.metadata.name === 'react-starter') {
+    const lang = (manifest.metadata as Record<string, unknown>).language as string | undefined;
+    const tags = manifest.metadata.tags || [];
+    if (manifest.metadata.name === 'react-starter' || tags.includes('react')) {
       console.log(pc.cyan('  npm install'));
       console.log(pc.cyan('  npm run dev'));
+    } else if (lang === 'python' || tags.includes('python')) {
+      console.log(pc.cyan('  pip install -r requirements.txt'));
+    } else if (lang === 'rust' || tags.includes('rust')) {
+      console.log(pc.cyan('  cargo build'));
+    } else if (lang === 'go' || tags.includes('go')) {
+      console.log(pc.cyan('  go mod tidy'));
+      console.log(pc.cyan('  go run .'));
+    } else {
+      console.log(pc.dim('  (install dependencies and start your project)'));
     }
   } catch (error) {
-    spinner.fail('Generation failed');
-    console.error(pc.red(`Error: ${(error as Error).message}`));
+    if (spinner) spinner.fail('Generation failed');
+    const msg = (error as Error).message;
+    if (isJson) {
+      console.log(JSON.stringify({ success: false, error: msg }));
+      process.exit(1);
+    }
+    console.error(pc.red(`Error: ${msg}`));
+    if (msg.includes('ENOENT') || msg.includes('no such file')) {
+      console.error(pc.dim('→ Check that the manifest or template path is correct.'));
+    } else if (msg.includes('Template') || msg.includes('template')) {
+      console.error(pc.dim('→ Ensure a "template/" directory exists alongside your manifest.'));
+    } else {
+      console.error(pc.dim('→ Run "upg validate <manifest>" to check your manifest for issues.'));
+    }
     process.exit(1);
   }
 }

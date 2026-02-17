@@ -40,6 +40,7 @@ interface PreviewOutput {
     files: Record<string, string>;
   };
   error?: string;
+  suggestions?: string[];
 }
 
 /**
@@ -75,6 +76,7 @@ export async function previewAction(seedStr: string, options: PreviewOptions): P
         const output: PreviewOutput = {
           success: false,
           error: `Invalid constraints: ${validation.errors.join('; ')}`,
+          suggestions: validation.suggestions,
         };
         console.log(JSON.stringify(output));
         process.exit(1);
