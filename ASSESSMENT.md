@@ -1,7 +1,7 @@
-# Retro Vibecoder UPG - CLI Assessment by Claude
+# Retro Vibecoder UPG - CLI Assessment
 
-**Date**: 2026-02-10
-**Assessed by**: Claude (Opus 4.6), as an AI agent actually using the tool
+**Date**: 2026-02-10 (initial), 2026-02-17 (updated)
+**Assessed by**: Claude, as an AI agent actually using the tool
 **Method**: Full install, build, CLI exploration, and scaffolding a real project
 
 ---
@@ -20,7 +20,7 @@ It also supports declarative YAML manifest templates (Nunjucks-based) for more t
 |------|--------|-------|
 | `pnpm install` | Clean in ~11s | No issues |
 | `pnpm run build` | All 5 packages in ~22s | Zero errors, zero warnings |
-| `pnpm run test` | 8/8 tests pass | Only CLI package has tests currently |
+| `pnpm run test` | 30/30 tests pass | Tests across shared, procedural, and cli packages |
 
 **Verdict**: Flawless build pipeline. Turbo caching works well. The monorepo structure (shared → core/procedural → cli/desktop) is clean and well-layered.
 
@@ -32,17 +32,15 @@ It also supports declarative YAML manifest templates (Nunjucks-based) for more t
 
 | Command | Works | Quality |
 |---------|-------|---------|
-| `upg seed <n>` | Yes | Generates full project to disk |
+| `upg seed <n>` | Yes | Generates full project to disk with elapsed time and language-aware "Next steps" |
 | `upg preview <n>` | Yes | Clean JSON output, good for piping |
 | `upg sweep` | Yes | Batch generation with good summary stats |
-| `upg validate <manifest>` | Yes | Clear output with actionable warnings |
-| `upg generate [template]` | Yes | Template-based generation with `--use-defaults` |
-| `upg --help` | **No output** | Bug: help text doesn't render |
-| `upg` (no args) | **No output** | Bug: should show help, shows nothing |
-
-### Bug: `--help` produces no output
-
-Running `upg --help` or `upg` with no arguments produces zero output (exit code 0 for help, 1 for no args). This is likely because the `configureOutput` block at the bottom of `upg.ts` (lines 172-185) may be suppressing output unintentionally, or the program description just isn't being printed. This is a notable UX issue since it's the first thing any user tries.
+| `upg validate <manifest>` | Yes | Clear output with actionable warnings and contextual error guidance |
+| `upg generate [template]` | Yes | Template-based generation with `--use-defaults` and `--json` output |
+| `upg search <query>` | Yes | Registry search with spinner, `--format json` support |
+| `upg init` | Yes | Manifest initialization with `--json` output |
+| `upg --help` | Yes | ✅ Fixed — displays examples and full command list |
+| `upg` (no args) | Yes | ✅ Fixed — shows help output |
 
 ---
 
@@ -126,19 +124,18 @@ Built on first try with `npx tsup`. All commands worked perfectly. The scaffold'
 
 1. **Stack-file mismatch for DB/ORM**: Seed 6 selected `prisma + sqlite` in the stack but generated zero Prisma files (no `schema.prisma`, no `@prisma/client` dep). The stack metadata promises more than the code delivers.
 
-2. **Random project names**: Generated names like `swift-lab-8h7n` are not user-friendly. While the seed-based naming is deterministic, there's no way to pass a custom project name via CLI flags.
+2. ~~**Random project names**: No way to pass a custom project name via CLI flags.~~ ✅ **Fixed** — `--name` flag added to `seed` command.
 
-3. **`--help` produces no output**: Critical UX bug. The first thing users try doesn't work.
+3. ~~**`--help` produces no output**: Critical UX bug.~~ ✅ **Fixed** — Help text now renders with examples and full command listing.
 
 4. **`generate --use-defaults` leaks environment variables**: The dry-run output dumps the entire `process.env` into the variables output, including proxy tokens and internal URLs. Not a security vulnerability per se (it's only shown in dry-run), but it's messy and alarming.
 
 5. **Some inconsistencies in the generated code**:
-   - Seed 42 generates a "cli" archetype with "express" as the framework - express is a web server framework, not a CLI framework. The constraint solver should catch this.
    - NestJS project (seed 100) stack says `typeorm + sqlite` but the generated `app.module.ts` has no TypeORM imports.
 
 6. **No ESLint config in CLI projects**: The package.json has a `lint` script that runs `eslint src/` but there's no `.eslintrc` or `eslint.config.js` generated.
 
-7. **Missing test for edge cases**: `upg seed 0` and `upg seed -1` should produce clear errors.
+7. ~~**Missing test for edge cases**: `upg seed 0` and `upg seed -1` should produce clear errors.~~ ✅ **Fixed** — `parseSeed()` rejects `< 1` with clear error messages. Negative numbers are caught and produce helpful hints.
 
 ---
 
@@ -147,33 +144,33 @@ Built on first try with `npx tsup`. All commands worked perfectly. The scaffold'
 | Category | Score (1-10) | Notes |
 |----------|-------------|-------|
 | **Build/Install** | 9 | Flawless monorepo build |
-| **CLI UX** | 6 | Broken help, no custom project names, but commands work well |
-| **Code Quality (generated)** | 7 | Modern, idiomatic, but stack-file gaps |
-| **Breadth/Coverage** | 9 | 7 archetypes x 12 languages x 30+ frameworks is impressive |
+| **CLI UX** | 8 | Help text with examples, contextual error guidance, JSON output flags |
+| **Code Quality (generated)** | 7 | Modern, idiomatic, but stack-file gaps remain for DB/ORM |
+| **Breadth/Coverage** | 9 | 7 archetypes × 12 languages × 30+ frameworks |
 | **Token Savings for AI** | 8 | ~67% reduction for typical scaffolding tasks |
 | **Architecture** | 9 | Clean separation, constraint solver, seeded RNG, manifest system |
-| **Documentation** | 7 | Good docs exist but some gaps |
-| **Testing** | 5 | Only 8 e2e tests in CLI package; core/shared/procedural have none |
+| **Documentation** | 8 | Good docs, JSDoc enriched, package READMEs present |
+| **Testing** | 6 | 30 tests across shared, procedural, and cli packages |
 
-**Overall: 7.5/10** - A well-architected tool with genuine utility for AI-assisted development. The core concept of "seed → complete project" works and saves significant boilerplate generation. The main gaps are in completeness: the generated code doesn't always match the selected stack (especially DB/ORM), and the CLI has basic UX issues.
+**Overall: 8/10** — A well-architected tool with genuine utility for AI-assisted development. Recent CLI improvements (Phase 1–5) added JSON output flags, contextual error guidance, language-aware "Next steps", improved help text, and better output formatting. The main remaining gaps are in generated code completeness (DB/ORM file generation) and broader test coverage.
 
 ---
 
 ## Recommendations for Next Iteration
 
 ### High Priority
-1. **Fix `--help` output** - This is the first thing any user tries
-2. **Wire up DB/ORM in generated code** - If the stack says `prisma + sqlite`, the generated files should include `schema.prisma`, Prisma client setup, and the dep in `package.json`
-3. **Add `--name` flag to `seed` command** - Let users name their project instead of getting random names
-4. **Fix constraint solver** - Prevent combinations like `cli + express` that don't make sense
+1. ~~**Fix `--help` output**~~ ✅ Fixed — help text renders with examples
+2. **Wire up DB/ORM in generated code** — If the stack says `prisma + sqlite`, the generated files should include `schema.prisma`, Prisma client setup, and the dep in `package.json`
+3. ~~**Add `--name` flag to `seed` command**~~ ✅ Fixed — `-n, --name <name>` flag added
+4. ~~**Fix constraint solver** — Prevent combinations like `cli + express`~~ ✅ Fixed — constraint validation added with suggestions
 
 ### Medium Priority
-5. **Add unit tests for core and procedural packages** - Currently only CLI has tests
-6. **Fix env variable leak in `generate --use-defaults`** - Filter out `process.env` from template variables or at least from output
+5. **Add unit tests for core package** — Currently has no test files
+6. **Fix env variable leak in `generate --use-defaults`** — Filter out `process.env` from template variables or at least from output
 7. **Generate ESLint config** for projects that have a `lint` script
 8. **Add `--eslint`, `--prettier`, `--testing` flags** to `seed` command for more control
 
 ### Low Priority
-9. **Template gallery** - More built-in templates beyond react-starter and python-api
-10. **`upg inspect <seed>`** - A human-friendly preview (not JSON) showing the stack and file tree
-11. **Post-generation hooks** - Auto-run `npm install` or `cargo build` after generation
+9. **Template gallery** — More built-in templates beyond react-starter and python-api
+10. **`upg inspect <seed>`** — A human-friendly preview (not JSON) showing the stack and file tree
+11. ~~**Post-generation hooks** — Auto-run `npm install` or `cargo build` after generation~~ ✅ Partially addressed — language-aware "Next steps" guidance now shown after seed/generate writes to disk

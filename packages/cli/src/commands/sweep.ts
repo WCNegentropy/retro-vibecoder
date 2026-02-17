@@ -538,6 +538,7 @@ export async function seedAction(
   }
 
   const seed = parsed.seed!;
+  const startTime = Date.now();
 
   const spinner = isJson ? null : ora('Generating project...').start();
 
@@ -687,7 +688,8 @@ export async function seedAction(
     }
 
     console.log();
-    console.log(pc.bold(pc.green(`✓ Generated: ${project.id}`)));
+    const elapsed = Date.now() - startTime;
+    console.log(pc.bold(pc.green(`✓ Generated: ${project.id}`)) + pc.dim(` in ${elapsed}ms`));
     console.log();
     console.log(pc.bold('Tech Stack:'));
     console.log(`  Archetype: ${project.stack.archetype}`);
@@ -733,6 +735,29 @@ export async function seedAction(
 
       console.log();
       console.log(pc.cyan(`Project written to: ${outputDir}`));
+      console.log();
+      console.log('Next steps:');
+      console.log(pc.cyan(`  cd ${outputDir}`));
+      const lang = project.stack.language;
+      if (lang === 'typescript' || lang === 'javascript') {
+        console.log(pc.cyan('  npm install'));
+        console.log(pc.cyan('  npm run dev'));
+      } else if (lang === 'python') {
+        console.log(pc.cyan('  pip install -r requirements.txt'));
+      } else if (lang === 'rust') {
+        console.log(pc.cyan('  cargo build'));
+      } else if (lang === 'go') {
+        console.log(pc.cyan('  go mod tidy'));
+        console.log(pc.cyan('  go run .'));
+      } else if (lang === 'java' || lang === 'kotlin') {
+        console.log(pc.cyan('  ./gradlew build'));
+      } else if (lang === 'ruby') {
+        console.log(pc.cyan('  bundle install'));
+      } else if (lang === 'php') {
+        console.log(pc.cyan('  composer install'));
+      } else {
+        console.log(pc.dim('  (install dependencies and start your project)'));
+      }
     }
 
     // Show file content preview in verbose mode

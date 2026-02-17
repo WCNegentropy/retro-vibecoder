@@ -176,13 +176,16 @@ Generate a single project from a seed:
 upg seed 12345 --output ./my-project --verbose
 ```
 
-Options:
+**Options:**
 
 - `-o, --output <path>` - Output directory
 - `-v, --verbose` - Show file previews
-- `--archetype <type>` - Force archetype
-- `--language <lang>` - Force language
+- `-n, --name <name>` - Custom project name
+- `--archetype <type>` - Force archetype (web, backend, cli, mobile, desktop, game, library)
+- `--language <lang>` - Force language (typescript, python, go, rust, java, kotlin, csharp, cpp, ruby, php, swift, dart)
 - `--framework <fw>` - Force framework
+- `--json` - Output machine-readable JSON
+- `--force` - Overwrite existing output directory
 
 ### `upg sweep`
 
@@ -192,7 +195,7 @@ Generate multiple projects procedurally:
 upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
 ```
 
-Options:
+**Options:**
 
 - `-c, --count <n>` - Number of projects (default: 5)
 - `--validate` - Validate generated projects
@@ -200,6 +203,11 @@ Options:
 - `--save-registry <path>` - Save valid projects to registry
 - `-f, --format <fmt>` - Output format (text|json)
 - `-v, --verbose` - Verbose output
+- `--archetype <type>` - Force archetype (web|backend|cli|mobile|desktop|game|library)
+- `--language <lang>` - Force language
+- `--start-seed <number>` - Starting seed number
+- `--dry-run` - Preview stacks without generating files
+- `--only-valid` - Keep retrying until N valid projects are found
 
 ### `upg validate <manifest>`
 
@@ -215,7 +223,49 @@ Generate a project from a template:
 
 ```bash
 upg generate my-template --dest ./output
+upg generate my-template --dest ./output --json
 ```
+
+**Options:**
+
+- `-d, --dest <path>` - Destination directory
+- `--data <json>` - JSON data for prompts (non-interactive)
+- `--use-defaults` - Use default values for all prompts
+- `--dry-run` - Show what would be generated without creating files
+- `-f, --force` - Overwrite existing files
+- `--json` - Output machine-readable JSON
+
+### `upg search <query>`
+
+Search the project registry:
+
+```bash
+upg search "backend typescript"
+upg search "rust" --format json
+```
+
+**Options:**
+
+- `-t, --tags <tags>` - Filter by tags (comma-separated)
+- `-l, --limit <number>` - Maximum results (default: 10)
+- `-f, --format <format>` - Output format (text|json)
+- `--local` - Use local registry only
+- `--remote` - Use remote registry only
+
+### `upg init`
+
+Initialize a new UPG manifest:
+
+```bash
+upg init
+upg init --name my-template --json
+```
+
+**Options:**
+
+- `-n, --name <name>` - Template name
+- `-f, --force` - Overwrite existing manifest
+- `--json` - Output machine-readable JSON
 
 ## Project Structure
 

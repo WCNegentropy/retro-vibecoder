@@ -33,6 +33,20 @@ export function formatWarning(message: string): string {
 }
 
 /**
+ * Format an informational message
+ */
+export function formatInfo(message: string): string {
+  return pc.blue(`ℹ ${message}`);
+}
+
+/**
+ * Format a hint/suggestion message
+ */
+export function formatHint(message: string): string {
+  return pc.dim(`→ ${message}`);
+}
+
+/**
  * Format a table
  */
 export function formatTable(

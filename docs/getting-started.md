@@ -69,17 +69,14 @@ pnpm --filter @wcnegentropy/cli sweep --count 10 --output ./generated-projects
 pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json --verbose
 ```
 
-### Option 3: Manifest-Based Generation (Phase 2 - Coming Soon)
+### Option 3: Manifest-Based Generation
 
 ```bash
 # Generate a React project from a manifest
-upg generate react-starter
+upg generate react-starter --dest ./my-app
 
-# Follow the prompts
-? What is your project name? my-app
-? Include TypeScript support? Yes
-? Which ESLint style? Standard
-? Include testing? Yes
+# Or use defaults for all prompts
+upg generate react-starter --dest ./my-app --use-defaults
 ```
 
 ### 2. Navigate and Run

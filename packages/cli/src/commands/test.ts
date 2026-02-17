@@ -31,7 +31,15 @@ export async function testAction(manifest: string, options: TestOptions): Promis
       process.exit(1);
     }
   } catch (error) {
-    console.error(pc.red(`Error: ${(error as Error).message}`));
+    const msg = (error as Error).message;
+    console.error(pc.red(`Error: ${msg}`));
+    if (msg.includes('ENOENT') || msg.includes('no such file')) {
+      console.error(pc.dim('→ Check that the manifest file path is correct.'));
+    } else if (msg.includes('YAML') || msg.includes('yaml') || msg.includes('parse')) {
+      console.error(pc.dim('→ Check your manifest for YAML syntax errors.'));
+    } else {
+      console.error(pc.dim('→ Run "upg validate <manifest>" first to check for issues.'));
+    }
     process.exit(1);
   }
 }

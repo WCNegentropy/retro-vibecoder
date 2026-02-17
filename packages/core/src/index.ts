@@ -2,7 +2,11 @@
  * @wcnegentropy/core
  *
  * Core package for UPG manifest validation and transpilation.
- * This is the Phase 1 implementation of the Universal Project Generator.
+ *
+ * Main use cases:
+ * - **Validation**: `validateCommand({ path })` — validate a UPG manifest file (YAML syntax, schema, prompts)
+ * - **Transpilation**: `transpileManifestToSchema(manifest)` — convert a UPG manifest to JSON Schema + UI Schema
+ * - **Docs generation**: `docsGenCommand({ manifestPath })` — generate markdown/JSON documentation from a manifest
  */
 
 // Schema validation

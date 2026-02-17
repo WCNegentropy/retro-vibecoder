@@ -7,6 +7,7 @@
  */
 
 import pc from 'picocolors';
+import ora from 'ora';
 import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -47,6 +48,7 @@ interface SearchOptions {
   limit: string;
   local?: boolean;
   remote?: boolean;
+  format?: string;
 }
 
 const GITHUB_RAW_URL =
@@ -188,10 +190,13 @@ function formatEntry(entry: RegistryEntry): string {
 export async function searchAction(query: string, options: SearchOptions): Promise<void> {
   const limit = parseInt(options.limit, 10) || 10;
   const tagFilter = options.tags ? options.tags.split(',').map(t => t.trim()) : [];
+  const isJson = options.format === 'json';
 
   // Determine source
   let registry: RegistryManifest | null = null;
   let source = 'remote';
+
+  const spinner = isJson ? null : ora();
 
   if (options.local) {
     // Force local only
@@ -199,11 +204,15 @@ export async function searchAction(query: string, options: SearchOptions): Promi
     source = 'local';
   } else if (options.remote) {
     // Force remote only
+    if (spinner) spinner.start('Fetching remote registry...');
     registry = await fetchRemoteRegistry();
+    if (spinner) spinner.stop();
     source = 'remote';
   } else {
     // Try remote first, fallback to local
+    if (spinner) spinner.start('Fetching registry...');
     registry = await fetchRemoteRegistry();
+    if (spinner) spinner.stop();
     if (!registry) {
       registry = await loadLocalRegistry();
       source = 'local (remote unavailable)';
@@ -211,6 +220,10 @@ export async function searchAction(query: string, options: SearchOptions): Promi
   }
 
   if (!registry || registry.entries.length === 0) {
+    if (isJson) {
+      console.log(JSON.stringify({ success: false, error: 'Could not load registry' }));
+      process.exit(1);
+    }
     console.error(pc.red('Error: Could not load registry.'));
     console.error(pc.dim('The registry may be empty or unavailable.'));
     console.error('');
@@ -228,16 +241,18 @@ export async function searchAction(query: string, options: SearchOptions): Promi
   let results = registry.entries;
 
   // Bug 13: Warn if registry was built with a different engine version
-  const registryVersions = new Set(registry.entries.map(e => e.upgVersion).filter(Boolean));
-  for (const regVersion of registryVersions) {
-    if (regVersion !== cliVersion) {
-      console.log(
-        pc.yellow(
-          `Note: Registry was built with engine v${regVersion}, current is v${cliVersion}. Seed outputs may differ.`
-        )
-      );
-      console.log('');
-      break;
+  if (!isJson) {
+    const registryVersions = new Set(registry.entries.map(e => e.upgVersion).filter(Boolean));
+    for (const regVersion of registryVersions) {
+      if (regVersion !== cliVersion) {
+        console.log(
+          pc.yellow(
+            `Note: Registry was built with engine v${regVersion}, current is v${cliVersion}. Seed outputs may differ.`
+          )
+        );
+        console.log('');
+        break;
+      }
     }
   }
 
@@ -254,6 +269,24 @@ export async function searchAction(query: string, options: SearchOptions): Promi
   // Apply limit
   const totalMatches = results.length;
   results = results.slice(0, limit);
+
+  // JSON output mode
+  if (isJson) {
+    console.log(
+      JSON.stringify({
+        success: true,
+        results: results.map(entry => ({
+          seed: entry.seed,
+          id: entry.id,
+          stack: entry.stack,
+          files: entry.files,
+        })),
+        total: totalMatches,
+        source,
+      })
+    );
+    return;
+  }
 
   // Display results
   console.log('');
@@ -285,6 +318,17 @@ export async function searchAction(query: string, options: SearchOptions): Promi
     console.log('  - Search by framework: express, fastapi, gin, axum');
     console.log('');
     console.log(pc.dim(`Registry contains ${registry.entries.length} entries`));
+
+    // Show breakdown by archetype
+    const archetypeCounts: Record<string, number> = {};
+    for (const entry of registry.entries) {
+      archetypeCounts[entry.stack.archetype] = (archetypeCounts[entry.stack.archetype] || 0) + 1;
+    }
+    const breakdown = Object.entries(archetypeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ');
+    console.log(pc.dim(`  Archetypes: ${breakdown}`));
   } else {
     for (const entry of results) {
       console.log(formatEntry(entry));
