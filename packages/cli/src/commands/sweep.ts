@@ -688,7 +688,8 @@ export async function seedAction(
     }
 
     console.log();
-    console.log(pc.bold(pc.green(`✓ Generated: ${project.id}`)) + pc.dim(` in ${Date.now() - startTime}ms`));
+    const elapsed = Date.now() - startTime;
+    console.log(pc.bold(pc.green(`✓ Generated: ${project.id}`)) + pc.dim(` in ${elapsed}ms`));
     console.log();
     console.log(pc.bold('Tech Stack:'));
     console.log(`  Archetype: ${project.stack.archetype}`);

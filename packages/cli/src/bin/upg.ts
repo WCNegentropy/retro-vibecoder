@@ -57,7 +57,9 @@ Examples:
   // Validate command
   program
     .command('validate <manifest>')
-    .description('Validate a UPG manifest file (checks YAML syntax, schema, and prompt definitions)')
+    .description(
+      'Validate a UPG manifest file (checks YAML syntax, schema, and prompt definitions)'
+    )
     .option('-f, --format <format>', 'Output format (text|json)', 'text')
     .option('-w, --warnings', 'Include warnings in output', true)
     .option('-v, --verbose', 'Verbose output', false)

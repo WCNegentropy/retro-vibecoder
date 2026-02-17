@@ -36,7 +36,9 @@ export async function validateAction(manifest: string, options: ValidateOptions)
     if (msg.includes('ENOENT') || msg.includes('no such file')) {
       console.error(pc.dim('→ Check that the file path is correct and the file exists.'));
     } else if (msg.includes('YAML') || msg.includes('yaml') || msg.includes('parse')) {
-      console.error(pc.dim('→ Check your manifest for YAML syntax errors (indentation, colons, quotes).'));
+      console.error(
+        pc.dim('→ Check your manifest for YAML syntax errors (indentation, colons, quotes).')
+      );
     } else {
       console.error(pc.dim('→ Run "upg validate <manifest> --verbose" for more details.'));
     }
