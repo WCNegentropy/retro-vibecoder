@@ -16,7 +16,7 @@ interface WindowChromeProps {
   title?: string;
 }
 
-function WindowChrome({ children, title = 'Universal Project Generator' }: WindowChromeProps) {
+function WindowChrome({ children, title = 'Retro-Vibecoder UPG' }: WindowChromeProps) {
   const [isMaximized, setIsMaximized] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const navigate = useNavigate();

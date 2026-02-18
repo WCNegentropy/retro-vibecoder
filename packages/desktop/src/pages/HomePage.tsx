@@ -18,7 +18,7 @@ function HomePage() {
   return (
     <div className="page home-page">
       <header className="page-header">
-        <h1>Universal Project Generator</h1>
+        <h1>Retro-Vibecoder UPG</h1>
         <p className="subtitle">Transform integers into software</p>
       </header>
 
