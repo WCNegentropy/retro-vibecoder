@@ -17,7 +17,14 @@ import pc from 'picocolors';
 import ora from 'ora';
 import { writeFile, readFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
-import type { Archetype, Language, Framework, Database, Runtime, ORM } from '@wcnegentropy/procedural';
+import type {
+  Archetype,
+  Language,
+  Framework,
+  Database,
+  Runtime,
+  ORM,
+} from '@wcnegentropy/procedural';
 import { parseSeed } from '@wcnegentropy/shared';
 
 interface SweepOptions {
@@ -126,7 +133,14 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
     } = await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
-    if (options.archetype || options.language || options.framework || options.database || options.runtime || options.orm) {
+    if (
+      options.archetype ||
+      options.language ||
+      options.framework ||
+      options.database ||
+      options.runtime ||
+      options.orm
+    ) {
       const validation = validateConstraints(
         options.archetype as Archetype | undefined,
         options.language as Language | undefined,
@@ -571,7 +585,14 @@ export async function seedAction(
     } = await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
-    if (options.archetype || options.language || options.framework || options.database || options.runtime || options.orm) {
+    if (
+      options.archetype ||
+      options.language ||
+      options.framework ||
+      options.database ||
+      options.runtime ||
+      options.orm
+    ) {
       const validation = validateConstraints(
         options.archetype as Archetype | undefined,
         options.language as Language | undefined,

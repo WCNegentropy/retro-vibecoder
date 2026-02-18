@@ -196,7 +196,14 @@ describe('Bug 18: unknown archetype/language/framework validation', () => {
   });
 
   it('should accept valid database/runtime/orm constraints', () => {
-    const result = validateConstraints('backend', 'typescript', 'express', 'postgres', 'node', 'prisma');
+    const result = validateConstraints(
+      'backend',
+      'typescript',
+      'express',
+      'postgres',
+      'node',
+      'prisma'
+    );
     expect(result.valid).toBe(true);
   });
 
@@ -207,13 +214,26 @@ describe('Bug 18: unknown archetype/language/framework validation', () => {
   });
 
   it('should reject unknown runtime', () => {
-    const result = validateConstraints(undefined, undefined, undefined, undefined, 'php-fpm' as any);
+    const result = validateConstraints(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'php-fpm' as any
+    );
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('Unknown runtime');
   });
 
   it('should reject unknown ORM', () => {
-    const result = validateConstraints(undefined, undefined, undefined, undefined, undefined, 'hibernate' as any);
+    const result = validateConstraints(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'hibernate' as any
+    );
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('Unknown ORM');
   });
