@@ -22,13 +22,16 @@
  * }
  */
 
-import type { Archetype, Language, Framework } from '@wcnegentropy/procedural';
+import type { Archetype, Language, Framework, Database, Runtime, ORM } from '@wcnegentropy/procedural';
 import { parseSeed } from '@wcnegentropy/shared';
 
 interface PreviewOptions {
   archetype?: string;
   language?: string;
   framework?: string;
+  database?: string;
+  runtime?: string;
+  orm?: string;
 }
 
 interface PreviewOutput {
@@ -65,11 +68,14 @@ export async function previewAction(seedStr: string, options: PreviewOptions): P
       await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
-    if (options.archetype || options.language || options.framework) {
+    if (options.archetype || options.language || options.framework || options.database || options.runtime || options.orm) {
       const validation = validateConstraints(
         options.archetype as Archetype | undefined,
         options.language as Language | undefined,
-        options.framework as Framework | undefined
+        options.framework as Framework | undefined,
+        options.database as Database | undefined,
+        options.runtime as Runtime | undefined,
+        options.orm as ORM | undefined
       );
 
       if (!validation.valid) {
@@ -93,6 +99,15 @@ export async function previewAction(seedStr: string, options: PreviewOptions): P
     }
     if (options.framework) {
       assemblerOptions.framework = options.framework;
+    }
+    if (options.database) {
+      assemblerOptions.database = options.database;
+    }
+    if (options.runtime) {
+      assemblerOptions.runtime = options.runtime;
+    }
+    if (options.orm) {
+      assemblerOptions.orm = options.orm;
     }
 
     const assembler = new ProjectAssembler(seed, assemblerOptions);

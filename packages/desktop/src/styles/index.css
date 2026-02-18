@@ -367,6 +367,22 @@ body,
   background: linear-gradient(180deg, var(--win95-bg-light) 0%, var(--win95-bg) 100%);
 }
 
+.logo .logo-brand {
+  font-family: var(--font-retro);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #c0c0c0;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 6px rgba(255, 255, 255, 0.4);
+  margin-bottom: -4px;
+  display: block;
+}
+
 .logo h1 {
   font-family: var(--font-retro);
   font-size: 14px;

@@ -18,7 +18,7 @@ import type {
   DefaultPairing,
 } from '../types.js';
 import { FRAMEWORK_MAP, getCompatibleFrameworks } from '../matrices/frameworks.js';
-import { getOrmsForStack } from '../matrices/databases.js';
+import { getOrmsForStack, DATABASE_MAP, DATABASE_IDS, ORM_LANGUAGE_MAP } from '../matrices/databases.js';
 import {
   isLanguageCompatible,
   getLanguagesForArchetype,
@@ -31,6 +31,7 @@ import {
   getRuntimesForLanguage,
   LANGUAGE_MAP,
   LANGUAGE_IDS,
+  RUNTIME_IDS,
 } from '../matrices/languages.js';
 
 // ============================================================================
@@ -723,7 +724,10 @@ export interface ConstraintValidationResult {
 export function validateConstraints(
   archetype?: Archetype,
   language?: Language,
-  framework?: Framework
+  framework?: Framework,
+  database?: Database,
+  runtime?: Runtime,
+  orm?: ORM
 ): ConstraintValidationResult {
   const errors: string[] = [];
   const suggestions: string[] = [];
@@ -737,6 +741,20 @@ export function validateConstraints(
   }
   if (framework && framework !== 'none' && !FRAMEWORK_MAP.has(framework)) {
     errors.push(`Unknown framework '${framework}'.`);
+  }
+  if (database && database !== 'none' && !DATABASE_MAP.has(database)) {
+    errors.push(`Unknown database '${database}'. Valid: ${DATABASE_IDS.join(', ')}`);
+  }
+  if (runtime) {
+    if (!RUNTIME_IDS.includes(runtime)) {
+      errors.push(`Unknown runtime '${runtime}'. Valid: ${RUNTIME_IDS.join(', ')}`);
+    }
+  }
+  if (orm && orm !== 'none') {
+    const validOrms = Object.keys(ORM_LANGUAGE_MAP);
+    if (!validOrms.includes(orm)) {
+      errors.push(`Unknown ORM '${orm}'. Valid: ${validOrms.join(', ')}`);
+    }
   }
 
   // Short-circuit if values themselves are invalid
@@ -777,6 +795,28 @@ export function validateConstraints(
       );
       suggestions.push(
         `Either use --archetype ${frameworkEntry.archetype} or choose a different framework`
+      );
+    }
+  }
+
+  // Validate runtime-language compatibility
+  if (runtime && language) {
+    if (!languageSupportsRuntime(language, runtime)) {
+      const validRuntimes = getRuntimesForLanguage(language);
+      errors.push(`Runtime '${runtime}' is not compatible with language '${language}'`);
+      suggestions.push(`Compatible runtimes for '${language}': ${validRuntimes.join(', ')}`);
+    }
+  }
+
+  // Validate ORM-database-language compatibility
+  if (orm && orm !== 'none' && database && language) {
+    const compatibleOrms = getOrmsForStack(database, language);
+    if (!compatibleOrms.includes(orm)) {
+      errors.push(
+        `ORM '${orm}' is not compatible with database '${database}' and language '${language}'`
+      );
+      suggestions.push(
+        `Compatible ORMs for '${database}' with '${language}': ${compatibleOrms.join(', ')}`
       );
     }
   }

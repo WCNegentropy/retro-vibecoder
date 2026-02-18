@@ -9,7 +9,7 @@ function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <WindowChrome title="Universal Project Generator">
+    <WindowChrome title="Retro-Vibecoder UPG">
       <div className="app-layout">
         {/* Hamburger toggle for small windows */}
         <button
@@ -32,6 +32,7 @@ function Layout() {
 
         <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="logo">
+            <span className="logo-brand">RETRO-VIBECODER</span>
             <h1>UPG</h1>
             <span className="version">v{__APP_VERSION__}</span>
             <span className="tagline">Transform integers into software</span>

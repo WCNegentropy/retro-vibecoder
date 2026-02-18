@@ -302,7 +302,7 @@ function SettingsPage() {
         <div className="win95-window-content">
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ fontFamily: 'var(--font-retro)', fontSize: '18px', marginBottom: '12px' }}>
-              Universal Project Generator
+              Retro-Vibecoder UPG
             </h2>
             <p style={{ marginBottom: '8px' }}>Version {__APP_VERSION__}</p>
             <p style={{ fontSize: '10px', color: 'var(--bevel-dark)', marginBottom: '16px' }}>

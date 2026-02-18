@@ -17,7 +17,7 @@ import pc from 'picocolors';
 import ora from 'ora';
 import { writeFile, readFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
-import type { Archetype, Language, Framework } from '@wcnegentropy/procedural';
+import type { Archetype, Language, Framework, Database, Runtime, ORM } from '@wcnegentropy/procedural';
 import { parseSeed } from '@wcnegentropy/shared';
 
 interface SweepOptions {
@@ -29,6 +29,9 @@ interface SweepOptions {
   archetype?: string;
   language?: string;
   framework?: string;
+  database?: string;
+  runtime?: string;
+  orm?: string;
   saveRegistry?: string;
   startSeed?: string;
   dryRun?: boolean;
@@ -123,11 +126,14 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
     } = await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
-    if (options.archetype || options.language || options.framework) {
+    if (options.archetype || options.language || options.framework || options.database || options.runtime || options.orm) {
       const validation = validateConstraints(
         options.archetype as Archetype | undefined,
         options.language as Language | undefined,
-        options.framework as Framework | undefined
+        options.framework as Framework | undefined,
+        options.database as Database | undefined,
+        options.runtime as Runtime | undefined,
+        options.orm as ORM | undefined
       );
 
       if (!validation.valid) {
@@ -204,6 +210,15 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
       }
       if (options.framework) {
         assemblerOptions.framework = options.framework;
+      }
+      if (options.database) {
+        assemblerOptions.database = options.database;
+      }
+      if (options.runtime) {
+        assemblerOptions.runtime = options.runtime;
+      }
+      if (options.orm) {
+        assemblerOptions.orm = options.orm;
       }
 
       try {
@@ -520,6 +535,9 @@ export async function seedAction(
     archetype?: string;
     language?: string;
     framework?: string;
+    database?: string;
+    runtime?: string;
+    orm?: string;
     json?: boolean;
     name?: string;
     force?: boolean;
@@ -553,11 +571,14 @@ export async function seedAction(
     } = await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
-    if (options.archetype || options.language || options.framework) {
+    if (options.archetype || options.language || options.framework || options.database || options.runtime || options.orm) {
       const validation = validateConstraints(
         options.archetype as Archetype | undefined,
         options.language as Language | undefined,
-        options.framework as Framework | undefined
+        options.framework as Framework | undefined,
+        options.database as Database | undefined,
+        options.runtime as Runtime | undefined,
+        options.orm as ORM | undefined
       );
 
       if (!validation.valid) {
@@ -643,6 +664,15 @@ export async function seedAction(
     }
     if (options.framework) {
       assemblerOptions.framework = options.framework;
+    }
+    if (options.database) {
+      assemblerOptions.database = options.database;
+    }
+    if (options.runtime) {
+      assemblerOptions.runtime = options.runtime;
+    }
+    if (options.orm) {
+      assemblerOptions.orm = options.orm;
     }
     if (options.name) {
       assemblerOptions.projectName = options.name;

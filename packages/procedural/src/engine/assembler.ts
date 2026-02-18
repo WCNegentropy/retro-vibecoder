@@ -59,6 +59,15 @@ export interface AssemblerOptions {
   /** Force specific framework */
   framework?: Framework;
 
+  /** Force specific database */
+  database?: Database;
+
+  /** Force specific runtime */
+  runtime?: Runtime;
+
+  /** Force specific ORM */
+  orm?: ORM;
+
   /** UPG version for metadata */
   upgVersion?: string;
 }
@@ -212,7 +221,7 @@ export class ProjectAssembler {
     const language = this.options.language ?? this.pickLanguage(archetype);
 
     // 3. Pick runtime (constrained by language)
-    let runtime = this.pickRuntime(language);
+    let runtime = this.options.runtime ?? this.pickRuntime(language);
 
     // 4. Pick framework (constrained by archetype and language)
     const framework = this.options.framework ?? this.pickFramework(archetype, language);
@@ -223,10 +232,10 @@ export class ProjectAssembler {
     }
 
     // 5. Pick database (constrained by archetype)
-    const database = this.pickDatabase(archetype);
+    const database = this.options.database ?? this.pickDatabase(archetype);
 
     // 6. Pick ORM (constrained by database and language)
-    const orm = this.pickOrm(database, language);
+    const orm = this.options.orm ?? this.pickOrm(database, language);
 
     // 7. Pick transport (constrained by archetype)
     const transport = this.pickTransport(archetype);
