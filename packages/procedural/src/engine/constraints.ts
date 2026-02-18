@@ -31,6 +31,7 @@ import {
   getRuntimesForLanguage,
   LANGUAGE_MAP,
   LANGUAGE_IDS,
+  RUNTIME_IDS,
 } from '../matrices/languages.js';
 
 // ============================================================================
@@ -745,9 +746,8 @@ export function validateConstraints(
     errors.push(`Unknown database '${database}'. Valid: ${DATABASE_IDS.join(', ')}`);
   }
   if (runtime) {
-    const validRuntimes = ['node', 'deno', 'bun', 'jvm', 'dotnet', 'native', 'browser'];
-    if (!validRuntimes.includes(runtime)) {
-      errors.push(`Unknown runtime '${runtime}'. Valid: ${validRuntimes.join(', ')}`);
+    if (!RUNTIME_IDS.includes(runtime)) {
+      errors.push(`Unknown runtime '${runtime}'. Valid: ${RUNTIME_IDS.join(', ')}`);
     }
   }
   if (orm && orm !== 'none') {

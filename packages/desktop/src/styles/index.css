@@ -372,8 +372,13 @@ body,
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--synth-cyan);
-  text-shadow: 0 0 4px var(--synth-cyan);
+  color: #c0c0c0;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 6px rgba(255, 255, 255, 0.4);
   margin-bottom: -4px;
   display: block;
 }

@@ -13,6 +13,7 @@ export {
   NATIVE_LANGUAGES,
   JVM_LANGUAGES,
   NODE_LANGUAGES,
+  RUNTIME_IDS,
   getRuntimesForLanguage,
   languageSupportsRuntime,
   getPrimaryExtension,
