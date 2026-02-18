@@ -139,7 +139,15 @@ export const NODE_LANGUAGES: readonly Language[] = ['typescript', 'javascript'];
 /**
  * All supported runtime IDs
  */
-export const RUNTIME_IDS: readonly Runtime[] = ['node', 'deno', 'bun', 'jvm', 'dotnet', 'native', 'browser'];
+export const RUNTIME_IDS: readonly Runtime[] = [
+  'node',
+  'deno',
+  'bun',
+  'jvm',
+  'dotnet',
+  'native',
+  'browser',
+];
 
 /**
  * Get valid runtimes for a language

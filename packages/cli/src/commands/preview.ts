@@ -22,7 +22,14 @@
  * }
  */
 
-import type { Archetype, Language, Framework, Database, Runtime, ORM } from '@wcnegentropy/procedural';
+import type {
+  Archetype,
+  Language,
+  Framework,
+  Database,
+  Runtime,
+  ORM,
+} from '@wcnegentropy/procedural';
 import { parseSeed } from '@wcnegentropy/shared';
 
 interface PreviewOptions {
@@ -68,7 +75,14 @@ export async function previewAction(seedStr: string, options: PreviewOptions): P
       await import('@wcnegentropy/procedural');
 
     // Early validation of user constraints
-    if (options.archetype || options.language || options.framework || options.database || options.runtime || options.orm) {
+    if (
+      options.archetype ||
+      options.language ||
+      options.framework ||
+      options.database ||
+      options.runtime ||
+      options.orm
+    ) {
       const validation = validateConstraints(
         options.archetype as Archetype | undefined,
         options.language as Language | undefined,

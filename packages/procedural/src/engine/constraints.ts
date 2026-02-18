@@ -18,7 +18,12 @@ import type {
   DefaultPairing,
 } from '../types.js';
 import { FRAMEWORK_MAP, getCompatibleFrameworks } from '../matrices/frameworks.js';
-import { getOrmsForStack, DATABASE_MAP, DATABASE_IDS, ORM_LANGUAGE_MAP } from '../matrices/databases.js';
+import {
+  getOrmsForStack,
+  DATABASE_MAP,
+  DATABASE_IDS,
+  ORM_LANGUAGE_MAP,
+} from '../matrices/databases.js';
 import {
   isLanguageCompatible,
   getLanguagesForArchetype,
