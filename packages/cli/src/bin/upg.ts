@@ -155,6 +155,9 @@ Examples:
       'Force specific language (typescript|python|go|rust|java|kotlin|csharp|cpp|ruby|php|swift|dart)'
     )
     .option('--framework <fw>', 'Force specific framework')
+    .option('--database <db>', 'Force specific database (postgres|mysql|sqlite|mongodb|redis|none)')
+    .option('--runtime <rt>', 'Force specific runtime (node|deno|bun|jvm|dotnet|native|browser)')
+    .option('--orm <orm>', 'Force specific ORM (prisma|drizzle|typeorm|sequelize|sqlalchemy|gorm|diesel|none)')
     .option('--save-registry <path>', 'Save validated projects to registry manifest')
     .option('--start-seed <number>', 'Starting seed number (default: 1)')
     .option('--dry-run', 'Preview stacks without generating files', false)
@@ -179,6 +182,9 @@ Examples:
     .option('--archetype <type>', 'Force specific archetype')
     .option('--language <lang>', 'Force specific language')
     .option('--framework <fw>', 'Force specific framework')
+    .option('--database <db>', 'Force specific database (postgres|mysql|sqlite|mongodb|redis|none)')
+    .option('--runtime <rt>', 'Force specific runtime (node|deno|bun|jvm|dotnet|native|browser)')
+    .option('--orm <orm>', 'Force specific ORM (prisma|drizzle|typeorm|sequelize|sqlalchemy|gorm|diesel|none)')
     .option('-n, --name <name>', 'Project name')
     .option('--force', 'Overwrite existing output directory', false)
     .addHelpText(
@@ -198,6 +204,9 @@ Examples:
     .option('--archetype <type>', 'Force specific archetype')
     .option('--language <lang>', 'Force specific language')
     .option('--framework <fw>', 'Force specific framework')
+    .option('--database <db>', 'Force specific database (postgres|mysql|sqlite|mongodb|redis|none)')
+    .option('--runtime <rt>', 'Force specific runtime (node|deno|bun|jvm|dotnet|native|browser)')
+    .option('--orm <orm>', 'Force specific ORM (prisma|drizzle|typeorm|sequelize|sqlalchemy|gorm|diesel|none)')
     .action(previewAction);
 
   return program;

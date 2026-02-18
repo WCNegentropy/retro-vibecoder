@@ -194,4 +194,84 @@ describe('Bug 18: unknown archetype/language/framework validation', () => {
     const result = validateConstraints('backend', 'typescript', 'express');
     expect(result.valid).toBe(true);
   });
+
+  it('should accept valid database/runtime/orm constraints', () => {
+    const result = validateConstraints('backend', 'typescript', 'express', 'postgres', 'node', 'prisma');
+    expect(result.valid).toBe(true);
+  });
+
+  it('should reject unknown database', () => {
+    const result = validateConstraints(undefined, undefined, undefined, 'oracle' as any);
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('Unknown database');
+  });
+
+  it('should reject unknown runtime', () => {
+    const result = validateConstraints(undefined, undefined, undefined, undefined, 'php-fpm' as any);
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('Unknown runtime');
+  });
+
+  it('should reject unknown ORM', () => {
+    const result = validateConstraints(undefined, undefined, undefined, undefined, undefined, 'hibernate' as any);
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('Unknown ORM');
+  });
+
+  it('should reject incompatible runtime-language combo', () => {
+    const result = validateConstraints(undefined, 'python', undefined, undefined, 'node');
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('not compatible');
+  });
+});
+
+describe('AssemblerOptions: database, runtime, orm constraint flags', () => {
+  it('should force database when --database is specified', async () => {
+    const assembler = new ProjectAssembler(42, {
+      archetype: 'backend',
+      language: 'typescript',
+      framework: 'express',
+      database: 'sqlite',
+    });
+    assembler.registerStrategies(AllStrategies);
+    const project = await assembler.generate();
+    expect(project.stack.database).toBe('sqlite');
+  });
+
+  it('should force runtime when --runtime is specified', async () => {
+    const assembler = new ProjectAssembler(42, {
+      archetype: 'cli',
+      language: 'typescript',
+      framework: 'commander',
+      runtime: 'bun',
+    });
+    assembler.registerStrategies(AllStrategies);
+    const project = await assembler.generate();
+    expect(project.stack.runtime).toBe('bun');
+  });
+
+  it('should force ORM when --orm is specified', async () => {
+    const assembler = new ProjectAssembler(42, {
+      archetype: 'backend',
+      language: 'typescript',
+      framework: 'express',
+      database: 'postgres',
+      orm: 'typeorm',
+    });
+    assembler.registerStrategies(AllStrategies);
+    const project = await assembler.generate();
+    expect(project.stack.orm).toBe('typeorm');
+  });
+
+  it('should use default (random) database when not specified', async () => {
+    const assembler = new ProjectAssembler(42, {
+      archetype: 'backend',
+      language: 'typescript',
+      framework: 'express',
+    });
+    assembler.registerStrategies(AllStrategies);
+    const project = await assembler.generate();
+    // Should still have a valid database (may or may not be 'none')
+    expect(project.stack.database).toBeDefined();
+  });
 });
