@@ -99,7 +99,7 @@ describe('ProjectEnricher', () => {
     const enricher = new ProjectEnricher(project, rng, { flags });
     enricher.registerStrategy(
       createMockStrategy({
-        apply: async (ctx) => {
+        apply: async ctx => {
           ctx.files['new-file.txt'] = 'new content';
         },
       })
@@ -119,7 +119,7 @@ describe('ProjectEnricher', () => {
     const enricher = new ProjectEnricher(project, rng, { flags });
     enricher.registerStrategy(
       createMockStrategy({
-        apply: async (ctx) => {
+        apply: async ctx => {
           ctx.files['README.md'] = '# Enriched Project\n\nUpdated by Pass 2';
         },
       })
@@ -140,7 +140,7 @@ describe('ProjectEnricher', () => {
     const enricher = new ProjectEnricher(project, rng, { flags });
     enricher.registerStrategy(
       createMockStrategy({
-        apply: async (ctx) => {
+        apply: async ctx => {
           ctx.files['README.md'] = '# Modified';
           ctx.files['new.txt'] = 'new';
         },
@@ -162,7 +162,7 @@ describe('ProjectEnricher', () => {
     const matchingStrategy = createMockStrategy({
       id: 'matching',
       matches: () => true,
-      apply: async (ctx) => {
+      apply: async ctx => {
         ctx.files['matched.txt'] = 'yes';
       },
     });
@@ -170,7 +170,7 @@ describe('ProjectEnricher', () => {
     const nonMatchingStrategy = createMockStrategy({
       id: 'non-matching',
       matches: () => false,
-      apply: async (ctx) => {
+      apply: async ctx => {
         ctx.files['not-matched.txt'] = 'no';
       },
     });
@@ -222,7 +222,7 @@ describe('ProjectEnricher', () => {
     const flags = DEFAULT_ENRICHMENT_FLAGS['standard'];
 
     const randomStrategy = createMockStrategy({
-      apply: async (ctx) => {
+      apply: async ctx => {
         const val = ctx.rng.int(0, 10000);
         ctx.files['random.txt'] = `value: ${val}`;
       },

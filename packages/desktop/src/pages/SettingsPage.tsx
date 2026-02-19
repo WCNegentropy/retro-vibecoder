@@ -257,9 +257,7 @@ function SettingsPage() {
                 />
                 Enable Pass 2 Enrichment by default
               </label>
-              <p className="form-help">
-                Automatically enable enrichment when generating projects
-              </p>
+              <p className="form-help">Automatically enable enrichment when generating projects</p>
             </div>
 
             <div className="form-group">
@@ -278,7 +276,9 @@ function SettingsPage() {
                 }
               >
                 <option value="minimal">Minimal — CI/CD, linting, env files, docs</option>
-                <option value="standard">Standard — All of minimal + logic fill, tests, Docker</option>
+                <option value="standard">
+                  Standard — All of minimal + logic fill, tests, Docker
+                </option>
                 <option value="full">Full — Maximum enrichment with all strategies</option>
               </select>
               <p className="form-help">Controls which enrichment strategies are applied</p>

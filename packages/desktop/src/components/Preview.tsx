@@ -117,7 +117,12 @@ const ENRICH_MODIFIED_FILE_STYLE: CSSProperties = { color: '#eab308' };
 /**
  * Main Preview component
  */
-function Preview({ files, title = 'Generated Files', filesAdded = [], filesModified = [] }: PreviewProps) {
+function Preview({
+  files,
+  title = 'Generated Files',
+  filesAdded = [],
+  filesModified = [],
+}: PreviewProps) {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
@@ -147,14 +152,10 @@ function Preview({ files, title = 'Generated Files', filesAdded = [], filesModif
         <span className="file-count">
           {fileCount} file{fileCount !== 1 ? 's' : ''}
           {filesAdded.length > 0 && (
-            <span style={ENRICH_ADDED_STYLE}>
-              +{filesAdded.length} enriched
-            </span>
+            <span style={ENRICH_ADDED_STYLE}>+{filesAdded.length} enriched</span>
           )}
           {filesModified.length > 0 && (
-            <span style={ENRICH_MODIFIED_STYLE}>
-              ~{filesModified.length} modified
-            </span>
+            <span style={ENRICH_MODIFIED_STYLE}>~{filesModified.length} modified</span>
           )}
         </span>
       </div>
@@ -251,7 +252,10 @@ function FileTreeView({
                 style={enrichStyle}
               >
                 <span className="tree-icon">-</span>
-                <span className="tree-name">{node.name}{enrichIndicator}</span>
+                <span className="tree-name">
+                  {node.name}
+                  {enrichIndicator}
+                </span>
               </button>
             )}
           </li>
