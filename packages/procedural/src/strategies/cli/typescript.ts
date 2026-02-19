@@ -1,7 +1,7 @@
 /**
- * TypeScript CLI Strategies
+ * TypeScript / JavaScript CLI Strategies
  *
- * Generates TypeScript CLI projects using Commander.js or Yargs.
+ * Generates TypeScript or JavaScript CLI projects using Commander.js or Yargs.
  */
 
 import type { GenerationStrategy } from '../../types.js';
@@ -15,9 +15,13 @@ export const CommanderStrategy: GenerationStrategy = {
   priority: 10,
 
   matches: stack =>
-    stack.language === 'typescript' && stack.archetype === 'cli' && stack.framework === 'commander',
+    (stack.language === 'typescript' || stack.language === 'javascript') &&
+    stack.archetype === 'cli' &&
+    stack.framework === 'commander',
 
-  apply: async ({ files, projectName }) => {
+  apply: async ({ files, projectName, stack }) => {
+    const isTS = stack.language === 'typescript';
+    const ext = isTS ? 'ts' : 'js';
     const binName = projectName.replace(/_/g, '-').toLowerCase();
 
     // package.json
@@ -28,24 +32,34 @@ export const CommanderStrategy: GenerationStrategy = {
         description: `${projectName} CLI`,
         type: 'module',
         bin: {
-          [binName]: './dist/index.js',
+          [binName]: isTS ? './dist/index.js' : './src/index.js',
         },
         scripts: {
-          build: 'tsup',
-          dev: 'tsup --watch',
-          start: 'node dist/index.js',
+          ...(isTS
+            ? {
+                build: 'tsup',
+                dev: 'tsup --watch',
+                start: 'node dist/index.js',
+              }
+            : {
+                start: 'node src/index.js',
+              }),
           test: 'vitest run',
           'test:watch': 'vitest',
-          lint: 'eslint src/',
-          format: 'prettier --write "src/**/*.ts"',
+          lint: `eslint src/`,
+          format: `prettier --write "src/**/*.${ext}"`,
         },
         dependencies: {
           commander: '^12.0.0',
         },
         devDependencies: {
-          '@types/node': '^20.11.0',
-          tsup: '^8.0.0',
-          typescript: '^5.3.0',
+          ...(isTS
+            ? {
+                '@types/node': '^20.11.0',
+                tsup: '^8.0.0',
+                typescript: '^5.3.0',
+              }
+            : {}),
           vitest: '^1.2.0',
           prettier: '^3.2.0',
         },
@@ -54,31 +68,32 @@ export const CommanderStrategy: GenerationStrategy = {
       2
     );
 
-    // tsconfig.json
-    files['tsconfig.json'] = JSON.stringify(
-      {
-        compilerOptions: {
-          target: 'ES2022',
-          module: 'ESNext',
-          moduleResolution: 'bundler',
-          strict: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          outDir: 'dist',
-          rootDir: 'src',
-          declaration: true,
-          declarationMap: true,
-          sourceMap: true,
+    if (isTS) {
+      // tsconfig.json
+      files['tsconfig.json'] = JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'ESNext',
+            moduleResolution: 'bundler',
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            outDir: 'dist',
+            rootDir: 'src',
+            declaration: true,
+            declarationMap: true,
+            sourceMap: true,
+          },
+          include: ['src'],
+          exclude: ['node_modules', 'dist'],
         },
-        include: ['src'],
-        exclude: ['node_modules', 'dist'],
-      },
-      null,
-      2
-    );
+        null,
+        2
+      );
 
-    // tsup.config.ts
-    files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
+      // tsup.config.ts
+      files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -91,9 +106,26 @@ export default defineConfig({
   },
 });
 `;
+    }
 
     // Main entry
-    files['src/index.ts'] = `import { program } from 'commander';
+    files[`src/index.${ext}`] = isTS
+      ? `import { program } from 'commander';
+import { helloCommand } from './commands/hello.js';
+import { versionCommand } from './commands/version.js';
+
+program
+  .name('${binName}')
+  .description('${projectName} CLI')
+  .version('0.1.0');
+
+helloCommand(program);
+versionCommand(program);
+
+program.parse();
+`
+      : `#!/usr/bin/env node
+import { program } from 'commander';
 import { helloCommand } from './commands/hello.js';
 import { versionCommand } from './commands/version.js';
 
@@ -109,7 +141,8 @@ program.parse();
 `;
 
     // Hello command
-    files['src/commands/hello.ts'] = `import type { Command } from 'commander';
+    files[`src/commands/hello.${ext}`] = isTS
+      ? `import type { Command } from 'commander';
 
 export function helloCommand(program: Command): void {
   program
@@ -120,12 +153,32 @@ export function helloCommand(program: Command): void {
       console.log(\`Hello, \${options.name}!\`);
     });
 }
+`
+      : `export function helloCommand(program) {
+  program
+    .command('hello')
+    .description('Say hello')
+    .option('-n, --name <name>', 'Name to greet', 'World')
+    .action((options) => {
+      console.log(\`Hello, \${options.name}!\`);
+    });
+}
 `;
 
     // Version command
-    files['src/commands/version.ts'] = `import type { Command } from 'commander';
+    files[`src/commands/version.${ext}`] = isTS
+      ? `import type { Command } from 'commander';
 
 export function versionCommand(program: Command): void {
+  program
+    .command('info')
+    .description('Show version info')
+    .action(() => {
+      console.log('${binName} v0.1.0');
+    });
+}
+`
+      : `export function versionCommand(program) {
   program
     .command('info')
     .description('Show version info')
@@ -136,7 +189,7 @@ export function versionCommand(program: Command): void {
 `;
 
     // Test
-    files['src/__tests__/hello.test.ts'] = `import { describe, it, expect } from 'vitest';
+    files[`src/__tests__/hello.test.${ext}`] = `import { describe, it, expect } from 'vitest';
 
 describe('hello command', () => {
   it('should greet with default name', () => {
@@ -147,9 +200,14 @@ describe('hello command', () => {
 `;
 
     // .gitignore
-    files['.gitignore'] = `node_modules/
+    files['.gitignore'] = isTS
+      ? `node_modules/
 dist/
 *.tsbuildinfo
+.env
+.env.local
+`
+      : `node_modules/
 .env
 .env.local
 `;
@@ -189,9 +247,13 @@ export const YargsStrategy: GenerationStrategy = {
   priority: 10,
 
   matches: stack =>
-    stack.language === 'typescript' && stack.archetype === 'cli' && stack.framework === 'yargs',
+    (stack.language === 'typescript' || stack.language === 'javascript') &&
+    stack.archetype === 'cli' &&
+    stack.framework === 'yargs',
 
-  apply: async ({ files, projectName }) => {
+  apply: async ({ files, projectName, stack }) => {
+    const isTS = stack.language === 'typescript';
+    const ext = isTS ? 'ts' : 'js';
     const binName = projectName.replace(/_/g, '-').toLowerCase();
 
     // package.json
@@ -202,25 +264,35 @@ export const YargsStrategy: GenerationStrategy = {
         description: `${projectName} CLI`,
         type: 'module',
         bin: {
-          [binName]: './dist/index.js',
+          [binName]: isTS ? './dist/index.js' : './src/index.js',
         },
         scripts: {
-          build: 'tsup',
-          dev: 'tsup --watch',
-          start: 'node dist/index.js',
+          ...(isTS
+            ? {
+                build: 'tsup',
+                dev: 'tsup --watch',
+                start: 'node dist/index.js',
+              }
+            : {
+                start: 'node src/index.js',
+              }),
           test: 'vitest run',
           'test:watch': 'vitest',
-          lint: 'eslint src/',
-          format: 'prettier --write "src/**/*.ts"',
+          lint: `eslint src/`,
+          format: `prettier --write "src/**/*.${ext}"`,
         },
         dependencies: {
           yargs: '^17.7.0',
         },
         devDependencies: {
-          '@types/node': '^20.11.0',
-          '@types/yargs': '^17.0.32',
-          tsup: '^8.0.0',
-          typescript: '^5.3.0',
+          ...(isTS
+            ? {
+                '@types/node': '^20.11.0',
+                '@types/yargs': '^17.0.32',
+                tsup: '^8.0.0',
+                typescript: '^5.3.0',
+              }
+            : {}),
           vitest: '^1.2.0',
           prettier: '^3.2.0',
         },
@@ -229,31 +301,32 @@ export const YargsStrategy: GenerationStrategy = {
       2
     );
 
-    // tsconfig.json
-    files['tsconfig.json'] = JSON.stringify(
-      {
-        compilerOptions: {
-          target: 'ES2022',
-          module: 'ESNext',
-          moduleResolution: 'bundler',
-          strict: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          outDir: 'dist',
-          rootDir: 'src',
-          declaration: true,
-          declarationMap: true,
-          sourceMap: true,
+    if (isTS) {
+      // tsconfig.json
+      files['tsconfig.json'] = JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'ESNext',
+            moduleResolution: 'bundler',
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            outDir: 'dist',
+            rootDir: 'src',
+            declaration: true,
+            declarationMap: true,
+            sourceMap: true,
+          },
+          include: ['src'],
+          exclude: ['node_modules', 'dist'],
         },
-        include: ['src'],
-        exclude: ['node_modules', 'dist'],
-      },
-      null,
-      2
-    );
+        null,
+        2
+      );
 
-    // tsup.config.ts
-    files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
+      // tsup.config.ts
+      files['tsup.config.ts'] = `import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -266,9 +339,27 @@ export default defineConfig({
   },
 });
 `;
+    }
 
     // Main entry
-    files['src/index.ts'] = `import yargs from 'yargs';
+    files[`src/index.${ext}`] = isTS
+      ? `import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import { helloCommand } from './commands/hello.js';
+import { versionCommand } from './commands/version.js';
+
+yargs(hideBin(process.argv))
+  .scriptName('${binName}')
+  .usage('$0 <command> [options]')
+  .command(helloCommand)
+  .command(versionCommand)
+  .demandCommand(1, 'You need at least one command')
+  .strict()
+  .help()
+  .parse();
+`
+      : `#!/usr/bin/env node
+import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { helloCommand } from './commands/hello.js';
 import { versionCommand } from './commands/version.js';
@@ -285,7 +376,8 @@ yargs(hideBin(process.argv))
 `;
 
     // Hello command
-    files['src/commands/hello.ts'] = `import type { CommandModule } from 'yargs';
+    files[`src/commands/hello.${ext}`] = isTS
+      ? `import type { CommandModule } from 'yargs';
 
 interface HelloArgs {
   name: string;
@@ -306,12 +398,37 @@ export const helloCommand: CommandModule<object, HelloArgs> = {
     console.log(\`Hello, \${argv.name}!\`);
   },
 };
+`
+      : `export const helloCommand = {
+  command: 'hello',
+  describe: 'Say hello',
+  builder: {
+    name: {
+      alias: 'n',
+      type: 'string',
+      default: 'World',
+      describe: 'Name to greet',
+    },
+  },
+  handler: (argv) => {
+    console.log(\`Hello, \${argv.name}!\`);
+  },
+};
 `;
 
     // Version command
-    files['src/commands/version.ts'] = `import type { CommandModule } from 'yargs';
+    files[`src/commands/version.${ext}`] = isTS
+      ? `import type { CommandModule } from 'yargs';
 
 export const versionCommand: CommandModule = {
+  command: 'info',
+  describe: 'Show version info',
+  handler: () => {
+    console.log('${binName} v0.1.0');
+  },
+};
+`
+      : `export const versionCommand = {
   command: 'info',
   describe: 'Show version info',
   handler: () => {
@@ -321,7 +438,7 @@ export const versionCommand: CommandModule = {
 `;
 
     // Test
-    files['src/__tests__/hello.test.ts'] = `import { describe, it, expect } from 'vitest';
+    files[`src/__tests__/hello.test.${ext}`] = `import { describe, it, expect } from 'vitest';
 
 describe('hello command', () => {
   it('should greet with default name', () => {
@@ -332,9 +449,14 @@ describe('hello command', () => {
 `;
 
     // .gitignore
-    files['.gitignore'] = `node_modules/
+    files['.gitignore'] = isTS
+      ? `node_modules/
 dist/
 *.tsbuildinfo
+.env
+.env.local
+`
+      : `node_modules/
 .env
 .env.local
 `;
