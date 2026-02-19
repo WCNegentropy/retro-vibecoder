@@ -455,11 +455,10 @@ export async function generateAction(
       const { stack: inferredStack } = inferStack(renderedFiles);
 
       // Determine enrichment depth
-      const depth = (
-        options.enrichDepth ??
-        manifest.enrichment?.depth ??
-        'standard'
-      ) as 'minimal' | 'standard' | 'full';
+      const depth = (options.enrichDepth ?? manifest.enrichment?.depth ?? 'standard') as
+        | 'minimal'
+        | 'standard'
+        | 'full';
 
       // Build enrichment flags from depth preset + manifest overrides
       const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
@@ -470,9 +469,13 @@ export async function generateAction(
         depth,
         ...(manifestOverrides.cicd !== undefined && { cicd: manifestOverrides.cicd }),
         ...(manifestOverrides.release !== undefined && { release: manifestOverrides.release }),
-        ...(manifestOverrides.fillLogic !== undefined && { fillLogic: manifestOverrides.fillLogic }),
+        ...(manifestOverrides.fillLogic !== undefined && {
+          fillLogic: manifestOverrides.fillLogic,
+        }),
         ...(manifestOverrides.tests !== undefined && { tests: manifestOverrides.tests }),
-        ...(manifestOverrides.dockerProd !== undefined && { dockerProd: manifestOverrides.dockerProd }),
+        ...(manifestOverrides.dockerProd !== undefined && {
+          dockerProd: manifestOverrides.dockerProd,
+        }),
         ...(manifestOverrides.linting !== undefined && { linting: manifestOverrides.linting }),
         ...(manifestOverrides.envFiles !== undefined && { envFiles: manifestOverrides.envFiles }),
         ...(manifestOverrides.docs !== undefined && { docs: manifestOverrides.docs }),

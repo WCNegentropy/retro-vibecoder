@@ -151,4 +151,98 @@ describe('Schema Validator', () => {
       expect(result.errors.some(e => e.code === 'INVALID_VALIDATOR_REGEX')).toBe(true);
     });
   });
+
+  describe('enrichment schema validation', () => {
+    it('accepts valid enrichment block', () => {
+      const manifest = {
+        apiVersion: 'upg/v1',
+        metadata: {
+          name: 'enrich-test',
+          version: '1.0.0',
+          description: 'A template with enrichment config',
+          tags: ['test'],
+        },
+        prompts: [{ id: 'name', type: 'string', message: 'Name?' }],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
+        enrichment: {
+          enabled: true,
+          depth: 'standard',
+          cicd: true,
+          tests: true,
+        },
+      };
+
+      const result = validateManifest(manifest);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('rejects enrichment with invalid depth', () => {
+      const manifest = {
+        apiVersion: 'upg/v1',
+        metadata: {
+          name: 'bad-enrich',
+          version: '1.0.0',
+          description: 'A template with invalid enrichment depth',
+          tags: ['test'],
+        },
+        prompts: [{ id: 'name', type: 'string', message: 'Name?' }],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
+        enrichment: {
+          enabled: true,
+          depth: 'ultra',
+        },
+      };
+
+      const result = validateManifest(manifest);
+
+      expect(result.valid).toBe(false);
+    });
+
+    it('warns when enrichment enabled without depth', () => {
+      const manifest = {
+        apiVersion: 'upg/v1',
+        metadata: {
+          name: 'enrich-no-depth',
+          version: '1.0.0',
+          description: 'A template with enrichment but no depth',
+          tags: ['test'],
+        },
+        prompts: [{ id: 'name', type: 'string', message: 'Name?' }],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
+        enrichment: {
+          enabled: true,
+        },
+      };
+
+      const result = validateManifest(manifest, { includeWarnings: true });
+
+      expect(result.valid).toBe(true);
+      expect(result.warnings.some(w => w.code === 'ENRICHMENT_NO_DEPTH')).toBe(true);
+    });
+
+    it('rejects enrichment with unknown properties', () => {
+      const manifest = {
+        apiVersion: 'upg/v1',
+        metadata: {
+          name: 'bad-enrich-props',
+          version: '1.0.0',
+          description: 'A template with unknown enrichment properties',
+          tags: ['test'],
+        },
+        prompts: [{ id: 'name', type: 'string', message: 'Name?' }],
+        actions: [{ type: 'generate', src: 'template/', dest: './' }],
+        enrichment: {
+          enabled: true,
+          depth: 'standard',
+          unknownProp: true,
+        },
+      };
+
+      const result = validateManifest(manifest);
+
+      expect(result.valid).toBe(false);
+    });
+  });
 });

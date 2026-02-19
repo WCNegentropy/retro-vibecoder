@@ -82,7 +82,7 @@ describe('inferStack', () => {
 
     it('detects Ruby from Gemfile', () => {
       const files: ProjectFiles = {
-        'Gemfile': "gem 'rails'",
+        Gemfile: "gem 'rails'",
       };
       const { stack } = inferStack(files);
       expect(stack.language).toBe('ruby');
@@ -239,7 +239,7 @@ require (
   describe('packaging detection', () => {
     it('detects Docker from Dockerfile', () => {
       const files: ProjectFiles = {
-        'Dockerfile': 'FROM node:20',
+        Dockerfile: 'FROM node:20',
         'package.json': '{}',
       };
       const { stack } = inferStack(files);
@@ -293,7 +293,7 @@ require (
           dependencies: { express: '^4', pg: '^8' },
           devDependencies: { typescript: '^5', vitest: '^1' },
         }),
-        'Dockerfile': 'FROM node:20',
+        Dockerfile: 'FROM node:20',
         '.github/workflows/ci.yml': 'on: push',
       };
       const { confidence } = inferStack(files);

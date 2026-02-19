@@ -169,11 +169,7 @@ function detectRuntime(language: Language, files: ProjectFiles): Runtime {
   }
 }
 
-function detectFramework(
-  language: Language,
-  files: ProjectFiles,
-  paths: string[]
-): Framework {
+function detectFramework(language: Language, files: ProjectFiles, paths: string[]): Framework {
   const deps = getDependencies(files);
 
   // TypeScript / JavaScript frameworks
@@ -252,21 +248,38 @@ function detectFramework(
   return 'none';
 }
 
-function detectArchetype(
-  framework: Framework,
-  paths: string[]
-): Archetype {
+function detectArchetype(framework: Framework, paths: string[]): Archetype {
   // Framework-based archetype inference
   const backendFrameworks = [
-    'express', 'fastify', 'nestjs', 'fastapi', 'flask', 'django',
-    'gin', 'echo', 'axum', 'actix', 'spring-boot', 'aspnet-core',
-    'rails', 'laravel',
+    'express',
+    'fastify',
+    'nestjs',
+    'fastapi',
+    'flask',
+    'django',
+    'gin',
+    'echo',
+    'axum',
+    'actix',
+    'spring-boot',
+    'aspnet-core',
+    'rails',
+    'laravel',
   ];
   const webFrameworks = ['react', 'vue', 'svelte', 'solid'];
   const cliFrameworks = ['commander', 'yargs', 'clap', 'cobra', 'click', 'argparse'];
   const desktopFrameworks = ['tauri', 'electron', 'flutter', 'qt'];
   const mobileFrameworks = ['react-native', 'swiftui', 'jetpack-compose'];
-  const gameFrameworks = ['phaser', 'pixijs', 'unity', 'godot-mono', 'sdl2', 'sfml', 'bevy', 'macroquad'];
+  const gameFrameworks = [
+    'phaser',
+    'pixijs',
+    'unity',
+    'godot-mono',
+    'sdl2',
+    'sfml',
+    'bevy',
+    'macroquad',
+  ];
 
   if (backendFrameworks.includes(framework)) return 'backend';
   if (webFrameworks.includes(framework)) return 'web';
@@ -287,11 +300,16 @@ function detectDatabase(files: ProjectFiles): Database {
   const deps = getDependencies(files);
   const allContent = Object.values(files).join('\n').toLowerCase();
 
-  if (deps.includes('pg') || deps.includes('postgres') || allContent.includes('postgresql')) return 'postgres';
-  if (deps.includes('mysql2') || deps.includes('mysql') || allContent.includes('mysql')) return 'mysql';
-  if (deps.includes('better-sqlite3') || deps.includes('sqlite') || allContent.includes('sqlite')) return 'sqlite';
-  if (deps.includes('mongodb') || deps.includes('mongoose') || allContent.includes('mongodb')) return 'mongodb';
-  if (deps.includes('redis') || deps.includes('ioredis') || allContent.includes('redis')) return 'redis';
+  if (deps.includes('pg') || deps.includes('postgres') || allContent.includes('postgresql'))
+    return 'postgres';
+  if (deps.includes('mysql2') || deps.includes('mysql') || allContent.includes('mysql'))
+    return 'mysql';
+  if (deps.includes('better-sqlite3') || deps.includes('sqlite') || allContent.includes('sqlite'))
+    return 'sqlite';
+  if (deps.includes('mongodb') || deps.includes('mongoose') || allContent.includes('mongodb'))
+    return 'mongodb';
+  if (deps.includes('redis') || deps.includes('ioredis') || allContent.includes('redis'))
+    return 'redis';
 
   return 'none';
 }
@@ -315,10 +333,15 @@ function detectORM(language: Language, files: ProjectFiles): ORM {
     if (deps.includes('diesel')) return 'diesel';
   }
   if (language === 'ruby') {
-    return 'activerecord'; // Rails implies ActiveRecord
+    if (deps.includes('rails') || (files['Gemfile'] && files['Gemfile'].includes('rails')))
+      return 'activerecord';
   }
   if (language === 'php') {
-    return 'eloquent'; // Laravel implies Eloquent
+    if (
+      deps.includes('laravel') ||
+      (files['composer.json'] && files['composer.json'].includes('laravel'))
+    )
+      return 'eloquent';
   }
   if (language === 'csharp') {
     const allContent = Object.values(files).join('\n');
@@ -333,10 +356,12 @@ function detectTransport(files: ProjectFiles): Transport {
   const deps = getDependencies(files);
   const allContent = Object.values(files).join('\n').toLowerCase();
 
-  if (deps.includes('graphql') || deps.includes('@apollo/server') || allContent.includes('graphql')) return 'graphql';
+  if (deps.includes('graphql') || deps.includes('@apollo/server') || allContent.includes('graphql'))
+    return 'graphql';
   if (deps.includes('@grpc/grpc-js') || allContent.includes('grpc')) return 'grpc';
   if (deps.includes('@trpc/server') || allContent.includes('trpc')) return 'trpc';
-  if (deps.includes('ws') || deps.includes('socket.io') || allContent.includes('websocket')) return 'websocket';
+  if (deps.includes('ws') || deps.includes('socket.io') || allContent.includes('websocket'))
+    return 'websocket';
 
   return 'rest';
 }
@@ -383,7 +408,12 @@ function detectBuildTool(language: Language, files: ProjectFiles): BuildTool {
 function detectStyling(files: ProjectFiles, paths: string[]): Styling {
   const deps = getDependencies(files);
 
-  if (deps.includes('tailwindcss') || paths.includes('tailwind.config.js') || paths.includes('tailwind.config.ts')) return 'tailwind';
+  if (
+    deps.includes('tailwindcss') ||
+    paths.includes('tailwind.config.js') ||
+    paths.includes('tailwind.config.ts')
+  )
+    return 'tailwind';
   if (deps.includes('styled-components')) return 'styled-components';
   if (deps.includes('sass') || paths.some(p => p.endsWith('.scss'))) return 'scss';
   if (paths.some(p => p.includes('.module.css'))) return 'css-modules';
@@ -525,9 +555,7 @@ function getDependencies(files: ProjectFiles): string[] {
       for (const key of Object.keys((composer.require as Record<string, string>) ?? {})) {
         deps.push(key);
       }
-      for (const key of Object.keys(
-        (composer['require-dev'] as Record<string, string>) ?? {}
-      )) {
+      for (const key of Object.keys((composer['require-dev'] as Record<string, string>) ?? {})) {
         deps.push(key);
       }
     }
