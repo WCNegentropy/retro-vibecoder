@@ -18,6 +18,10 @@ export interface Settings {
   autoPreview: boolean;
   verboseOutput: boolean;
 
+  // Enrichment Defaults
+  defaultEnrichEnabled: boolean;
+  defaultEnrichDepth: 'minimal' | 'standard' | 'full';
+
   // Validation
   autoValidate: boolean;
   validationTimeout: number;
@@ -33,6 +37,8 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultLanguage: '',
   autoPreview: true,
   verboseOutput: false,
+  defaultEnrichEnabled: false,
+  defaultEnrichDepth: 'standard',
   autoValidate: false,
   validationTimeout: 300,
 };

@@ -299,6 +299,32 @@ export interface ManifestDocumentation {
 }
 
 /**
+ * Enrichment preferences for procedural generation
+ */
+export interface ManifestEnrichment {
+  /** Whether enrichment is enabled */
+  enabled?: boolean;
+  /** Enrichment depth preset */
+  depth?: 'minimal' | 'standard' | 'full';
+  /** CI/CD workflow enrichment */
+  cicd?: boolean;
+  /** Release automation workflows */
+  release?: boolean;
+  /** Fill application logic beyond boilerplate */
+  fillLogic?: boolean;
+  /** Generate real test cases */
+  tests?: boolean;
+  /** Docker production optimizations */
+  dockerProd?: boolean;
+  /** Linting and formatting configurations */
+  linting?: boolean;
+  /** Environment file generation */
+  envFiles?: boolean;
+  /** README enrichment */
+  docs?: boolean;
+}
+
+/**
  * Complete UPG Manifest structure
  */
 export interface UpgManifest {
@@ -318,6 +344,8 @@ export interface UpgManifest {
   validation?: Record<string, ValidationRule[]>;
   /** Documentation */
   documentation?: ManifestDocumentation;
+  /** Enrichment preferences for procedural generation */
+  enrichment?: ManifestEnrichment;
 }
 
 /**

@@ -12,6 +12,10 @@ import { useState, useMemo } from 'react';
 interface PreviewProps {
   files: Record<string, string>;
   title?: string;
+  /** Files added during Pass 2 enrichment (shown with green indicator) */
+  filesAdded?: string[];
+  /** Files modified during Pass 2 enrichment (shown with yellow indicator) */
+  filesModified?: string[];
 }
 
 interface TreeNode {
@@ -107,11 +111,13 @@ function getFileLanguage(filename: string): string {
 /**
  * Main Preview component
  */
-function Preview({ files, title = 'Generated Files' }: PreviewProps) {
+function Preview({ files, title = 'Generated Files', filesAdded = [], filesModified = [] }: PreviewProps) {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const tree = useMemo(() => buildFileTree(files), [files]);
+  const addedSet = useMemo(() => new Set(filesAdded), [filesAdded]);
+  const modifiedSet = useMemo(() => new Set(filesModified), [filesModified]);
 
   const toggleFolder = (path: string) => {
     setExpandedFolders(prev => {
@@ -134,6 +140,16 @@ function Preview({ files, title = 'Generated Files' }: PreviewProps) {
         <h3>{title}</h3>
         <span className="file-count">
           {fileCount} file{fileCount !== 1 ? 's' : ''}
+          {filesAdded.length > 0 && (
+            <span style={{ color: '#22c55e', marginLeft: '8px' }}>
+              +{filesAdded.length} enriched
+            </span>
+          )}
+          {filesModified.length > 0 && (
+            <span style={{ color: '#eab308', marginLeft: '8px' }}>
+              ~{filesModified.length} modified
+            </span>
+          )}
         </span>
       </div>
 
@@ -145,6 +161,8 @@ function Preview({ files, title = 'Generated Files' }: PreviewProps) {
             selectedFile={selectedFile}
             onToggleFolder={toggleFolder}
             onSelectFile={setSelectedFile}
+            filesAdded={addedSet}
+            filesModified={modifiedSet}
           />
         </div>
 
@@ -169,6 +187,8 @@ function FileTreeView({
   selectedFile,
   onToggleFolder,
   onSelectFile,
+  filesAdded,
+  filesModified,
   depth = 0,
 }: {
   nodes: TreeNode[];
@@ -176,45 +196,61 @@ function FileTreeView({
   selectedFile: string | null;
   onToggleFolder: (path: string) => void;
   onSelectFile: (path: string) => void;
+  filesAdded: Set<string>;
+  filesModified: Set<string>;
   depth?: number;
 }) {
   return (
     <ul className="file-tree" style={{ paddingLeft: depth * 16 }}>
-      {nodes.map(node => (
-        <li key={node.path}>
-          {node.type === 'folder' ? (
-            <>
+      {nodes.map(node => {
+        const isAdded = node.type === 'file' && filesAdded.has(node.path);
+        const isModified = node.type === 'file' && filesModified.has(node.path);
+        const enrichStyle = isAdded
+          ? { color: '#22c55e' }
+          : isModified
+            ? { color: '#eab308' }
+            : undefined;
+        const enrichIndicator = isAdded ? ' [+]' : isModified ? ' [~]' : '';
+
+        return (
+          <li key={node.path}>
+            {node.type === 'folder' ? (
+              <>
+                <button
+                  type="button"
+                  className="tree-item folder"
+                  onClick={() => onToggleFolder(node.path)}
+                >
+                  <span className="tree-icon">{expandedFolders.has(node.path) ? 'v' : '>'}</span>
+                  <span className="tree-name">{node.name}/</span>
+                </button>
+                {expandedFolders.has(node.path) && node.children && (
+                  <FileTreeView
+                    nodes={node.children}
+                    expandedFolders={expandedFolders}
+                    selectedFile={selectedFile}
+                    onToggleFolder={onToggleFolder}
+                    onSelectFile={onSelectFile}
+                    filesAdded={filesAdded}
+                    filesModified={filesModified}
+                    depth={depth + 1}
+                  />
+                )}
+              </>
+            ) : (
               <button
                 type="button"
-                className="tree-item folder"
-                onClick={() => onToggleFolder(node.path)}
+                className={`tree-item file ${selectedFile === node.path ? 'selected' : ''}`}
+                onClick={() => onSelectFile(node.path)}
+                style={enrichStyle}
               >
-                <span className="tree-icon">{expandedFolders.has(node.path) ? 'v' : '>'}</span>
-                <span className="tree-name">{node.name}/</span>
+                <span className="tree-icon">-</span>
+                <span className="tree-name">{node.name}{enrichIndicator}</span>
               </button>
-              {expandedFolders.has(node.path) && node.children && (
-                <FileTreeView
-                  nodes={node.children}
-                  expandedFolders={expandedFolders}
-                  selectedFile={selectedFile}
-                  onToggleFolder={onToggleFolder}
-                  onSelectFile={onSelectFile}
-                  depth={depth + 1}
-                />
-              )}
-            </>
-          ) : (
-            <button
-              type="button"
-              className={`tree-item file ${selectedFile === node.path ? 'selected' : ''}`}
-              onClick={() => onSelectFile(node.path)}
-            >
-              <span className="tree-icon">-</span>
-              <span className="tree-name">{node.name}</span>
-            </button>
-          )}
-        </li>
-      ))}
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

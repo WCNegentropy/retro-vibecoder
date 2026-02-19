@@ -21,7 +21,8 @@ import type {
  * 2. Select language
  * 3. Select framework (filtered by archetype + language)
  * 4. Select optional dimensions (database, CI/CD, packaging)
- * 5. Preview and generate
+ * 5. Configure Pass 2 enrichment options
+ * 6. Preview and generate
  */
 
 interface WizardStep {
@@ -35,6 +36,7 @@ const WIZARD_STEPS: WizardStep[] = [
   { id: 'language', title: 'Language', description: 'Choose your primary language' },
   { id: 'framework', title: 'Framework', description: 'Select a framework' },
   { id: 'extras', title: 'Extras', description: 'Configure optional features' },
+  { id: 'enrichment', title: 'Enrich', description: 'Pass 2 enrichment options' },
   { id: 'review', title: 'Review', description: 'Review and generate' },
 ];
 
@@ -212,6 +214,8 @@ function StackComposerPage() {
       case 3:
         return true;
       case 4:
+        return true;
+      case 5:
         return true;
       default:
         return false;
@@ -425,6 +429,12 @@ function StackComposerPage() {
           )}
 
           {currentStep === 4 && (
+            <div className="enrichment-section">
+              <EnrichmentPanel config={enrichment} onChange={setEnrichment} />
+            </div>
+          )}
+
+          {currentStep === 5 && (
             <div className="review-section">
               <div className="stack-summary card">
                 <h3>Your Stack</h3>
@@ -459,6 +469,12 @@ function StackComposerPage() {
                       <span className="value">{packaging}</span>
                     </div>
                   )}
+                  <div className="summary-item">
+                    <span className="label">Enrichment:</span>
+                    <span className="value">
+                      {enrichment.enabled ? `Enabled (${enrichment.depth})` : 'Disabled'}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="form-group">
@@ -470,7 +486,6 @@ function StackComposerPage() {
                   onChange={e => setOutputPath(e.target.value)}
                 />
               </div>
-              <EnrichmentPanel config={enrichment} onChange={setEnrichment} />
             </div>
           )}
         </div>

@@ -241,6 +241,51 @@ function SettingsPage() {
           </div>
         </section>
 
+        {/* Enrichment Defaults */}
+        <section className="win95-window">
+          <div className="win95-window-title">
+            <span className="win95-window-title-icon">+</span>
+            Enrichment Defaults
+          </div>
+          <div className="win95-window-content">
+            <div className="form-group">
+              <label className="form-checkbox">
+                <input
+                  type="checkbox"
+                  checked={settings.defaultEnrichEnabled}
+                  onChange={e => handleChange('defaultEnrichEnabled', e.target.checked)}
+                />
+                Enable Pass 2 Enrichment by default
+              </label>
+              <p className="form-help">
+                Automatically enable enrichment when generating projects
+              </p>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="default-enrich-depth">
+                Default Enrichment Depth
+              </label>
+              <select
+                id="default-enrich-depth"
+                className="form-select"
+                value={settings.defaultEnrichDepth}
+                onChange={e =>
+                  handleChange(
+                    'defaultEnrichDepth',
+                    e.target.value as Settings['defaultEnrichDepth']
+                  )
+                }
+              >
+                <option value="minimal">Minimal — CI/CD, linting, env files, docs</option>
+                <option value="standard">Standard — All of minimal + logic fill, tests, Docker</option>
+                <option value="full">Full — Maximum enrichment with all strategies</option>
+              </select>
+              <p className="form-help">Controls which enrichment strategies are applied</p>
+            </div>
+          </div>
+        </section>
+
         {/* Validation */}
         <section className="win95-window">
           <div className="win95-window-title">
