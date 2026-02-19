@@ -8,6 +8,7 @@ export default defineConfig({
     'src/strategies/index.ts',
     'src/sweeper/index.ts',
     'src/renderer/index.ts',
+    'src/enrichment/index.ts',
   ],
   format: ['esm'],
   dts: true,

@@ -2,7 +2,16 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import { useSettings } from '../hooks/useSettings';
 import { useStatus } from '../hooks/useStatus';
-import type { TechStack, Archetype, Language, Database, CICD, Packaging } from '../types';
+import EnrichmentPanel, { createDefaultEnrichmentConfig } from '../components/EnrichmentPanel';
+import type {
+  TechStack,
+  Archetype,
+  Language,
+  Database,
+  CICD,
+  Packaging,
+  EnrichmentConfig,
+} from '../types';
 
 /**
  * Stack Composer Page
@@ -154,6 +163,7 @@ function StackComposerPage() {
   const [packaging, setPackaging] = useState<Packaging>('docker');
   const [outputPath, setOutputPath] = useState('./my-project');
   const [generatedSeed] = useState<number>(() => Math.floor(Math.random() * 100000));
+  const [enrichment, setEnrichment] = useState<EnrichmentConfig>(createDefaultEnrichmentConfig);
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
   const { settings, isLoaded: settingsLoaded } = useSettings();
@@ -240,6 +250,7 @@ function StackComposerPage() {
       seed: generatedSeed,
       stack,
       output_path: outputPath,
+      enrichment: enrichment.enabled ? enrichment : undefined,
     });
     if (result?.success) {
       setStatus(`✓ Generated ${result.files_generated.length} files in ${result.duration_ms}ms`);
@@ -268,6 +279,7 @@ function StackComposerPage() {
       seed: generatedSeed,
       stack,
       output_path: outputPath,
+      enrichment: enrichment.enabled ? enrichment : undefined,
     });
     if (result) {
       const fileCount = Object.keys(result.files || {}).length;
@@ -458,6 +470,7 @@ function StackComposerPage() {
                   onChange={e => setOutputPath(e.target.value)}
                 />
               </div>
+              <EnrichmentPanel config={enrichment} onChange={setEnrichment} />
             </div>
           )}
         </div>
@@ -519,6 +532,7 @@ function StackComposerPage() {
               {database !== 'none' ? ` --database ${database}` : ''}
               {cicd !== 'none' ? ` --cicd ${cicd}` : ''}
               {packaging !== 'none' ? ` --packaging ${packaging}` : ''} --output {outputPath}
+              {enrichment.enabled ? ` --enrich --enrich-depth ${enrichment.depth}` : ''}
             </span>
           </div>
         </div>

@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Preview from '../components/Preview';
+import EnrichmentPanel, { createDefaultEnrichmentConfig } from '../components/EnrichmentPanel';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import { useSettings } from '../hooks/useSettings';
 import { useStatus } from '../hooks/useStatus';
-import type { TechStack, GenerationResult } from '../types';
+import type { TechStack, GenerationResult, EnrichmentConfig } from '../types';
 
 /**
  * Seed Generator Page
@@ -22,6 +23,7 @@ function SeedGeneratorPage() {
   const [previewStack, setPreviewStack] = useState<TechStack | null>(null);
   const [previewFiles, setPreviewFiles] = useState<Record<string, string>>({});
   const [generationResult, setGenerationResult] = useState<GenerationResult | null>(null);
+  const [enrichment, setEnrichment] = useState<EnrichmentConfig>(createDefaultEnrichmentConfig);
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
   const { settings, isLoaded: settingsLoaded } = useSettings();
@@ -61,6 +63,7 @@ function SeedGeneratorPage() {
       mode: 'procedural',
       seed: parseInt(seed, 10),
       output_path: outputPath,
+      enrichment: enrichment.enabled ? enrichment : undefined,
     });
     if (result) {
       setPreviewStack(result.stack || null);
@@ -80,6 +83,7 @@ function SeedGeneratorPage() {
       mode: 'procedural',
       seed: parseInt(seed, 10),
       output_path: outputPath,
+      enrichment: enrichment.enabled ? enrichment : undefined,
     });
     if (result) {
       setGenerationResult(result);
@@ -145,7 +149,9 @@ function SeedGeneratorPage() {
               <p className="form-help">Directory where the project will be generated.</p>
             </div>
 
-            <div className="form-actions">
+            <EnrichmentPanel config={enrichment} onChange={setEnrichment} />
+
+            <div className="form-actions" style={{ marginTop: '1rem' }}>
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -302,6 +308,7 @@ function SeedGeneratorPage() {
             <span className="cli-prompt">$</span>
             <span className="cli-text">
               upg seed {seed || '82910'} --output {outputPath}
+              {enrichment.enabled ? ` --enrich --enrich-depth ${enrichment.depth}` : ''}
             </span>
           </div>
         </div>

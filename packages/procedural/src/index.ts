@@ -178,3 +178,13 @@ export {
   runUniversalSweep,
   type SweeperOptions,
 } from './sweeper/index.js';
+
+// Enrichment (Pass 2)
+// Note: The full enrichment module is available via '@wcnegentropy/procedural/enrichment'.
+// We re-export the core types and constants here for convenience.
+export {
+  ProjectEnricher,
+  ProjectIntrospector,
+  AllEnrichmentStrategies,
+  type EnricherOptions,
+} from './enrichment/index.js';

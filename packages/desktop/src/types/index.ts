@@ -61,6 +61,26 @@ export interface TechStack {
  */
 export type GenerationMode = 'procedural' | 'template';
 
+/** Enrichment depth preset */
+export type EnrichmentDepth = 'minimal' | 'standard' | 'full';
+
+/** Enrichment configuration for Pass 2 */
+export interface EnrichmentConfig {
+  /** Whether enrichment is enabled */
+  enabled: boolean;
+  /** Enrichment depth preset */
+  depth: EnrichmentDepth;
+  /** Individual flag overrides (undefined = use depth default) */
+  cicd?: boolean;
+  release?: boolean;
+  fillLogic?: boolean;
+  tests?: boolean;
+  dockerProd?: boolean;
+  linting?: boolean;
+  envFiles?: boolean;
+  docs?: boolean;
+}
+
 /** Generation request to Tauri backend */
 export interface GenerationRequest {
   mode: GenerationMode;
@@ -70,6 +90,8 @@ export interface GenerationRequest {
   stack?: Partial<TechStack>;
   /** Output directory */
   output_path: string;
+  /** Enrichment configuration (Pass 2) */
+  enrichment?: EnrichmentConfig;
 }
 
 /** Generation result from Tauri backend */
