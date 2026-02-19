@@ -80,6 +80,11 @@ function applyRenderedFiles(
     }
     files[path] = content;
   }
+
+  // For JS projects: if no src/index.mjs was rendered, fall back to src/index.ts content
+  if (!isTypeScript && !files['src/index.mjs'] && rendered['src/index.ts']) {
+    files['src/index.mjs'] = rendered['src/index.ts'];
+  }
 }
 
 /**
@@ -152,6 +157,8 @@ export const ExpressStrategy: GenerationStrategy = {
             '@types/express': '^4.17.21',
             '@types/cors': '^2.8.17',
             '@types/node': '^20.11.0',
+            supertest: '^6.3.3',
+            '@types/supertest': '^2.0.16',
             tsup: '^8.0.0',
             tsx: '^4.7.0',
             typescript: '^5.3.0',
@@ -159,6 +166,7 @@ export const ExpressStrategy: GenerationStrategy = {
             eslint: '^8.56.0',
           }
         : {
+            supertest: '^6.3.3',
             vitest: '^1.2.0',
             eslint: '^8.56.0',
           },
@@ -302,13 +310,19 @@ export { app };
     // Basic test
     const testExt = isTypeScript ? 'ts' : 'mjs';
     const importExt = isTypeScript ? 'js' : 'mjs';
-    files[`src/index.test.${testExt}`] = `import { describe, it, expect } from 'vitest';
+    files[`src/index.test.${testExt}`] = `import { describe, it, expect, afterAll } from 'vitest';
 import { app } from './index.${importExt}';
+import request from 'supertest';
 
 describe('API', () => {
+  afterAll(() => {
+    app.removeAllListeners();
+  });
+
   it('should respond to health check', async () => {
-    // Basic test placeholder
-    expect(app).toBeDefined();
+    const res = await request(app).get('/health');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
   });
 });
 `;
@@ -533,12 +547,18 @@ export { fastify };
     // Basic test
     const testExt = isTypeScript ? 'ts' : 'mjs';
     const importExt = isTypeScript ? 'js' : 'mjs';
-    files[`src/index.test.${testExt}`] = `import { describe, it, expect } from 'vitest';
+    files[`src/index.test.${testExt}`] = `import { describe, it, expect, afterAll } from 'vitest';
 import { fastify } from './index.${importExt}';
 
 describe('API', () => {
+  afterAll(async () => {
+    await fastify.close();
+  });
+
   it('should respond to health check', async () => {
-    expect(fastify).toBeDefined();
+    const res = await fastify.inject({ method: 'GET', url: '/health' });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('ok');
   });
 });
 `;
@@ -597,9 +617,38 @@ model User {
 }
 `;
 
+  // Prisma client singleton module
+  const ext = _isTypeScript ? 'ts' : 'mjs';
+  files[`src/prisma.${ext}`] = `import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export default prisma;
+`;
+
   // .env example
   files['.env.example'] = `DATABASE_URL="${url}"
 `;
+
+  // Wire prisma import into the server entry file
+  const entryFile = _isTypeScript ? 'src/index.ts' : 'src/index.mjs';
+  if (files[entryFile]) {
+    const importExt = _isTypeScript ? 'js' : 'mjs';
+    const prismaImport = `import prisma from './prisma.${importExt}';`;
+    const disconnectHook = `\n// Graceful Prisma disconnect
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});\n`;
+    // Insert import after existing imports, and append disconnect hook
+    const lines = files[entryFile].split('\n');
+    const lastImportIdx = lines.reduce(
+      (acc: number, line: string, i: number) => (line.startsWith('import ') ? i : acc),
+      0
+    );
+    lines.splice(lastImportIdx + 1, 0, prismaImport);
+    files[entryFile] = lines.join('\n') + disconnectHook;
+  }
 }
 
 /**

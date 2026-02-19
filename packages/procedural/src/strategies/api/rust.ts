@@ -386,8 +386,8 @@ pub async fn create_pool() -> Result<DbPool, sqlx::Error> {
 }
 `;
 
-  // sqlx.toml
-  files['.sqlx/query-*.json'] = ''; // Placeholder for SQLx query cache
+  // SQLx offline query cache directory (populated by `cargo sqlx prepare`)
+  files['.sqlx/.gitkeep'] = '';
 }
 
 /**

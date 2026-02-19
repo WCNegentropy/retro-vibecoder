@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 {%- if isTypeScript %}
 import { fastify } from './index.js';
 {%- else %}
@@ -6,7 +6,13 @@ import { fastify } from './index.mjs';
 {%- endif %}
 
 describe('API', () => {
+  afterAll(async () => {
+    await fastify.close();
+  });
+
   it('should respond to health check', async () => {
-    expect(fastify).toBeDefined();
+    const res = await fastify.inject({ method: 'GET', url: '/health' });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('ok');
   });
 });
