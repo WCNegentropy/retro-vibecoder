@@ -810,6 +810,32 @@ async fn preview_generation(
                     cli_args.push("--enrich".to_string());
                     cli_args.push("--enrich-depth".to_string());
                     cli_args.push(enrich.depth.clone());
+
+                    // Individual flag overrides (--no-enrich-X when explicitly disabled)
+                    if enrich.cicd == Some(false) {
+                        cli_args.push("--no-enrich-cicd".to_string());
+                    }
+                    if enrich.release == Some(false) {
+                        cli_args.push("--no-enrich-release".to_string());
+                    }
+                    if enrich.fill_logic == Some(false) {
+                        cli_args.push("--no-enrich-logic".to_string());
+                    }
+                    if enrich.tests == Some(false) {
+                        cli_args.push("--no-enrich-tests".to_string());
+                    }
+                    if enrich.docker_prod == Some(false) {
+                        cli_args.push("--no-enrich-docker-prod".to_string());
+                    }
+                    if enrich.linting == Some(false) {
+                        cli_args.push("--no-enrich-linting".to_string());
+                    }
+                    if enrich.env_files == Some(false) {
+                        cli_args.push("--no-enrich-env".to_string());
+                    }
+                    if enrich.docs == Some(false) {
+                        cli_args.push("--no-enrich-docs".to_string());
+                    }
                 }
             }
 
