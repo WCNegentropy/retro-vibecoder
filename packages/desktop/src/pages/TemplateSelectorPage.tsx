@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import EnrichmentPanel, { createDefaultEnrichmentConfig } from '../components/EnrichmentPanel';
 import { isTauri } from '../hooks/useTauriGenerate';
 import { useSettings } from '../hooks/useSettings';
 import { useStatus } from '../hooks/useStatus';
-import type { TemplateEntry } from '../types';
+import type { TemplateEntry, EnrichmentConfig } from '../types';
 
 /** Result from template generation */
 interface TemplateGenerationResult {
@@ -35,6 +36,7 @@ function TemplateSelectorPage() {
   const [outputPath, setOutputPath] = useState('./generated-project');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationResult, setGenerationResult] = useState<TemplateGenerationResult | null>(null);
+  const [enrichment, setEnrichment] = useState<EnrichmentConfig>(createDefaultEnrichmentConfig);
 
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { setStatus } = useStatus();
@@ -119,6 +121,7 @@ function TemplateSelectorPage() {
         data: null,
         useDefaults: true,
         force: false,
+        enrichmentConfig: enrichment.enabled ? enrichment : null,
       });
       setGenerationResult(result);
       if (result.success) {
@@ -133,7 +136,7 @@ function TemplateSelectorPage() {
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedTemplate, outputPath, setStatus]);
+  }, [selectedTemplate, outputPath, enrichment, setStatus]);
 
   // Handle viewing manifest content
   const handleViewManifest = useCallback(async () => {
@@ -326,6 +329,8 @@ function TemplateSelectorPage() {
                 placeholder="./my-project"
               />
             </div>
+
+            <EnrichmentPanel config={enrichment} onChange={setEnrichment} />
 
             <div className="details-actions">
               <button

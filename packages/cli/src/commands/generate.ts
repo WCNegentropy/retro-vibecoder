@@ -511,13 +511,13 @@ export async function generateAction(
       const enrichedProject = await enricher.enrich();
 
       // Write any new or modified files from enrichment
-      let enrichedFileCount = 0;
+      let _enrichedFileCount = 0;
       for (const [filePath, content] of Object.entries(enrichedProject.files)) {
         if (renderedFiles[filePath] !== content) {
           const fullPath = join(destPath, filePath);
           await mkdir(dirname(fullPath), { recursive: true });
           await writeFile(fullPath, content, 'utf-8');
-          enrichedFileCount++;
+          _enrichedFileCount++;
           if (!filesGenerated.includes(filePath)) {
             filesGenerated.push(filePath);
           }

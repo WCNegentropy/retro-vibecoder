@@ -252,7 +252,9 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
           const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
           const enrichmentFlags = { ...depthFlags, enabled: true, depth };
 
-          const enricher = new ProjectEnricher(project, assembler.getRng(), { flags: enrichmentFlags });
+          const enricher = new ProjectEnricher(project, assembler.getRng(), {
+            flags: enrichmentFlags,
+          });
           enricher.registerStrategies(AllEnrichmentStrategies);
 
           project = await enricher.enrich();
@@ -791,7 +793,13 @@ export async function seedAction(
           stack: project.stack,
           files_generated: files,
           output_path: options.output ?? '',
-          ...('enrichment' in project ? { enrichment: (project as import('@wcnegentropy/procedural/enrichment').EnrichedProject).enrichment } : {}),
+          ...('enrichment' in project
+            ? {
+                enrichment: (
+                  project as import('@wcnegentropy/procedural/enrichment').EnrichedProject
+                ).enrichment,
+              }
+            : {}),
         })
       );
       return;
@@ -831,11 +839,14 @@ export async function seedAction(
 
     // Display enrichment metadata if enrichment was applied
     if (options.enrich && 'enrichment' in project) {
-      const { enrichment } = project as import('@wcnegentropy/procedural/enrichment').EnrichedProject;
+      const { enrichment } =
+        project as import('@wcnegentropy/procedural/enrichment').EnrichedProject;
       console.log();
       console.log(pc.bold('Pass 2 Enrichment:'));
       console.log(`  Depth: ${enrichment.flags.depth ?? 'standard'}`);
-      console.log(`  Strategies applied: ${enrichment.strategiesApplied.length > 0 ? enrichment.strategiesApplied.join(', ') : 'none'}`);
+      console.log(
+        `  Strategies applied: ${enrichment.strategiesApplied.length > 0 ? enrichment.strategiesApplied.join(', ') : 'none'}`
+      );
       console.log(`  Files added: ${enrichment.filesAdded.length}`);
       console.log(`  Files modified: ${enrichment.filesModified.length}`);
       console.log(`  Duration: ${enrichment.enrichmentDurationMs}ms`);

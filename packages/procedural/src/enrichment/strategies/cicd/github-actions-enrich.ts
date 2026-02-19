@@ -141,7 +141,7 @@ function generateNodeCI(
 
       - name: Get pnpm store directory
         shell: bash
-        run: echo "STORE_PATH=\$(pnpm store path --silent)" >> \$GITHUB_ENV
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Cache pnpm dependencies
         uses: actions/cache@v4
