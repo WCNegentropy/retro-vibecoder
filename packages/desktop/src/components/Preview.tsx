@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type CSSProperties } from 'react';
 
 /**
  * Preview System Component
@@ -108,6 +108,12 @@ function getFileLanguage(filename: string): string {
   return langMap[ext] || 'text';
 }
 
+/** Style constants for enrichment indicators */
+const ENRICH_ADDED_STYLE: CSSProperties = { color: '#22c55e', marginLeft: '8px' };
+const ENRICH_MODIFIED_STYLE: CSSProperties = { color: '#eab308', marginLeft: '8px' };
+const ENRICH_ADDED_FILE_STYLE: CSSProperties = { color: '#22c55e' };
+const ENRICH_MODIFIED_FILE_STYLE: CSSProperties = { color: '#eab308' };
+
 /**
  * Main Preview component
  */
@@ -141,12 +147,12 @@ function Preview({ files, title = 'Generated Files', filesAdded = [], filesModif
         <span className="file-count">
           {fileCount} file{fileCount !== 1 ? 's' : ''}
           {filesAdded.length > 0 && (
-            <span style={{ color: '#22c55e', marginLeft: '8px' }}>
+            <span style={ENRICH_ADDED_STYLE}>
               +{filesAdded.length} enriched
             </span>
           )}
           {filesModified.length > 0 && (
-            <span style={{ color: '#eab308', marginLeft: '8px' }}>
+            <span style={ENRICH_MODIFIED_STYLE}>
               ~{filesModified.length} modified
             </span>
           )}
@@ -206,9 +212,9 @@ function FileTreeView({
         const isAdded = node.type === 'file' && filesAdded.has(node.path);
         const isModified = node.type === 'file' && filesModified.has(node.path);
         const enrichStyle = isAdded
-          ? { color: '#22c55e' }
+          ? ENRICH_ADDED_FILE_STYLE
           : isModified
-            ? { color: '#eab308' }
+            ? ENRICH_MODIFIED_FILE_STYLE
             : undefined;
         const enrichIndicator = isAdded ? ' [+]' : isModified ? ' [~]' : '';
 
