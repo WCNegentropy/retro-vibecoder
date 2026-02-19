@@ -33,14 +33,15 @@ export interface TemplateContext {
  */
 function findPackageRoot(startDir: string): string | null {
   let dir = startDir;
-  while (true) {
+  let parent = dirname(dir);
+  while (dir !== parent) {
     if (existsSync(join(dir, 'package.json'))) {
       return dir;
     }
-    const parent = dirname(dir);
-    if (parent === dir) return null; // reached filesystem root
     dir = parent;
+    parent = dirname(dir);
   }
+  return null;
 }
 
 /**
@@ -91,7 +92,7 @@ function resolveTemplatesDir(): string {
 
   throw new Error(
     'Could not find templates directory. Checked:\n' +
-      candidates.map((c) => '  - ' + c).join('\n') +
+      candidates.map(c => '  - ' + c).join('\n') +
       '\nEnsure you are running from the monorepo root or the templates are installed.'
   );
 }
