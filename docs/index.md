@@ -10,6 +10,7 @@ The Universal Project Generator (UPG) is a dual-mode project generation platform
 - **Automated Discovery** - Constraint-based generation discovers thousands of valid configurations
 - **Dynamic UI Generation** - Forms are generated from manifest definitions (Phase 2)
 - **Deterministic Reproducibility** - Same seed always produces the same project
+- **Pass 2 Enrichment** - Enhance generated projects with CI/CD, testing, logic fill, and production-ready features
 - **Template Marketplace** - Share and discover both hand-crafted templates and procedural configurations
 - **Smart Updates** - Keep projects in sync with template updates via 3-way merge (Phase 3)
 
@@ -32,6 +33,12 @@ pnpm --filter @wcnegentropy/cli sweep --count 10 --verbose
 
 # Sweep with validation and registry persistence
 pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+
+# Generate with Pass 2 enrichment
+pnpm --filter @wcnegentropy/cli seed 82910 --enrich --output ./my-project
+
+# Full enrichment depth
+pnpm --filter @wcnegentropy/cli seed 82910 --enrich --enrich-depth full --output ./my-project
 ```
 
 ### Manifest-Based Generation
@@ -102,6 +109,26 @@ upg generate react-starter --dest ./output
 └─────────────────────────────────────────────────────┘
 ```
 
+### Procedural Generation + Enrichment Pipeline
+
+```
+Seed → Pass 1 (Strategy Pipeline) → Pass 2 (Enrichment Engine) → Enhanced Project
+         ↓                             ↓
+    Base scaffold               CI/CD, Testing, Logic,
+    (50+ strategies)            Docs, Docker, Linting
+```
+
+Pass 2 runs optional enrichment strategies on Pass 1 output:
+
+| Category    | Strategies                                          |
+| ----------- | --------------------------------------------------- |
+| **CI/CD**   | GitHub Actions, GitLab CI, Release Automation       |
+| **Quality** | Linting (ESLint/Ruff/clippy), Environment Files     |
+| **Logic**   | API Routes, CLI Commands, Models, Middleware         |
+| **Testing** | Unit Tests, Integration Tests, Test Configuration   |
+| **DevOps**  | Docker Production, Docker Compose Enrichment        |
+| **Docs**    | README Enrichment with setup instructions           |
+
 ## Key Concepts
 
 ### Universal Manifest (upg.yaml)
@@ -137,8 +164,9 @@ External tools (Copier, Yeoman) are bundled as sidecars:
   - Universal Matrix (7 dimensions, 100+ technology options)
   - Constraint Solver for valid tech stack combinations
   - Strategy Pipeline with 31+ generation strategies (Tier 1-5)
+  - **Pass 2 Enrichment Engine** with 16 strategies across 6 categories
   - Seed Sweeper validation pipeline
-  - CLI commands: `upg seed`, `upg sweep`
+  - CLI commands: `upg seed`, `upg sweep`, `upg preview`
 - **Phase 2** (Next - Q2 2026): Desktop App with Dual-Mode Generation
   - Manifest Mode: Dynamic Forms (RJSF) + Copier Sidecar
   - Procedural Mode: Seed Generator + Stack Composer UI
