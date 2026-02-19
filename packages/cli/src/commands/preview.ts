@@ -39,6 +39,8 @@ interface PreviewOptions {
   database?: string;
   runtime?: string;
   orm?: string;
+  enrich?: boolean;
+  enrichDepth?: string;
 }
 
 interface PreviewOutput {
@@ -58,6 +60,16 @@ interface PreviewOutput {
  */
 export async function previewAction(seedStr: string, options: PreviewOptions): Promise<void> {
   const parsed = parseSeed(seedStr);
+
+  const validDepths = ['minimal', 'standard', 'full'];
+  if (options.enrichDepth && !validDepths.includes(options.enrichDepth)) {
+    const output: PreviewOutput = {
+      success: false,
+      error: `Invalid enrichment depth "${options.enrichDepth}". Choose: minimal, standard, full`,
+    };
+    console.log(JSON.stringify(output));
+    process.exit(1);
+  }
 
   if (!parsed.valid) {
     const output: PreviewOutput = {
@@ -127,7 +139,27 @@ export async function previewAction(seedStr: string, options: PreviewOptions): P
     const assembler = new ProjectAssembler(seed, assemblerOptions);
     assembler.registerStrategies(AllStrategies);
 
-    const project = await assembler.generate();
+    let project = await assembler.generate();
+
+    // Pass 2: Enrichment (if enabled)
+    if (options.enrich) {
+      const { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS } =
+        await import('@wcnegentropy/procedural/enrichment');
+
+      const depth = (options.enrichDepth ?? 'standard') as 'minimal' | 'standard' | 'full';
+      const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
+
+      const enrichmentFlags = {
+        ...depthFlags,
+        enabled: true,
+        depth,
+      };
+
+      const enricher = new ProjectEnricher(project, assembler.getRng(), { flags: enrichmentFlags });
+      enricher.registerStrategies(AllEnrichmentStrategies);
+
+      project = await enricher.enrich();
+    }
 
     // Output JSON to stdout
     const output: PreviewOutput = {

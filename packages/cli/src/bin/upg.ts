@@ -75,6 +75,8 @@ Examples:
     .option('--dry-run', 'Show what would be generated without creating files')
     .option('-f, --force', 'Overwrite existing files')
     .option('--json', 'Output machine-readable JSON', false)
+    .option('--enrich', 'Enable Pass 2 enrichment on generated output')
+    .option('--enrich-depth <depth>', 'Enrichment depth (minimal|standard|full)', 'standard')
     .action(generateAction);
 
   // Test command
@@ -165,13 +167,16 @@ Examples:
     .option('--start-seed <number>', 'Starting seed number (default: 1)')
     .option('--dry-run', 'Preview stacks without generating files', false)
     .option('--only-valid', 'Keep retrying until N valid projects are found', false)
+    .option('--enrich', 'Enable Pass 2 enrichment on generated projects', false)
+    .option('--enrich-depth <depth>', 'Enrichment depth (minimal|standard|full)', 'standard')
     .addHelpText(
       'after',
       `
 Examples:
   $ upg sweep --count 10                                Generate 10 random projects
   $ upg sweep --archetype backend --language typescript  Generate backend TS projects
-  $ upg sweep --count 5 -o ./projects --validate         Generate, write, and validate`
+  $ upg sweep --count 5 -o ./projects --validate         Generate, write, and validate
+  $ upg sweep --count 5 --enrich --enrich-depth full     Generate with enrichment`
     )
     .action(sweepAction);
 
@@ -193,13 +198,25 @@ Examples:
     )
     .option('-n, --name <name>', 'Project name')
     .option('--force', 'Overwrite existing output directory', false)
+    .option('--enrich', 'Enable Pass 2 enrichment on generated project', false)
+    .option('--enrich-depth <depth>', 'Enrichment depth (minimal|standard|full)', 'standard')
+    .option('--no-enrich-cicd', 'Skip CI/CD enrichment')
+    .option('--no-enrich-release', 'Skip release automation')
+    .option('--no-enrich-logic', 'Skip logic fill enrichment')
+    .option('--no-enrich-tests', 'Skip test generation')
+    .option('--no-enrich-docker-prod', 'Skip Docker production optimizations')
+    .option('--no-enrich-linting', 'Skip linting config enrichment')
+    .option('--no-enrich-env', 'Skip environment file generation')
+    .option('--no-enrich-docs', 'Skip documentation enrichment')
     .addHelpText(
       'after',
       `
 Examples:
   $ upg seed 42                                    Preview a project from seed 42
   $ upg seed 42 -o ./my-app                        Generate and write to disk
-  $ upg seed 42 --archetype backend --json         Generate backend project as JSON`
+  $ upg seed 42 --archetype backend --json         Generate backend project as JSON
+  $ upg seed 42 --enrich -o ./my-app               Generate with Pass 2 enrichment
+  $ upg seed 42 --enrich --enrich-depth full        Full enrichment depth`
     )
     .action(seedAction);
 
@@ -216,6 +233,8 @@ Examples:
       '--orm <orm>',
       'Force specific ORM (prisma|drizzle|typeorm|sequelize|sqlalchemy|gorm|diesel|none)'
     )
+    .option('--enrich', 'Enable Pass 2 enrichment on preview', false)
+    .option('--enrich-depth <depth>', 'Enrichment depth (minimal|standard|full)', 'standard')
     .action(previewAction);
 
   return program;

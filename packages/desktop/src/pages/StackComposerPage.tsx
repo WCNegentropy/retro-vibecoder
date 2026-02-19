@@ -2,7 +2,16 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import { useSettings } from '../hooks/useSettings';
 import { useStatus } from '../hooks/useStatus';
-import type { TechStack, Archetype, Language, Database, CICD, Packaging } from '../types';
+import EnrichmentPanel, { createDefaultEnrichmentConfig } from '../components/EnrichmentPanel';
+import type {
+  TechStack,
+  Archetype,
+  Language,
+  Database,
+  CICD,
+  Packaging,
+  EnrichmentConfig,
+} from '../types';
 
 /**
  * Stack Composer Page
@@ -12,7 +21,8 @@ import type { TechStack, Archetype, Language, Database, CICD, Packaging } from '
  * 2. Select language
  * 3. Select framework (filtered by archetype + language)
  * 4. Select optional dimensions (database, CI/CD, packaging)
- * 5. Preview and generate
+ * 5. Configure Pass 2 enrichment options
+ * 6. Preview and generate
  */
 
 interface WizardStep {
@@ -26,6 +36,7 @@ const WIZARD_STEPS: WizardStep[] = [
   { id: 'language', title: 'Language', description: 'Choose your primary language' },
   { id: 'framework', title: 'Framework', description: 'Select a framework' },
   { id: 'extras', title: 'Extras', description: 'Configure optional features' },
+  { id: 'enrichment', title: 'Enrich', description: 'Pass 2 enrichment options' },
   { id: 'review', title: 'Review', description: 'Review and generate' },
 ];
 
@@ -154,6 +165,7 @@ function StackComposerPage() {
   const [packaging, setPackaging] = useState<Packaging>('docker');
   const [outputPath, setOutputPath] = useState('./my-project');
   const [generatedSeed] = useState<number>(() => Math.floor(Math.random() * 100000));
+  const [enrichment, setEnrichment] = useState<EnrichmentConfig>(createDefaultEnrichmentConfig);
 
   const { generate, preview, isLoading, error } = useTauriGenerate();
   const { settings, isLoaded: settingsLoaded } = useSettings();
@@ -203,6 +215,8 @@ function StackComposerPage() {
         return true;
       case 4:
         return true;
+      case 5:
+        return true;
       default:
         return false;
     }
@@ -240,6 +254,7 @@ function StackComposerPage() {
       seed: generatedSeed,
       stack,
       output_path: outputPath,
+      enrichment: enrichment.enabled ? enrichment : undefined,
     });
     if (result?.success) {
       setStatus(`✓ Generated ${result.files_generated.length} files in ${result.duration_ms}ms`);
@@ -268,6 +283,7 @@ function StackComposerPage() {
       seed: generatedSeed,
       stack,
       output_path: outputPath,
+      enrichment: enrichment.enabled ? enrichment : undefined,
     });
     if (result) {
       const fileCount = Object.keys(result.files || {}).length;
@@ -413,6 +429,12 @@ function StackComposerPage() {
           )}
 
           {currentStep === 4 && (
+            <div className="enrichment-section">
+              <EnrichmentPanel config={enrichment} onChange={setEnrichment} />
+            </div>
+          )}
+
+          {currentStep === 5 && (
             <div className="review-section">
               <div className="stack-summary card">
                 <h3>Your Stack</h3>
@@ -447,6 +469,12 @@ function StackComposerPage() {
                       <span className="value">{packaging}</span>
                     </div>
                   )}
+                  <div className="summary-item">
+                    <span className="label">Enrichment:</span>
+                    <span className="value">
+                      {enrichment.enabled ? `Enabled (${enrichment.depth})` : 'Disabled'}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="form-group">
@@ -519,6 +547,7 @@ function StackComposerPage() {
               {database !== 'none' ? ` --database ${database}` : ''}
               {cicd !== 'none' ? ` --cicd ${cicd}` : ''}
               {packaging !== 'none' ? ` --packaging ${packaging}` : ''} --output {outputPath}
+              {enrichment.enabled ? ` --enrich --enrich-depth ${enrichment.depth}` : ''}
             </span>
           </div>
         </div>

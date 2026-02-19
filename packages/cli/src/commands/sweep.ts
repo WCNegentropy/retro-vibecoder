@@ -43,6 +43,8 @@ interface SweepOptions {
   startSeed?: string;
   dryRun?: boolean;
   onlyValid?: boolean;
+  enrich?: boolean;
+  enrichDepth?: string;
 }
 
 /**
@@ -118,6 +120,16 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
     process.exit(1);
   }
 
+  const validDepths = ['minimal', 'standard', 'full'];
+  if (options.enrichDepth && !validDepths.includes(options.enrichDepth)) {
+    console.error(
+      pc.red(
+        `Error: Invalid enrichment depth "${options.enrichDepth}". Choose: minimal, standard, full`
+      )
+    );
+    process.exit(1);
+  }
+
   const startSeed = startSeedParsed.seed!;
 
   const spinner = ora('Initializing procedural generation engine...').start();
@@ -127,7 +139,7 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
     const {
       ProjectAssembler,
       AllStrategies,
-      runUniversalSweep,
+      Sweeper,
       validateConstraints,
       getValidLanguagesForArchetype,
     } = await import('@wcnegentropy/procedural');
@@ -239,7 +251,24 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         const assembler = new ProjectAssembler(seed, assemblerOptions);
         assembler.registerStrategies(AllStrategies);
 
-        const project = await assembler.generate();
+        let project = await assembler.generate();
+
+        // Pass 2: Enrichment (if enabled)
+        if (options.enrich && !options.dryRun) {
+          const { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS } =
+            await import('@wcnegentropy/procedural/enrichment');
+
+          const depth = (options.enrichDepth ?? 'standard') as 'minimal' | 'standard' | 'full';
+          const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
+          const enrichmentFlags = { ...depthFlags, enabled: true, depth };
+
+          const enricher = new ProjectEnricher(project, assembler.getRng(), {
+            flags: enrichmentFlags,
+          });
+          enricher.registerStrategies(AllEnrichmentStrategies);
+
+          project = await enricher.enrich();
+        }
 
         const result = {
           seed,
@@ -258,18 +287,16 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
           failed: false,
         };
 
-        // If validation is requested, validate the project
+        // If validation is requested, validate the actual generated project
         if (options.validate && !options.dryRun) {
-          spinner.text = `Validating project ${successCount + 1}/${count}...`;
-          const validationResults = await runUniversalSweep(1, {
+          spinner.text = `Validating project ${successCount + 1}/${count}: ${project.id}...`;
+          const sweeper = new Sweeper({
             useDocker: false,
             verbose: false,
           });
-
-          if (validationResults.length > 0) {
-            result.validated = validationResults[0].success;
-            result.validationError = validationResults[0].error;
-          }
+          const validationResult = await sweeper.validate(project);
+          result.validated = validationResult.success;
+          result.validationError = validationResult.error;
         }
 
         results.push(result);
@@ -555,10 +582,39 @@ export async function seedAction(
     json?: boolean;
     name?: string;
     force?: boolean;
+    enrich?: boolean;
+    enrichDepth?: string;
+    enrichCicd?: boolean;
+    enrichRelease?: boolean;
+    enrichLogic?: boolean;
+    enrichTests?: boolean;
+    enrichDockerProd?: boolean;
+    enrichLinting?: boolean;
+    enrichEnv?: boolean;
+    enrichDocs?: boolean;
   }
 ): Promise<void> {
   const parsed = parseSeed(seedStr);
   const isJson = options.json ?? false;
+
+  const validDepths = ['minimal', 'standard', 'full'];
+  if (options.enrichDepth && !validDepths.includes(options.enrichDepth)) {
+    if (isJson) {
+      console.log(
+        JSON.stringify({
+          success: false,
+          error: `Invalid enrichment depth "${options.enrichDepth}". Choose: minimal, standard, full`,
+        })
+      );
+    } else {
+      console.error(
+        pc.red(
+          `Error: Invalid enrichment depth "${options.enrichDepth}". Choose: minimal, standard, full`
+        )
+      );
+    }
+    process.exit(1);
+  }
 
   if (!parsed.valid) {
     if (isJson) {
@@ -702,7 +758,40 @@ export async function seedAction(
     const assembler = new ProjectAssembler(seed, assemblerOptions);
     assembler.registerStrategies(AllStrategies);
 
-    const project = await assembler.generate();
+    let project = await assembler.generate();
+
+    // Pass 2: Enrichment (if enabled)
+    if (options.enrich) {
+      if (spinner) {
+        spinner.text = 'Enriching project (Pass 2)...';
+      }
+
+      const { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS } =
+        await import('@wcnegentropy/procedural/enrichment');
+
+      const depth = (options.enrichDepth ?? 'standard') as 'minimal' | 'standard' | 'full';
+      const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
+
+      const enrichmentFlags = {
+        ...depthFlags,
+        enabled: true,
+        depth,
+        // Commander's --no-X flags set the property to false when negated
+        cicd: options.enrichCicd !== false ? depthFlags.cicd : false,
+        release: options.enrichRelease !== false ? depthFlags.release : false,
+        fillLogic: options.enrichLogic !== false ? depthFlags.fillLogic : false,
+        tests: options.enrichTests !== false ? depthFlags.tests : false,
+        dockerProd: options.enrichDockerProd !== false ? depthFlags.dockerProd : false,
+        linting: options.enrichLinting !== false ? depthFlags.linting : false,
+        envFiles: options.enrichEnv !== false ? depthFlags.envFiles : false,
+        docs: options.enrichDocs !== false ? depthFlags.docs : false,
+      };
+
+      const enricher = new ProjectEnricher(project, assembler.getRng(), { flags: enrichmentFlags });
+      enricher.registerStrategies(AllEnrichmentStrategies);
+
+      project = await enricher.enrich();
+    }
 
     if (spinner) {
       spinner.stop();
@@ -733,6 +822,13 @@ export async function seedAction(
           stack: project.stack,
           files_generated: files,
           output_path: options.output ?? '',
+          ...('enrichment' in project
+            ? {
+                enrichment: (
+                  project as import('@wcnegentropy/procedural/enrichment').EnrichedProject
+                ).enrichment,
+              }
+            : {}),
         })
       );
       return;
@@ -768,6 +864,38 @@ export async function seedAction(
 
     for (const file of files) {
       console.log(pc.dim(`  ${file}`));
+    }
+
+    // Display enrichment metadata if enrichment was applied
+    if (options.enrich && 'enrichment' in project) {
+      const { enrichment } =
+        project as import('@wcnegentropy/procedural/enrichment').EnrichedProject;
+      console.log();
+      console.log(pc.bold('Pass 2 Enrichment:'));
+      console.log(`  Depth: ${enrichment.flags.depth ?? 'standard'}`);
+      console.log(
+        `  Strategies applied: ${enrichment.strategiesApplied.length > 0 ? enrichment.strategiesApplied.join(', ') : 'none'}`
+      );
+      console.log(`  Files added: ${enrichment.filesAdded.length}`);
+      console.log(`  Files modified: ${enrichment.filesModified.length}`);
+      console.log(`  Duration: ${enrichment.enrichmentDurationMs}ms`);
+
+      if (options.verbose) {
+        if (enrichment.filesAdded.length > 0) {
+          console.log();
+          console.log(pc.dim('  Added:'));
+          for (const file of enrichment.filesAdded) {
+            console.log(pc.green(`    + ${file}`));
+          }
+        }
+        if (enrichment.filesModified.length > 0) {
+          console.log();
+          console.log(pc.dim('  Modified:'));
+          for (const file of enrichment.filesModified) {
+            console.log(pc.yellow(`    ~ ${file}`));
+          }
+        }
+      }
     }
 
     // Write output if specified

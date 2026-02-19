@@ -26,6 +26,10 @@
     "./sweeper": {
       "types": "./dist/sweeper/index.d.ts",
       "import": "./dist/sweeper/index.js"
+    },
+    "./enrichment": {
+      "types": "./dist/enrichment/index.d.ts",
+      "import": "./dist/enrichment/index.js"
     }
   },
   "files": [

@@ -5,7 +5,7 @@
 
 Universal Procedural Generation engine for composing software projects from capabilities.
 
-The "Minecraft" approach to project generation — uses Mulberry32 seeded RNG to deterministically generate complete tech stacks from a single integer seed. Implements a Project Assembler that composes projects from 50+ generation strategies across the Universal Matrix.
+The "Minecraft" approach to project generation — uses Mulberry32 seeded RNG to deterministically generate complete tech stacks from a single integer seed. Implements a Project Assembler that composes projects from 50+ generation strategies across the Universal Matrix. Includes a **Pass 2 Enrichment Engine** that enhances generated projects with production-ready CI/CD, testing, logic fill, and documentation.
 
 ## Installation
 
@@ -77,6 +77,39 @@ const sweeper = new Sweeper({ validate: true });
 const report = await sweeper.run(100);
 ```
 
+### Pass 2: Enrichment
+
+```typescript
+import { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS } from '@wcnegentropy/procedural/enrichment';
+
+// Enrich a generated project
+const enricher = new ProjectEnricher(generatedProject, assembler.getRng(), {
+  flags: DEFAULT_ENRICHMENT_FLAGS['standard'],
+});
+enricher.registerStrategies(AllEnrichmentStrategies);
+const enrichedProject = await enricher.enrich();
+
+// enrichedProject.enrichment contains metadata:
+// - strategiesApplied: string[]
+// - filesAdded: string[]
+// - filesModified: string[]
+// - enrichmentDurationMs: number
+```
+
+### Introspect a Project
+
+```typescript
+import { ProjectIntrospector } from '@wcnegentropy/procedural/enrichment';
+
+const introspector = new ProjectIntrospector(project.files, project.stack);
+
+// Query the project structure
+const manifest = introspector.getManifest();     // Parsed package.json/Cargo.toml/etc.
+const entryPoint = introspector.getEntryPoint(); // src/index.ts, main.py, etc.
+const ports = introspector.getExposedPorts();    // From Dockerfile EXPOSE
+const tests = introspector.findFiles('**/*.test.*');
+```
+
 ## Subpath Exports
 
 | Export Path                          | Description                                      |
@@ -86,6 +119,7 @@ const report = await sweeper.run(100);
 | `@wcnegentropy/procedural/matrices`  | Universal Matrix definitions (languages, frameworks, databases, archetypes) |
 | `@wcnegentropy/procedural/strategies` | 50+ generation strategies (`AllStrategies`, tier getters) |
 | `@wcnegentropy/procedural/sweeper`   | `Sweeper` class, `runUniversalSweep`, build step detection |
+| `@wcnegentropy/procedural/enrichment` | Pass 2 enrichment engine, `ProjectEnricher`, `ProjectIntrospector`, `AllEnrichmentStrategies` |
 
 ## Supported Stacks
 
@@ -102,7 +136,7 @@ const report = await sweeper.run(100);
 ## Architecture
 
 ```
-Engine → Matrices → Strategies → Renderer → Sweeper
+Engine → Matrices → Strategies → Renderer → Enrichment → Sweeper
 ```
 
 - **Engine**: `ProjectAssembler` + `SeededRNG` + constraint solver
@@ -110,6 +144,7 @@ Engine → Matrices → Strategies → Renderer → Sweeper
 - **Strategies**: 50+ generation strategies organized by tier (common, API, web, systems, mobile, desktop, game, library, CLI)
 - **Renderer**: Transforms assembled projects into virtual file systems
 - **Sweeper**: Batch generation and validation pipeline
+- **Enrichment**: Pass 2 `ProjectEnricher` + `ProjectIntrospector` + 16 enrichment strategies across 6 categories (CI/CD, quality, logic, testing, devops, docs)
 
 ## Part of the Retro Vibecoder UPG Monorepo
 

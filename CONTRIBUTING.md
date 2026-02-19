@@ -145,6 +145,38 @@ pnpm test:watch
 - Test edge cases and error conditions
 - Aim for 80%+ coverage on new code
 
+### Adding an Enrichment Strategy
+
+Enrichment strategies enhance Pass 1 output in Pass 2. To add one:
+
+1. Create a strategy file in the appropriate category:
+
+   ```typescript
+   // packages/procedural/src/enrichment/strategies/quality/my-strategy.ts
+   import type {
+     EnrichmentStrategy,
+     TechStack,
+     EnrichmentFlags,
+     EnrichmentContext,
+   } from '../../../types.js';
+
+   export const MyEnrichStrategy: EnrichmentStrategy = {
+     id: 'enrich-my-feature',
+     name: 'My Feature Enrichment',
+     priority: 15,
+     matches: (stack: TechStack, flags: EnrichmentFlags) => flags.linting,
+     apply: async (context: EnrichmentContext) => {
+       context.files['.my-config'] = '...';
+     },
+   };
+   ```
+
+2. Export from `packages/procedural/src/enrichment/index.ts`
+
+3. Add to `AllEnrichmentStrategies` array
+
+4. Write tests in `tests/unit/procedural/enrichment-strategies.test.ts`
+
 ## Documentation
 
 - Update `docs/` for API/behavior changes
@@ -157,7 +189,7 @@ pnpm test:watch
 packages/
 ├── shared/      # Shared types and utilities
 ├── core/        # Schema validation and transpiler
-├── procedural/  # Universal Procedural Generation engine
+├── procedural/  # Universal Procedural Generation engine (+ Pass 2 enrichment)
 ├── cli/         # Command-line interface
 └── desktop/     # Tauri desktop app
 
