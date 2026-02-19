@@ -213,6 +213,16 @@ export async function generateAction(
   const isJson = options.json ?? false;
   const spinner = isJson ? null : ora();
 
+  const validDepths = ['minimal', 'standard', 'full'];
+  if (options.enrichDepth && !validDepths.includes(options.enrichDepth)) {
+    if (isJson) {
+      console.log(JSON.stringify({ success: false, error: `Invalid enrichment depth "${options.enrichDepth}". Choose: minimal, standard, full` }));
+    } else {
+      console.error(pc.red(`Error: Invalid enrichment depth "${options.enrichDepth}". Choose: minimal, standard, full`));
+    }
+    process.exit(1);
+  }
+
   try {
     // If no template specified, look for upg.yaml in current directory
     const templatePath = template || '.';

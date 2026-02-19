@@ -255,7 +255,8 @@ export const DockerProdEnrichStrategy: EnrichmentStrategy = {
   priority: 40,
 
   matches: (stack: TechStack, flags: EnrichmentFlags) =>
-    flags.dockerProd && stack.packaging === 'docker',
+    flags.dockerProd && stack.packaging === 'docker'
+    && !['desktop', 'game', 'mobile'].includes(stack.archetype),
 
   apply: async (context: EnrichmentContext) => {
     const { files, stack, introspect } = context;

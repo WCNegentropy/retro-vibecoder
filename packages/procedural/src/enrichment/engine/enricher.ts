@@ -10,14 +10,15 @@
  * - Same seed + same flags = identical enriched output
  */
 
-import type {
-  GeneratedProject,
-  EnrichedProject,
-  EnrichmentFlags,
-  EnrichmentStrategy,
-  EnrichmentContext,
-  EnrichmentMetadata,
-  ProjectFiles,
+import {
+  DEFAULT_ENRICHMENT_FLAGS,
+  type GeneratedProject,
+  type EnrichedProject,
+  type EnrichmentFlags,
+  type EnrichmentStrategy,
+  type EnrichmentContext,
+  type EnrichmentMetadata,
+  type ProjectFiles,
 } from '../../types.js';
 import type { SeededRNG } from '../../engine/rng.js';
 import { ProjectIntrospector } from './introspector.js';
@@ -36,7 +37,7 @@ export class ProjectEnricher {
     this.sourceProject = sourceProject;
     // Fork the RNG — Pass 2 gets a deterministic but independent sequence
     this.rng = rng.fork();
-    this.flags = options.flags;
+    this.flags = options.flags ?? DEFAULT_ENRICHMENT_FLAGS['standard'];
   }
 
   /** Register a single enrichment strategy. */

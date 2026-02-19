@@ -61,6 +61,16 @@ interface PreviewOutput {
 export async function previewAction(seedStr: string, options: PreviewOptions): Promise<void> {
   const parsed = parseSeed(seedStr);
 
+  const validDepths = ['minimal', 'standard', 'full'];
+  if (options.enrichDepth && !validDepths.includes(options.enrichDepth)) {
+    const output: PreviewOutput = {
+      success: false,
+      error: `Invalid enrichment depth "${options.enrichDepth}". Choose: minimal, standard, full`,
+    };
+    console.log(JSON.stringify(output));
+    process.exit(1);
+  }
+
   if (!parsed.valid) {
     const output: PreviewOutput = {
       success: false,

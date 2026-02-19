@@ -54,20 +54,36 @@ describe('${projectName}', () => {
   return `import { describe, it, expect } from 'vitest';
 
 describe('${projectName}', () => {
-  it('should pass basic assertions', () => {
-    expect(1 + 1).toBe(2);
-    expect('hello').toContain('ell');
+  describe('Configuration', () => {
+    it('should merge config with defaults', () => {
+      const defaults = { port: 3000, host: 'localhost' };
+      const overrides = { port: 8080 };
+      const merged = { ...defaults, ...overrides };
+      expect(merged.port).toBe(8080);
+      expect(merged.host).toBe('localhost');
+    });
   });
 
-  it('should handle arrays correctly', () => {
-    const items = ['a', 'b', 'c'];
-    expect(items).toHaveLength(3);
-    expect(items).toContain('b');
+  describe('Data Processing', () => {
+    it('should handle arrays correctly', () => {
+      const items = ['a', 'b', 'c'];
+      expect(items).toHaveLength(3);
+      expect(items).toContain('b');
+    });
+
+    it('should sanitize string input', () => {
+      const sanitize = (input: string | null | undefined): string => input?.trim() ?? '';
+      expect(sanitize(null)).toBe('');
+      expect(sanitize(undefined)).toBe('');
+      expect(sanitize('  hello  ')).toBe('hello');
+    });
   });
 
-  it('should handle async operations', async () => {
-    const result = await Promise.resolve(42);
-    expect(result).toBe(42);
+  describe('Async Operations', () => {
+    it('should handle async operations', async () => {
+      const result = await Promise.resolve(42);
+      expect(result).toBe(42);
+    });
   });
 });
 `;

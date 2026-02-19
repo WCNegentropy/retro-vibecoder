@@ -20,9 +20,15 @@ function generateEnvExample(ctx: EnrichmentContext): string {
   const ports = introspect.getExposedPorts();
   const port = ports[0] ?? 3000;
 
+  const envVarName = ['typescript', 'javascript'].includes(stack.language) ? 'NODE_ENV' :
+    stack.language === 'go' ? 'GIN_MODE' :
+    stack.language === 'rust' ? 'RUST_LOG' :
+    stack.language === 'python' ? 'PYTHONENV' : 'APP_ENV';
+  const envVarValue = stack.language === 'rust' ? 'debug' : 'development';
+
   const lines: string[] = [
     '# ─── Application ────────────────────────────────────────────',
-    `NODE_ENV=development`,
+    `${envVarName}=${envVarValue}`,
     `PORT=${port}`,
     `HOST=0.0.0.0`,
     '',

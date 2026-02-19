@@ -480,7 +480,91 @@ async fn delete_${modelLower}(State(store): State<${modelName}Store>, Path(id): 
 `;
   }
 
-  return '// Actix routes — see framework documentation\n';
+  return `use actix_web::{web, HttpResponse, Responder};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Mutex;
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ${modelName} {
+    pub id: String,
+    pub name: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Create${modelName} {
+    pub name: String,
+}
+
+pub type ${modelName}Store = web::Data<Mutex<HashMap<String, ${modelName}>>>;
+
+pub fn config(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::resource("/${modelLower}s")
+            .route(web::get().to(list_${modelLower}s))
+            .route(web::post().to(create_${modelLower})),
+    )
+    .service(
+        web::resource("/${modelLower}s/{id}")
+            .route(web::get().to(get_${modelLower}))
+            .route(web::put().to(update_${modelLower}))
+            .route(web::delete().to(delete_${modelLower})),
+    );
+}
+
+async fn list_${modelLower}s(store: ${modelName}Store) -> impl Responder {
+    let store = store.lock().unwrap();
+    let items: Vec<${modelName}> = store.values().cloned().collect();
+    HttpResponse::Ok().json(serde_json::json!({ "data": items, "total": items.len() }))
+}
+
+async fn get_${modelLower}(store: ${modelName}Store, path: web::Path<String>) -> impl Responder {
+    let store = store.lock().unwrap();
+    let id = path.into_inner();
+    match store.get(&id) {
+        Some(item) => HttpResponse::Ok().json(serde_json::json!({ "data": item })),
+        None => HttpResponse::NotFound().json(serde_json::json!({ "error": "${modelName} not found" })),
+    }
+}
+
+async fn create_${modelLower}(store: ${modelName}Store, body: web::Json<Create${modelName}>) -> impl Responder {
+    let now = Utc::now();
+    let item = ${modelName} {
+        id: Uuid::new_v4().to_string(),
+        name: body.name.clone(),
+        created_at: now,
+        updated_at: now,
+    };
+    store.lock().unwrap().insert(item.id.clone(), item.clone());
+    HttpResponse::Created().json(serde_json::json!({ "data": item }))
+}
+
+async fn update_${modelLower}(store: ${modelName}Store, path: web::Path<String>, body: web::Json<Create${modelName}>) -> impl Responder {
+    let mut store = store.lock().unwrap();
+    let id = path.into_inner();
+    match store.get_mut(&id) {
+        Some(item) => {
+            item.name = body.name.clone();
+            item.updated_at = Utc::now();
+            HttpResponse::Ok().json(serde_json::json!({ "data": item.clone() }))
+        }
+        None => HttpResponse::NotFound().json(serde_json::json!({ "error": "${modelName} not found" })),
+    }
+}
+
+async fn delete_${modelLower}(store: ${modelName}Store, path: web::Path<String>) -> impl Responder {
+    let mut store = store.lock().unwrap();
+    let id = path.into_inner();
+    match store.remove(&id) {
+        Some(_) => HttpResponse::NoContent().finish(),
+        None => HttpResponse::NotFound().json(serde_json::json!({ "error": "${modelName} not found" })),
+    }
+}
+`;
 }
 
 export const ApiRoutesEnrichStrategy: EnrichmentStrategy = {
@@ -520,6 +604,17 @@ export const ApiRoutesEnrichStrategy: EnrichmentStrategy = {
           modelLower,
           stack.framework
         );
+        // Ensure go.mod includes uuid dependency
+        if (files['go.mod']) {
+          const goMod = files['go.mod'];
+          if (!goMod.includes('github.com/google/uuid')) {
+            files['go.mod'] = goMod.trimEnd() + '\n\trequire github.com/google/uuid v1.6.0\n';
+          }
+        }
+        // Generate go.sum placeholder
+        if (!files['go.sum']) {
+          files['go.sum'] = '// Run \'go mod tidy\' to populate\n';
+        }
         break;
       case 'rust':
         files[`src/routes/${modelLower}s.rs`] = generateRustRoutes(
