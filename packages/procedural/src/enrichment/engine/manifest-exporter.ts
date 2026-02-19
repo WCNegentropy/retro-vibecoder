@@ -9,7 +9,7 @@
  *   seed 42 --enrich → files on disk → upg eject → upg.yaml → upg generate
  */
 
-import type { ProjectFiles } from '../../types.js';
+import type { ProjectFiles, EnrichmentFlags } from '../../types.js';
 import { inferStack } from './stack-inferrer.js';
 
 /** Options for manifest export */
