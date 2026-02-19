@@ -143,7 +143,7 @@ function checkWarnings(manifest: UpgManifest): ValidationWarning[] {
   }
 
   // Check for enrichment configuration issues
-  const manifest_any = manifest as Record<string, unknown>;
+  const manifest_any = manifest as unknown as Record<string, unknown>;
   if (manifest_any.enrichment) {
     const enrichment = manifest_any.enrichment as Record<string, unknown>;
     if (enrichment.enabled === true && !enrichment.depth) {
