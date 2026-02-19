@@ -75,6 +75,8 @@ Examples:
     .option('--dry-run', 'Show what would be generated without creating files')
     .option('-f, --force', 'Overwrite existing files')
     .option('--json', 'Output machine-readable JSON', false)
+    .option('--enrich', 'Enable Pass 2 enrichment on generated output')
+    .option('--enrich-depth <depth>', 'Enrichment depth (minimal|standard|full)', 'standard')
     .action(generateAction);
 
   // Test command

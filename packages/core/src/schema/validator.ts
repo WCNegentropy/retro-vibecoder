@@ -142,6 +142,20 @@ function checkWarnings(manifest: UpgManifest): ValidationWarning[] {
     }
   }
 
+  // Check for enrichment configuration issues
+  const manifest_any = manifest as Record<string, unknown>;
+  if (manifest_any.enrichment) {
+    const enrichment = manifest_any.enrichment as Record<string, unknown>;
+    if (enrichment.enabled === true && !enrichment.depth) {
+      warnings.push({
+        code: 'ENRICHMENT_NO_DEPTH',
+        message: 'Enrichment is enabled but no depth preset is specified',
+        path: 'enrichment.depth',
+        suggestion: 'Add depth: "standard" to set a default enrichment depth',
+      });
+    }
+  }
+
   return warnings;
 }
 
