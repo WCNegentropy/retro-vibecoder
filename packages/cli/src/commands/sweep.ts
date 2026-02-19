@@ -127,7 +127,7 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
     const {
       ProjectAssembler,
       AllStrategies,
-      runUniversalSweep,
+      Sweeper,
       validateConstraints,
       getValidLanguagesForArchetype,
     } = await import('@wcnegentropy/procedural');
@@ -258,18 +258,16 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
           failed: false,
         };
 
-        // If validation is requested, validate the project
+        // If validation is requested, validate the actual generated project
         if (options.validate && !options.dryRun) {
-          spinner.text = `Validating project ${successCount + 1}/${count}...`;
-          const validationResults = await runUniversalSweep(1, {
+          spinner.text = `Validating project ${successCount + 1}/${count}: ${project.id}...`;
+          const sweeper = new Sweeper({
             useDocker: false,
             verbose: false,
           });
-
-          if (validationResults.length > 0) {
-            result.validated = validationResults[0].success;
-            result.validationError = validationResults[0].error;
-          }
+          const validationResult = await sweeper.validate(project);
+          result.validated = validationResult.success;
+          result.validationError = validationResult.error;
         }
 
         results.push(result);
