@@ -312,6 +312,53 @@ export const manifestSchema = {
       additionalProperties: true,
     },
 
+    enrichment: {
+      type: 'object',
+      properties: {
+        enabled: {
+          type: 'boolean',
+          description: 'Whether Pass 2 enrichment is enabled for this template',
+        },
+        depth: {
+          enum: ['minimal', 'standard', 'full'],
+          description: 'Enrichment depth preset',
+        },
+        cicd: {
+          type: 'boolean',
+          description: 'Enable CI/CD workflow enrichment',
+        },
+        release: {
+          type: 'boolean',
+          description: 'Enable release automation workflows',
+        },
+        fillLogic: {
+          type: 'boolean',
+          description: 'Enable logic fill (API routes, CLI commands, etc.)',
+        },
+        tests: {
+          type: 'boolean',
+          description: 'Enable test generation',
+        },
+        dockerProd: {
+          type: 'boolean',
+          description: 'Enable production Docker configuration',
+        },
+        linting: {
+          type: 'boolean',
+          description: 'Enable linting configuration',
+        },
+        envFiles: {
+          type: 'boolean',
+          description: 'Enable environment file generation',
+        },
+        docs: {
+          type: 'boolean',
+          description: 'Enable documentation enrichment',
+        },
+      },
+      additionalProperties: false,
+    },
+
     documentation: {
       type: 'object',
       properties: {

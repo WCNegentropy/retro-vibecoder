@@ -22,6 +22,12 @@ export {
 // Engine
 export { ProjectEnricher, type EnricherOptions } from './engine/enricher.js';
 export { ProjectIntrospector } from './engine/introspector.js';
+export { inferStack, type InferredStack } from './engine/stack-inferrer.js';
+export {
+  exportManifest,
+  type ExportManifestOptions,
+  type ExportedManifest,
+} from './engine/manifest-exporter.js';
 
 // CI/CD Strategies
 export { GitHubActionsEnrichStrategy } from './strategies/cicd/github-actions-enrich.js';

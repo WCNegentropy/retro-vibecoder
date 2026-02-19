@@ -23,6 +23,8 @@ interface GenerateOptions {
   dryRun?: boolean;
   force?: boolean;
   json?: boolean;
+  enrich?: boolean;
+  enrichDepth?: string;
 }
 
 interface UPGManifest {
@@ -65,6 +67,18 @@ interface UPGManifest {
     on_error?: string;
     description?: string;
   }>;
+  enrichment?: {
+    enabled?: boolean;
+    depth?: 'minimal' | 'standard' | 'full';
+    cicd?: boolean;
+    release?: boolean;
+    fillLogic?: boolean;
+    tests?: boolean;
+    dockerProd?: boolean;
+    linting?: boolean;
+    envFiles?: boolean;
+    docs?: boolean;
+  };
 }
 
 /**
@@ -413,6 +427,109 @@ export async function generateAction(
     }
 
     if (spinner) spinner.succeed(`Generated ${filesGenerated.length} files`);
+
+    // Pass 2: Enrichment (if enabled via CLI flag or manifest)
+    const shouldEnrich =
+      options.enrich || (manifest.enrichment?.enabled && options.enrich !== false);
+
+    if (shouldEnrich && !options.dryRun) {
+      if (spinner) spinner.start('Enriching project (Pass 2)...');
+
+      const { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS, inferStack } =
+        await import('@wcnegentropy/procedural/enrichment');
+      const { SeededRNG } = await import('@wcnegentropy/procedural');
+
+      // Collect rendered files from disk into a ProjectFiles map
+      const { readFile: readRendered } = await import('fs/promises');
+      const renderedFiles: Record<string, string> = {};
+      for (const relPath of filesGenerated) {
+        try {
+          const content = await readRendered(join(destPath, relPath), 'utf-8');
+          renderedFiles[relPath] = content;
+        } catch {
+          // Skip binary or unreadable files
+        }
+      }
+
+      // Infer the stack from the rendered files
+      const { stack: inferredStack } = inferStack(renderedFiles);
+
+      // Determine enrichment depth
+      const depth = (options.enrichDepth ?? manifest.enrichment?.depth ?? 'standard') as
+        | 'minimal'
+        | 'standard'
+        | 'full';
+
+      // Build enrichment flags from depth preset + manifest overrides
+      const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
+      const manifestOverrides = manifest.enrichment ?? {};
+      const enrichmentFlags = {
+        ...depthFlags,
+        enabled: true,
+        depth,
+        ...(manifestOverrides.cicd !== undefined && { cicd: manifestOverrides.cicd }),
+        ...(manifestOverrides.release !== undefined && { release: manifestOverrides.release }),
+        ...(manifestOverrides.fillLogic !== undefined && {
+          fillLogic: manifestOverrides.fillLogic,
+        }),
+        ...(manifestOverrides.tests !== undefined && { tests: manifestOverrides.tests }),
+        ...(manifestOverrides.dockerProd !== undefined && {
+          dockerProd: manifestOverrides.dockerProd,
+        }),
+        ...(manifestOverrides.linting !== undefined && { linting: manifestOverrides.linting }),
+        ...(manifestOverrides.envFiles !== undefined && { envFiles: manifestOverrides.envFiles }),
+        ...(manifestOverrides.docs !== undefined && { docs: manifestOverrides.docs }),
+      };
+
+      // Create a deterministic seed from the manifest name + version
+      const manifestSeedStr = `${manifest.metadata.name}:${manifest.metadata.version ?? '0.0.0'}`;
+      let seedHash = 0;
+      for (let i = 0; i < manifestSeedStr.length; i++) {
+        seedHash = (seedHash * 31 + manifestSeedStr.charCodeAt(i)) | 0;
+      }
+      const deterministicSeed = Math.abs(seedHash) % 100000;
+
+      // Create a synthetic GeneratedProject
+      const syntheticProject = {
+        id: `template-${manifest.metadata.name}`,
+        seed: deterministicSeed,
+        name: manifest.metadata.name,
+        files: renderedFiles,
+        stack: inferredStack,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          upgVersion: '0.1.0',
+          durationMs: 0,
+          constraintsApplied: ['template'],
+        },
+      };
+
+      const rng = new SeededRNG(deterministicSeed);
+      const enricher = new ProjectEnricher(syntheticProject, rng, { flags: enrichmentFlags });
+      enricher.registerStrategies(AllEnrichmentStrategies);
+
+      const enrichedProject = await enricher.enrich();
+
+      // Write any new or modified files from enrichment
+      let enrichedFileCount = 0;
+      for (const [filePath, content] of Object.entries(enrichedProject.files)) {
+        if (renderedFiles[filePath] !== content) {
+          const fullPath = join(destPath, filePath);
+          await mkdir(dirname(fullPath), { recursive: true });
+          await writeFile(fullPath, content, 'utf-8');
+          enrichedFileCount++;
+          if (!filesGenerated.includes(filePath)) {
+            filesGenerated.push(filePath);
+          }
+        }
+      }
+
+      if (spinner) {
+        spinner.succeed(
+          `Enrichment complete: ${enrichedProject.enrichment.filesAdded.length} added, ${enrichedProject.enrichment.filesModified.length} modified`
+        );
+      }
+    }
 
     // Execute post-generation commands
     if (manifest.actions) {
