@@ -170,7 +170,7 @@ export const DockerComposeEnrichStrategy: EnrichmentStrategy = {
 
   matches: (stack: TechStack, flags: EnrichmentFlags) =>
     flags.dockerProd && stack.packaging === 'docker' && stack.database !== 'none'
-    && stack.archetype !== 'desktop' && stack.archetype !== 'game',
+    && !['desktop', 'game', 'mobile'].includes(stack.archetype),
 
   apply: async (context: EnrichmentContext) => {
     context.files['docker-compose.yml'] = generateEnhancedCompose(context);

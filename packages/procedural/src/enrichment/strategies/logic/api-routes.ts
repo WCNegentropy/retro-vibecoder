@@ -613,7 +613,7 @@ export const ApiRoutesEnrichStrategy: EnrichmentStrategy = {
         }
         // Generate go.sum placeholder
         if (!files['go.sum']) {
-          files['go.sum'] = '// Run \'go mod tidy\' to populate\n';
+          files['go.sum'] = '';
         }
         break;
       case 'rust':
