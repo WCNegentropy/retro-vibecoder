@@ -40,6 +40,8 @@ function resolveTemplatesDir(): string {
   try {
     const currentFile = fileURLToPath(import.meta.url);
     const currentDir = dirname(currentFile);
+    // From npm-installed package: dist/renderer -> ../../templates
+    candidates.push(resolve(currentDir, '..', '..', 'templates'));
     // From packages/procedural/src/renderer -> ../../../../templates/procedural
     candidates.push(resolve(currentDir, '..', '..', '..', '..', 'templates', 'procedural'));
     // From packages/procedural/dist/renderer -> ../../../../templates/procedural
