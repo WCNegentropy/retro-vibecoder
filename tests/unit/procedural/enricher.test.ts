@@ -17,7 +17,6 @@ import type {
   GeneratedProject,
   TechStack,
   EnrichmentStrategy,
-  EnrichmentFlags,
   EnrichmentContext,
 } from '../../../packages/procedural/src/types.js';
 

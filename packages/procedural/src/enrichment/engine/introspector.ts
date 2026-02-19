@@ -213,7 +213,7 @@ export class ProjectIntrospector implements FileIntrospector {
       for (const line of req.split('\n')) {
         const trimmed = line.trim();
         if (trimmed && !trimmed.startsWith('#')) {
-          const name = trimmed.split(/[>=<!\[]/)[0].trim();
+          const name = trimmed.split(/[>=<![]/)[0].trim();
           if (name) deps.push(name);
         }
       }

@@ -9,8 +9,7 @@
  *   seed 42 --enrich → files on disk → upg eject → upg.yaml → upg generate
  */
 
-import type { ProjectFiles, EnrichmentFlags } from '../../types.js';
-import type { InferredStack } from './stack-inferrer.js';
+import type { ProjectFiles } from '../../types.js';
 import { inferStack } from './stack-inferrer.js';
 
 /** Options for manifest export */
@@ -67,7 +66,7 @@ export function exportManifest(
   files: ProjectFiles,
   options: ExportManifestOptions = {}
 ): ExportedManifest {
-  const { stack, confidence } = inferStack(files);
+  const { stack, confidence: _confidence } = inferStack(files);
 
   const name = options.name ?? 'exported-project';
   const version = options.version ?? '1.0.0';
