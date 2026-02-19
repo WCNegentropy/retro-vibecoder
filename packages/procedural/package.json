@@ -34,7 +34,8 @@
   },
   "files": [
     "dist",
-    "src/sweeper/docker/*"
+    "src/sweeper/docker/*",
+    "templates"
   ],
   "scripts": {
     "build": "tsup",
@@ -46,7 +47,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepack": "cp -r ../../templates/procedural templates",
+    "postpack": "rm -rf templates"
   },
   "dependencies": {
     "@wcnegentropy/shared": "workspace:*"
