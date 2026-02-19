@@ -21,6 +21,17 @@ function generateEnhancedCompose(ctx: EnrichmentContext): string {
   const ports = introspect.getExposedPorts();
   const port = ports[0] ?? 3000;
 
+  const envVarName = ['typescript', 'javascript'].includes(stack.language)
+    ? 'NODE_ENV'
+    : stack.language === 'go'
+      ? 'GIN_MODE'
+      : stack.language === 'rust'
+        ? 'RUST_LOG'
+        : stack.language === 'python'
+          ? 'PYTHONENV'
+          : 'APP_ENV';
+  const envVarValue = stack.language === 'rust' ? 'info' : 'production';
+
   let services = `services:
   app:
     build: .
@@ -28,7 +39,7 @@ function generateEnhancedCompose(ctx: EnrichmentContext): string {
     ports:
       - "${port}:${port}"
     environment:
-      - NODE_ENV=production
+      - ${envVarName}=${envVarValue}
       - PORT=${port}
     restart: unless-stopped
     healthcheck:
@@ -163,7 +174,10 @@ export const DockerComposeEnrichStrategy: EnrichmentStrategy = {
   priority: 42,
 
   matches: (stack: TechStack, flags: EnrichmentFlags) =>
-    flags.dockerProd && stack.packaging === 'docker' && stack.database !== 'none',
+    flags.dockerProd &&
+    stack.packaging === 'docker' &&
+    stack.database !== 'none' &&
+    !['desktop', 'game', 'mobile'].includes(stack.archetype),
 
   apply: async (context: EnrichmentContext) => {
     context.files['docker-compose.yml'] = generateEnhancedCompose(context);
