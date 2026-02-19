@@ -153,7 +153,12 @@ Enrichment strategies enhance Pass 1 output in Pass 2. To add one:
 
    ```typescript
    // packages/procedural/src/enrichment/strategies/quality/my-strategy.ts
-   import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+   import type {
+     EnrichmentStrategy,
+     TechStack,
+     EnrichmentFlags,
+     EnrichmentContext,
+   } from '../../../types.js';
 
    export const MyEnrichStrategy: EnrichmentStrategy = {
      id: 'enrich-my-feature',

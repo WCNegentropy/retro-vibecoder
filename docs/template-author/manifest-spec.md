@@ -256,23 +256,23 @@ Declare enrichment preferences for procedural generation:
 ```yaml
 enrichment:
   enabled: true
-  depth: standard        # minimal | standard | full
-  cicd: true             # CI/CD workflow enrichment
-  release: true          # Release automation workflows
-  fillLogic: true        # Application logic fill
-  tests: true            # Test generation
-  dockerProd: true       # Docker production optimizations
-  linting: true          # Linting/formatting configs
-  envFiles: true         # .env.example generation
-  docs: true             # README enrichment
+  depth: standard # minimal | standard | full
+  cicd: true # CI/CD workflow enrichment
+  release: true # Release automation workflows
+  fillLogic: true # Application logic fill
+  tests: true # Test generation
+  dockerProd: true # Docker production optimizations
+  linting: true # Linting/formatting configs
+  envFiles: true # .env.example generation
+  docs: true # README enrichment
 ```
 
 When included in a manifest, these preferences are used during procedural generation to control which Pass 2 enrichment strategies are applied. All fields are optional; omitted fields fall back to the depth preset defaults.
 
 ### Depth Presets
 
-| Preset      | CI/CD | Release | Logic Fill | Tests | Docker Prod | Linting | Env Files | Docs |
-| ----------- | ----- | ------- | ---------- | ----- | ----------- | ------- | --------- | ---- |
-| `minimal`   | ✓     |         |            |       |             | ✓       | ✓         | ✓    |
-| `standard`  | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |
-| `full`      | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |
+| Preset     | CI/CD | Release | Logic Fill | Tests | Docker Prod | Linting | Env Files | Docs |
+| ---------- | ----- | ------- | ---------- | ----- | ----------- | ------- | --------- | ---- |
+| `minimal`  | ✓     |         |            |       |             | ✓       | ✓         | ✓    |
+| `standard` | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |
+| `full`     | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |

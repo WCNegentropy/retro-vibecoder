@@ -120,14 +120,14 @@ Seed → Pass 1 (Strategy Pipeline) → Pass 2 (Enrichment Engine) → Enhanced 
 
 Pass 2 runs optional enrichment strategies on Pass 1 output:
 
-| Category    | Strategies                                          |
-| ----------- | --------------------------------------------------- |
-| **CI/CD**   | GitHub Actions, GitLab CI, Release Automation       |
-| **Quality** | Linting (ESLint/Ruff/clippy), Environment Files     |
-| **Logic**   | API Routes, CLI Commands, Models, Middleware         |
-| **Testing** | Unit Tests, Integration Tests, Test Configuration   |
-| **DevOps**  | Docker Production, Docker Compose Enrichment        |
-| **Docs**    | README Enrichment with setup instructions           |
+| Category    | Strategies                                        |
+| ----------- | ------------------------------------------------- |
+| **CI/CD**   | GitHub Actions, GitLab CI, Release Automation     |
+| **Quality** | Linting (ESLint/Ruff/clippy), Environment Files   |
+| **Logic**   | API Routes, CLI Commands, Models, Middleware      |
+| **Testing** | Unit Tests, Integration Tests, Test Configuration |
+| **DevOps**  | Docker Production, Docker Compose Enrichment      |
+| **Docs**    | README Enrichment with setup instructions         |
 
 ## Key Concepts
 
