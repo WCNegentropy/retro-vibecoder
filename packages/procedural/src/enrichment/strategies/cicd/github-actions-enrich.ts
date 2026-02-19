@@ -9,7 +9,12 @@
  * - Concurrency control
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateEnhancedCI(ctx: EnrichmentContext): string {
   const { stack, introspect, flags } = ctx;
@@ -96,17 +101,24 @@ concurrency:
   return workflow;
 }
 
-function generateNodeCI(_stack: TechStack, manifest: ReturnType<EnrichmentContext['introspect']['getManifest']>, depth: string): string {
+function generateNodeCI(
+  _stack: TechStack,
+  manifest: ReturnType<EnrichmentContext['introspect']['getManifest']>,
+  depth: string
+): string {
   const testCmd = manifest.scripts['test'] ?? 'npm test';
   const buildCmd = manifest.scripts['build'] ?? 'npm run build';
   const lintCmd = manifest.scripts['lint'] ?? 'npm run lint';
   const typecheckCmd = manifest.scripts['typecheck'];
   const hasTypecheck = !!typecheckCmd;
 
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        node-version: [18, 20, 22]` : '';
+        node-version: [18, 20, 22]`
+      : '';
 
   const nodeVersion = depth === 'full' ? `\${{ matrix.node-version }}` : '20';
 
@@ -144,10 +156,14 @@ function generateNodeCI(_stack: TechStack, manifest: ReturnType<EnrichmentContex
 
       - name: Lint
         run: pnpm ${lintCmd.replace(/^(pnpm |npm run )/, '')}
-${hasTypecheck ? `
+${
+  hasTypecheck
+    ? `
       - name: Type check
         run: pnpm ${typecheckCmd!.replace(/^(pnpm |npm run )/, '')}
-` : ''}
+`
+    : ''
+}
       - name: Test
         run: pnpm ${testCmd.replace(/^(pnpm |npm run )/, '')}
 
@@ -157,10 +173,13 @@ ${hasTypecheck ? `
 }
 
 function generatePythonCI(_stack: TechStack, depth: string): string {
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13']` : '';
+        python-version: ['3.11', '3.12', '3.13']`
+      : '';
   const pyVersion = depth === 'full' ? `\${{ matrix.python-version }}` : '3.12';
 
   return `jobs:
@@ -201,10 +220,13 @@ function generatePythonCI(_stack: TechStack, depth: string): string {
 }
 
 function generateGoCI(_stack: TechStack, depth: string): string {
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        go-version: ['1.21', '1.22', '1.23']` : '';
+        go-version: ['1.21', '1.22', '1.23']`
+      : '';
   const goVersion = depth === 'full' ? `\${{ matrix.go-version }}` : '1.22';
 
   return `jobs:
@@ -240,10 +262,13 @@ function generateGoCI(_stack: TechStack, depth: string): string {
 }
 
 function generateRustCI(_stack: TechStack, depth: string): string {
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        toolchain: [stable, beta]` : '';
+        toolchain: [stable, beta]`
+      : '';
   const toolchain = depth === 'full' ? `\${{ matrix.toolchain }}` : 'stable';
 
   return `jobs:
@@ -277,10 +302,13 @@ function generateRustCI(_stack: TechStack, depth: string): string {
 
 function generateJvmCI(stack: TechStack, depth: string): string {
   const usesGradle = stack.buildTool === 'gradle';
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        java-version: [17, 21]` : '';
+        java-version: [17, 21]`
+      : '';
   const javaVersion = depth === 'full' ? `\${{ matrix.java-version }}` : '17';
 
   return `jobs:
@@ -306,10 +334,13 @@ function generateJvmCI(stack: TechStack, depth: string): string {
 }
 
 function generateDotnetCI(_stack: TechStack, depth: string): string {
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        dotnet-version: ['8.0.x', '9.0.x']` : '';
+        dotnet-version: ['8.0.x', '9.0.x']`
+      : '';
   const dotnetVersion = depth === 'full' ? `\${{ matrix.dotnet-version }}` : '8.0.x';
 
   return `jobs:
@@ -344,10 +375,13 @@ function generateDotnetCI(_stack: TechStack, depth: string): string {
 }
 
 function generateRubyCI(_stack: TechStack, depth: string): string {
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        ruby-version: ['3.2', '3.3']` : '';
+        ruby-version: ['3.2', '3.3']`
+      : '';
   const rubyVersion = depth === 'full' ? `\${{ matrix.ruby-version }}` : '3.3';
 
   return `jobs:
@@ -372,10 +406,13 @@ function generateRubyCI(_stack: TechStack, depth: string): string {
 }
 
 function generatePhpCI(_stack: TechStack, depth: string): string {
-  const matrix = depth === 'full' ? `
+  const matrix =
+    depth === 'full'
+      ? `
     strategy:
       matrix:
-        php-version: ['8.2', '8.3']` : '';
+        php-version: ['8.2', '8.3']`
+      : '';
   const phpVersion = depth === 'full' ? `\${{ matrix.php-version }}` : '8.3';
 
   return `jobs:

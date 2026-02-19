@@ -10,7 +10,12 @@
  * - Tech stack badges
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateEnhancedReadme(ctx: EnrichmentContext): string {
   const { stack, projectName, introspect, flags } = ctx;
@@ -26,7 +31,9 @@ function generateEnhancedReadme(ctx: EnrichmentContext): string {
   // Badges
   const badges: string[] = [];
   if (stack.cicd === 'github-actions') {
-    badges.push(`![CI](https://github.com/username/${projectName}/actions/workflows/ci.yml/badge.svg)`);
+    badges.push(
+      `![CI](https://github.com/username/${projectName}/actions/workflows/ci.yml/badge.svg)`
+    );
   }
   badges.push(`![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)`);
 
@@ -127,25 +134,52 @@ function generateEnhancedReadme(ctx: EnrichmentContext): string {
 
 function getLanguageName(stack: TechStack): string {
   const names: Record<string, string> = {
-    typescript: 'TypeScript', javascript: 'JavaScript', python: 'Python',
-    go: 'Go', rust: 'Rust', java: 'Java', csharp: 'C#', cpp: 'C++',
-    swift: 'Swift', kotlin: 'Kotlin', ruby: 'Ruby', php: 'PHP',
+    typescript: 'TypeScript',
+    javascript: 'JavaScript',
+    python: 'Python',
+    go: 'Go',
+    rust: 'Rust',
+    java: 'Java',
+    csharp: 'C#',
+    cpp: 'C++',
+    swift: 'Swift',
+    kotlin: 'Kotlin',
+    ruby: 'Ruby',
+    php: 'PHP',
   };
   return names[stack.language] ?? stack.language;
 }
 
 function getFrameworkName(stack: TechStack): string {
   const names: Record<string, string> = {
-    express: 'Express.js', fastify: 'Fastify', nestjs: 'NestJS',
-    fastapi: 'FastAPI', flask: 'Flask', django: 'Django',
-    gin: 'Gin', echo: 'Echo', axum: 'Axum', actix: 'Actix Web',
-    react: 'React', vue: 'Vue.js', svelte: 'Svelte', solid: 'SolidJS',
-    commander: 'Commander.js', yargs: 'Yargs', clap: 'Clap', cobra: 'Cobra',
-    click: 'Click', argparse: 'argparse',
-    'spring-boot': 'Spring Boot', 'aspnet-core': 'ASP.NET Core',
-    rails: 'Ruby on Rails', laravel: 'Laravel',
-    tauri: 'Tauri', electron: 'Electron',
-    bevy: 'Bevy', phaser: 'Phaser',
+    express: 'Express.js',
+    fastify: 'Fastify',
+    nestjs: 'NestJS',
+    fastapi: 'FastAPI',
+    flask: 'Flask',
+    django: 'Django',
+    gin: 'Gin',
+    echo: 'Echo',
+    axum: 'Axum',
+    actix: 'Actix Web',
+    react: 'React',
+    vue: 'Vue.js',
+    svelte: 'Svelte',
+    solid: 'SolidJS',
+    commander: 'Commander.js',
+    yargs: 'Yargs',
+    clap: 'Clap',
+    cobra: 'Cobra',
+    click: 'Click',
+    argparse: 'argparse',
+    'spring-boot': 'Spring Boot',
+    'aspnet-core': 'ASP.NET Core',
+    rails: 'Ruby on Rails',
+    laravel: 'Laravel',
+    tauri: 'Tauri',
+    electron: 'Electron',
+    bevy: 'Bevy',
+    phaser: 'Phaser',
     none: 'None',
   };
   return names[stack.framework] ?? stack.framework;
@@ -153,8 +187,13 @@ function getFrameworkName(stack: TechStack): string {
 
 function getDatabaseName(stack: TechStack): string {
   const names: Record<string, string> = {
-    postgres: 'PostgreSQL', mysql: 'MySQL', sqlite: 'SQLite',
-    mongodb: 'MongoDB', redis: 'Redis', cassandra: 'Cassandra', neo4j: 'Neo4j',
+    postgres: 'PostgreSQL',
+    mysql: 'MySQL',
+    sqlite: 'SQLite',
+    mongodb: 'MongoDB',
+    redis: 'Redis',
+    cassandra: 'Cassandra',
+    neo4j: 'Neo4j',
   };
   return names[stack.database] ?? stack.database;
 }
@@ -180,7 +219,11 @@ function getPrerequisites(stack: TechStack): string {
     case 'java':
     case 'kotlin':
       lines.push('- [JDK](https://adoptium.net/) >= 17');
-      lines.push(stack.buildTool === 'gradle' ? '- [Gradle](https://gradle.org/)' : '- [Maven](https://maven.apache.org/)');
+      lines.push(
+        stack.buildTool === 'gradle'
+          ? '- [Gradle](https://gradle.org/)'
+          : '- [Maven](https://maven.apache.org/)'
+      );
       break;
     case 'csharp':
       lines.push('- [.NET SDK](https://dotnet.microsoft.com/) >= 8.0');
@@ -215,7 +258,8 @@ function getSetupInstructions(stack: TechStack, _hasDocker: boolean, _hasCompose
       instructions += '# Start development server\npnpm dev\n';
       break;
     case 'python':
-      instructions += '# Create virtual environment\npython -m venv venv\nsource venv/bin/activate  # On Windows: venv\\Scripts\\activate\n\n';
+      instructions +=
+        '# Create virtual environment\npython -m venv venv\nsource venv/bin/activate  # On Windows: venv\\Scripts\\activate\n\n';
       instructions += '# Install dependencies\npip install -r requirements.txt\n\n';
       instructions += '# Run the application\npython -m src.main\n';
       break;
@@ -229,24 +273,27 @@ function getSetupInstructions(stack: TechStack, _hasDocker: boolean, _hasCompose
       break;
     case 'java':
     case 'kotlin':
-      instructions += stack.buildTool === 'gradle'
-        ? '# Build the project\n./gradlew build\n\n# Run the application\n./gradlew run\n'
-        : '# Build the project\nmvn package\n\n# Run the application\njava -jar target/*.jar\n';
+      instructions +=
+        stack.buildTool === 'gradle'
+          ? '# Build the project\n./gradlew build\n\n# Run the application\n./gradlew run\n'
+          : '# Build the project\nmvn package\n\n# Run the application\njava -jar target/*.jar\n';
       break;
     case 'csharp':
       instructions += '# Restore and run\ndotnet restore\ndotnet run\n';
       break;
     case 'ruby':
       instructions += '# Install dependencies\nbundle install\n\n';
-      instructions += stack.framework === 'rails'
-        ? '# Start the server\nbin/rails server\n'
-        : '# Run the application\nruby app.rb\n';
+      instructions +=
+        stack.framework === 'rails'
+          ? '# Start the server\nbin/rails server\n'
+          : '# Run the application\nruby app.rb\n';
       break;
     case 'php':
       instructions += '# Install dependencies\ncomposer install\n\n';
-      instructions += stack.framework === 'laravel'
-        ? '# Start the server\nphp artisan serve\n'
-        : '# Start the server\nphp -S localhost:8000 -t public/\n';
+      instructions +=
+        stack.framework === 'laravel'
+          ? '# Start the server\nphp artisan serve\n'
+          : '# Start the server\nphp -S localhost:8000 -t public/\n';
       break;
     default:
       instructions += '# Build and run\nmake build\nmake run\n';
@@ -256,7 +303,10 @@ function getSetupInstructions(stack: TechStack, _hasDocker: boolean, _hasCompose
   return instructions;
 }
 
-function getTestInstructions(stack: TechStack, manifest: ReturnType<EnrichmentContext['introspect']['getManifest']>): string {
+function getTestInstructions(
+  stack: TechStack,
+  manifest: ReturnType<EnrichmentContext['introspect']['getManifest']>
+): string {
   let instructions = '```bash\n';
   const testCmd = manifest.scripts['test'];
 
@@ -304,7 +354,7 @@ function generateFileTree(paths: string[]): string {
 export const ReadmeEnrichStrategy: EnrichmentStrategy = {
   id: 'enrich-readme',
   name: 'README Enrichment',
-  priority: 90,  // Run late — after all other enrichments
+  priority: 90, // Run late — after all other enrichments
 
   matches: (_stack: TechStack, flags: EnrichmentFlags) => flags.docs,
 

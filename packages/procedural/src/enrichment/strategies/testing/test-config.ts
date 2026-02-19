@@ -4,7 +4,12 @@
  * Adds or enhances test framework configuration files.
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateVitestConfig(): string {
   return `import { defineConfig } from 'vitest/config';

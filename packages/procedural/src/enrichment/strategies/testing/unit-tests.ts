@@ -5,7 +5,12 @@
  * and detected source files.
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateTypescriptTests(projectName: string, framework: string): string {
   if (framework === 'express' || framework === 'fastify' || framework === 'nestjs') {

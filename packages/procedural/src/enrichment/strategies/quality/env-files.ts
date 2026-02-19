@@ -8,7 +8,12 @@
  * - Runtime-specific variables
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateEnvExample(ctx: EnrichmentContext): string {
   const { stack, introspect } = ctx;
@@ -88,13 +93,7 @@ function generateEnvExample(ctx: EnrichmentContext): string {
 }
 
 function generateGitignoreAdditions(_stack: TechStack): string {
-  const lines: string[] = [
-    '# Environment files',
-    '.env',
-    '.env.local',
-    '.env.*.local',
-    '',
-  ];
+  const lines: string[] = ['# Environment files', '.env', '.env.local', '.env.*.local', ''];
 
   return lines.join('\n');
 }

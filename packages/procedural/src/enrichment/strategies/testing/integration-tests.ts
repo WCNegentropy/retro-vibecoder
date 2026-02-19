@@ -4,7 +4,12 @@
  * Generates API integration tests for backend projects.
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateTypescriptIntegrationTests(port: number): string {
   return `import { describe, it, expect, beforeAll, afterAll } from 'vitest';

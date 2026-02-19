@@ -60,13 +60,13 @@ function EnrichmentPanel({ config, onChange }: EnrichmentPanelProps) {
       </div>
       <div className="win95-window-content">
         {/* Master toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={config.enabled}
-              onChange={handleToggle}
-            />
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}
+        >
+          <label
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+          >
+            <input type="checkbox" checked={config.enabled} onChange={handleToggle} />
             <strong>Enable Enrichment</strong>
           </label>
           <span style={{ fontSize: '0.8rem', color: 'var(--bevel-dark)' }}>
@@ -119,7 +119,14 @@ function EnrichmentPanel({ config, onChange }: EnrichmentPanelProps) {
 
             {/* Individual flag overrides */}
             {showAdvanced && (
-              <div style={{ marginTop: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem 1rem' }}>
+              <div
+                style={{
+                  marginTop: '0.5rem',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '0.25rem 1rem',
+                }}
+              >
                 {FLAG_OPTIONS.map(flag => {
                   const value = config[flag.key];
                   const isDefaultOn = isDepthDefault(config.depth, flag.minDepth);
@@ -128,7 +135,13 @@ function EnrichmentPanel({ config, onChange }: EnrichmentPanelProps) {
                   return (
                     <label
                       key={flag.key}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                      }}
                     >
                       <input
                         type="checkbox"

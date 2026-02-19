@@ -472,22 +472,40 @@ export interface EnrichmentFlags {
 /** Default enrichment flags by depth */
 export const DEFAULT_ENRICHMENT_FLAGS: Record<EnrichmentDepth, EnrichmentFlags> = {
   minimal: {
-    enabled: true, depth: 'minimal',
-    cicd: true, release: false, fillLogic: false,
-    tests: false, dockerProd: false, linting: true,
-    envFiles: true, docs: true,
+    enabled: true,
+    depth: 'minimal',
+    cicd: true,
+    release: false,
+    fillLogic: false,
+    tests: false,
+    dockerProd: false,
+    linting: true,
+    envFiles: true,
+    docs: true,
   },
   standard: {
-    enabled: true, depth: 'standard',
-    cicd: true, release: true, fillLogic: true,
-    tests: true, dockerProd: true, linting: true,
-    envFiles: true, docs: true,
+    enabled: true,
+    depth: 'standard',
+    cicd: true,
+    release: true,
+    fillLogic: true,
+    tests: true,
+    dockerProd: true,
+    linting: true,
+    envFiles: true,
+    docs: true,
   },
   full: {
-    enabled: true, depth: 'full',
-    cicd: true, release: true, fillLogic: true,
-    tests: true, dockerProd: true, linting: true,
-    envFiles: true, docs: true,
+    enabled: true,
+    depth: 'full',
+    cicd: true,
+    release: true,
+    fillLogic: true,
+    tests: true,
+    dockerProd: true,
+    linting: true,
+    envFiles: true,
+    docs: true,
   },
 };
 
@@ -541,7 +559,18 @@ export interface EnrichmentStrategy {
 
 /** Parsed project manifest (package.json, Cargo.toml, etc.) */
 export interface ParsedManifest {
-  type: 'npm' | 'cargo' | 'pyproject' | 'gomod' | 'maven' | 'gradle' | 'dotnet' | 'cmake' | 'gemspec' | 'composer' | 'unknown';
+  type:
+    | 'npm'
+    | 'cargo'
+    | 'pyproject'
+    | 'gomod'
+    | 'maven'
+    | 'gradle'
+    | 'dotnet'
+    | 'cmake'
+    | 'gemspec'
+    | 'composer'
+    | 'unknown';
   name: string;
   dependencies: string[];
   devDependencies: string[];

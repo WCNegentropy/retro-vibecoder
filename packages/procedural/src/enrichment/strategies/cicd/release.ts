@@ -8,7 +8,12 @@
  * - Docker image publishing
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateReleaseWorkflow(ctx: EnrichmentContext): string {
   const { stack, introspect } = ctx;

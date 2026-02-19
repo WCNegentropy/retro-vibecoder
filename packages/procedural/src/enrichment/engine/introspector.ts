@@ -27,7 +27,11 @@ export class ProjectIntrospector implements FileIntrospector {
       this.manifestCache = this.parseNpmManifest();
     } else if (this.hasFile('Cargo.toml')) {
       this.manifestCache = this.parseCargoManifest();
-    } else if (this.hasFile('pyproject.toml') || this.hasFile('setup.py') || this.hasFile('requirements.txt')) {
+    } else if (
+      this.hasFile('pyproject.toml') ||
+      this.hasFile('setup.py') ||
+      this.hasFile('requirements.txt')
+    ) {
       this.manifestCache = this.parsePythonManifest();
     } else if (this.hasFile('go.mod')) {
       this.manifestCache = this.parseGoManifest();
@@ -62,13 +66,14 @@ export class ProjectIntrospector implements FileIntrospector {
   }
 
   findFiles(pattern: string): string[] {
-    const regexStr = '^' +
+    const regexStr =
+      '^' +
       pattern
         .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
         .replace(/\*\*/g, '\u0000')
         .replace(/\*/g, '[^/]*')
-        .replace(/\u0000/g, '.*')
-      + '$';
+        .replace(/\u0000/g, '.*') +
+      '$';
     const regex = new RegExp(regexStr);
     return Object.keys(this.files).filter(p => regex.test(p));
   }
@@ -142,7 +147,14 @@ export class ProjectIntrospector implements FileIntrospector {
     }>('package.json');
 
     if (!pkg) {
-      return { type: 'npm', name: '', dependencies: [], devDependencies: [], scripts: {}, raw: null };
+      return {
+        type: 'npm',
+        name: '',
+        dependencies: [],
+        devDependencies: [],
+        scripts: {},
+        raw: null,
+      };
     }
 
     return {
@@ -298,7 +310,14 @@ export class ProjectIntrospector implements FileIntrospector {
     }>('composer.json');
 
     if (!pkg) {
-      return { type: 'composer', name: '', dependencies: [], devDependencies: [], scripts: {}, raw: null };
+      return {
+        type: 'composer',
+        name: '',
+        dependencies: [],
+        devDependencies: [],
+        scripts: {},
+        raw: null,
+      };
     }
 
     const scripts: Record<string, string> = {};

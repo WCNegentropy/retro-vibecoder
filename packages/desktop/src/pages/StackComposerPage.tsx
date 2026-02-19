@@ -3,7 +3,15 @@ import { useTauriGenerate } from '../hooks/useTauriGenerate';
 import { useSettings } from '../hooks/useSettings';
 import { useStatus } from '../hooks/useStatus';
 import EnrichmentPanel, { createDefaultEnrichmentConfig } from '../components/EnrichmentPanel';
-import type { TechStack, Archetype, Language, Database, CICD, Packaging, EnrichmentConfig } from '../types';
+import type {
+  TechStack,
+  Archetype,
+  Language,
+  Database,
+  CICD,
+  Packaging,
+  EnrichmentConfig,
+} from '../types';
 
 /**
  * Stack Composer Page

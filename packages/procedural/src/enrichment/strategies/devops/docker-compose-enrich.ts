@@ -9,7 +9,12 @@
  * - Database service if stack uses one
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateEnhancedCompose(ctx: EnrichmentContext): string {
   const { stack, projectName, introspect } = ctx;

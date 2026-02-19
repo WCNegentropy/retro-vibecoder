@@ -8,7 +8,12 @@
  * - Health check endpoint
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateTypescriptMiddleware(): string {
   return `import type { Request, Response, NextFunction } from 'express';

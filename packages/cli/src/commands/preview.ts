@@ -133,11 +133,8 @@ export async function previewAction(seedStr: string, options: PreviewOptions): P
 
     // Pass 2: Enrichment (if enabled)
     if (options.enrich) {
-      const {
-        ProjectEnricher,
-        AllEnrichmentStrategies,
-        DEFAULT_ENRICHMENT_FLAGS,
-      } = await import('@wcnegentropy/procedural/enrichment');
+      const { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS } =
+        await import('@wcnegentropy/procedural/enrichment');
 
       const depth = (options.enrichDepth ?? 'standard') as 'minimal' | 'standard' | 'full';
       const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];

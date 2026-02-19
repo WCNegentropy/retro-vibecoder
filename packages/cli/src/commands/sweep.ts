@@ -720,11 +720,8 @@ export async function seedAction(
         spinner.text = 'Enriching project (Pass 2)...';
       }
 
-      const {
-        ProjectEnricher,
-        AllEnrichmentStrategies,
-        DEFAULT_ENRICHMENT_FLAGS,
-      } = await import('@wcnegentropy/procedural/enrichment');
+      const { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS } =
+        await import('@wcnegentropy/procedural/enrichment');
 
       const depth = (options.enrichDepth ?? 'standard') as 'minimal' | 'standard' | 'full';
       const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];

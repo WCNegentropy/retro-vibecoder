@@ -64,10 +64,7 @@ export class ProjectEnricher {
     const originalPaths = new Set(Object.keys(files));
 
     // Create introspector against the Pass 1 files (read-only view)
-    const introspect = new ProjectIntrospector(
-      this.sourceProject.files,
-      this.sourceProject.stack
-    );
+    const introspect = new ProjectIntrospector(this.sourceProject.files, this.sourceProject.stack);
 
     // Build enrichment context
     const context: EnrichmentContext = {

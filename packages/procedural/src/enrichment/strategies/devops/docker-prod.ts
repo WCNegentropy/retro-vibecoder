@@ -9,7 +9,12 @@
  * - .dockerignore
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateNodeDockerfile(port: number): string {
   return `# ─── Build Stage ──────────────────────────────────────────
@@ -193,16 +198,21 @@ docker-compose*
   switch (stack.language) {
     case 'typescript':
     case 'javascript':
-      return common + `
+      return (
+        common +
+        `
 # Node.js
 node_modules
 dist
 coverage
 .env*
 *.log
-`;
+`
+      );
     case 'python':
-      return common + `
+      return (
+        common +
+        `
 # Python
 __pycache__
 *.pyc
@@ -213,20 +223,27 @@ venv
 .mypy_cache
 .ruff_cache
 .env*
-`;
+`
+      );
     case 'go':
-      return common + `
+      return (
+        common +
+        `
 # Go
 vendor/
 *.test
 coverage.out
-`;
+`
+      );
     case 'rust':
-      return common + `
+      return (
+        common +
+        `
 # Rust
 target/
 *.rs.bk
-`;
+`
+      );
     default:
       return common;
   }

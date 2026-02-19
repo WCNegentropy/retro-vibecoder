@@ -8,7 +8,12 @@
  * - Environment-specific deploy stages
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateEnhancedGitLabCI(ctx: EnrichmentContext): string {
   const { stack, introspect, flags } = ctx;
@@ -222,8 +227,7 @@ export const GitLabCIEnrichStrategy: EnrichmentStrategy = {
   name: 'GitLab CI Enrichment',
   priority: 10,
 
-  matches: (stack: TechStack, flags: EnrichmentFlags) =>
-    flags.cicd && stack.cicd === 'gitlab-ci',
+  matches: (stack: TechStack, flags: EnrichmentFlags) => flags.cicd && stack.cicd === 'gitlab-ci',
 
   apply: async (context: EnrichmentContext) => {
     context.files['.gitlab-ci.yml'] = generateEnhancedGitLabCI(context);

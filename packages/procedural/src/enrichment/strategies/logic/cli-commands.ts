@@ -8,7 +8,12 @@
  * - Error handling patterns
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateTypescriptCommands(projectName: string): string {
   return `import { readFileSync, writeFileSync, existsSync } from 'node:fs';

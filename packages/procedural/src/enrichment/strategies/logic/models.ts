@@ -5,7 +5,12 @@
  * based on the database and ORM in the stack.
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generatePrismaSchema(modelName: string): string {
   const modelLower = modelName.toLowerCase();

@@ -8,9 +8,18 @@
  * - Error handling patterns
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
-function generateTypescriptRoutes(modelName: string, modelLower: string, framework: string): string {
+function generateTypescriptRoutes(
+  modelName: string,
+  modelLower: string,
+  framework: string
+): string {
   if (framework === 'express' || framework === 'fastify') {
     return `import { Router } from 'express';
 import type { Request, Response } from 'express';
@@ -295,7 +304,9 @@ var (
 \t${modelLower}sMu sync.RWMutex
 )
 
-${framework === 'gin' ? `
+${
+  framework === 'gin'
+    ? `
 func List${modelName}s(c *gin.Context) {
 \t${modelLower}sMu.RLock()
 \tdefer ${modelLower}sMu.RUnlock()
@@ -340,7 +351,8 @@ func Delete${modelName}(c *gin.Context) {
 \t}
 \tdelete(${modelLower}s, c.Param("id"))
 \tc.Status(http.StatusNoContent)
-}` : `
+}`
+    : `
 func List${modelName}s(c echo.Context) error {
 \t${modelLower}sMu.RLock()
 \tdefer ${modelLower}sMu.RUnlock()
@@ -382,7 +394,8 @@ func Delete${modelName}(c echo.Context) error {
 \t}
 \tdelete(${modelLower}s, c.Param("id"))
 \treturn c.NoContent(http.StatusNoContent)
-}`}
+}`
+}
 `;
 }
 
@@ -488,16 +501,32 @@ export const ApiRoutesEnrichStrategy: EnrichmentStrategy = {
     switch (stack.language) {
       case 'typescript':
       case 'javascript':
-        files[`src/routes/${modelLower}s.ts`] = generateTypescriptRoutes(modelName, modelLower, stack.framework);
+        files[`src/routes/${modelLower}s.ts`] = generateTypescriptRoutes(
+          modelName,
+          modelLower,
+          stack.framework
+        );
         break;
       case 'python':
-        files[`src/routes/${modelLower}s.py`] = generatePythonRoutes(modelName, modelLower, stack.framework);
+        files[`src/routes/${modelLower}s.py`] = generatePythonRoutes(
+          modelName,
+          modelLower,
+          stack.framework
+        );
         break;
       case 'go':
-        files[`internal/handlers/${modelLower}s.go`] = generateGoRoutes(modelName, modelLower, stack.framework);
+        files[`internal/handlers/${modelLower}s.go`] = generateGoRoutes(
+          modelName,
+          modelLower,
+          stack.framework
+        );
         break;
       case 'rust':
-        files[`src/routes/${modelLower}s.rs`] = generateRustRoutes(modelName, modelLower, stack.framework);
+        files[`src/routes/${modelLower}s.rs`] = generateRustRoutes(
+          modelName,
+          modelLower,
+          stack.framework
+        );
         break;
     }
   },

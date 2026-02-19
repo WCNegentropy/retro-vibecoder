@@ -9,7 +9,12 @@
  * - EditorConfig for all projects
  */
 
-import type { EnrichmentStrategy, TechStack, EnrichmentFlags, EnrichmentContext } from '../../../types.js';
+import type {
+  EnrichmentStrategy,
+  TechStack,
+  EnrichmentFlags,
+  EnrichmentContext,
+} from '../../../types.js';
 
 function generateEditorConfig(): string {
   return `# EditorConfig — consistent coding styles across editors
@@ -195,11 +200,19 @@ export const LintingEnrichStrategy: EnrichmentStrategy = {
     switch (stack.language) {
       case 'typescript':
       case 'javascript':
-        if (!introspect.hasFile('.prettierrc') && !introspect.hasFile('.prettierrc.json') && !introspect.hasFile('prettier.config.js')) {
+        if (
+          !introspect.hasFile('.prettierrc') &&
+          !introspect.hasFile('.prettierrc.json') &&
+          !introspect.hasFile('prettier.config.js')
+        ) {
           files['.prettierrc'] = generatePrettierConfig();
           files['.prettierignore'] = generatePrettierIgnore();
         }
-        if (!introspect.hasFile('eslint.config.js') && !introspect.hasFile('eslint.config.mjs') && !introspect.hasFile('.eslintrc.json')) {
+        if (
+          !introspect.hasFile('eslint.config.js') &&
+          !introspect.hasFile('eslint.config.mjs') &&
+          !introspect.hasFile('.eslintrc.json')
+        ) {
           files['eslint.config.mjs'] = generateEslintConfig(stack);
         }
         break;
