@@ -791,7 +791,7 @@ export async function seedAction(
           stack: project.stack,
           files_generated: files,
           output_path: options.output ?? '',
-          ...('enrichment' in project ? { enrichment: (project as { enrichment: unknown }).enrichment } : {}),
+          ...('enrichment' in project ? { enrichment: (project as import('@wcnegentropy/procedural/enrichment').EnrichedProject).enrichment } : {}),
         })
       );
       return;
@@ -831,7 +831,7 @@ export async function seedAction(
 
     // Display enrichment metadata if enrichment was applied
     if (options.enrich && 'enrichment' in project) {
-      const enrichment = (project as { enrichment: { strategiesApplied: string[]; filesAdded: string[]; filesModified: string[]; enrichmentDurationMs: number; flags: { depth?: string } } }).enrichment;
+      const { enrichment } = project as import('@wcnegentropy/procedural/enrichment').EnrichedProject;
       console.log();
       console.log(pc.bold('Pass 2 Enrichment:'));
       console.log(`  Depth: ${enrichment.flags.depth ?? 'standard'}`);
@@ -849,6 +849,7 @@ export async function seedAction(
           }
         }
         if (enrichment.filesModified.length > 0) {
+          console.log();
           console.log(pc.dim('  Modified:'));
           for (const file of enrichment.filesModified) {
             console.log(pc.yellow(`    ~ ${file}`));
