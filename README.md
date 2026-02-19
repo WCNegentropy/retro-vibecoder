@@ -59,6 +59,12 @@ pnpm --filter @wcnegentropy/cli sweep --count 10 --verbose
 
 # Sweep with validation and registry persistence
 pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+
+# Generate with Pass 2 enrichment
+pnpm --filter @wcnegentropy/cli seed 82910 --enrich --output ./my-project
+
+# Full enrichment depth (all strategies)
+pnpm --filter @wcnegentropy/cli seed 82910 --enrich --enrich-depth full --output ./my-project
 ```
 
 ## Architecture
@@ -108,6 +114,62 @@ The Universal Matrix defines the possibility space of modern software:
 │                    └─────────────────────┘                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+### Pass 2: Enrichment Engine
+
+After Pass 1 generates the base project scaffold, an optional Pass 2 enrichment pipeline can enhance the output with production-ready features. The enrichment engine uses the same seeded RNG (forked via `rng.fork()`) to ensure deterministic results.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Pass 2: Enrichment Engine                    │
+│  ┌──────────────┐    ┌──────────────────┐    ┌──────────────┐  │
+│  │ Pass 1       │───▶│ ProjectIntrospector│───▶│ ProjectEnricher│ │
+│  │ Output       │    │ (File Analysis)  │    │ (Strategy    │  │
+│  └──────────────┘    └──────────────────┘    │  Pipeline)   │  │
+│                                               └──────┬───────┘  │
+│                                                      ▼          │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              Enrichment Strategies                       │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────┐  │   │
+│  │  │ CI/CD    │ │ Quality  │ │ Logic    │ │ Testing    │  │   │
+│  │  │ (GitHub, │ │ (Linting,│ │ (Routes, │ │ (Unit,     │  │   │
+│  │  │ GitLab,  │ │ EditorCfg│ │ Models,  │ │ Integration│  │   │
+│  │  │ Release) │ │ EnvFiles)│ │ Middleware│ │ TestConfig)│  │   │
+│  │  └──────────┘ └──────────┘ └──────────┘ └────────────┘  │   │
+│  │  ┌──────────┐ ┌──────────┐                               │   │
+│  │  │ DevOps   │ │ Docs     │                               │   │
+│  │  │ (Docker  │ │ (README  │                               │   │
+│  │  │ Prod,    │ │ Enrich)  │                               │   │
+│  │  │ Compose) │ │          │                               │   │
+│  │  └──────────┘ └──────────┘                               │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                  ▼                              │
+│                    ┌─────────────────────┐                      │
+│                    │ Enriched Project    │                      │
+│                    │ (Enhanced Files +   │                      │
+│                    │  Enrichment Meta)   │                      │
+│                    └─────────────────────┘                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Enrichment Depth Presets
+
+| Preset      | CI/CD | Release | Logic Fill | Tests | Docker Prod | Linting | Env Files | Docs |
+| ----------- | ----- | ------- | ---------- | ----- | ----------- | ------- | --------- | ---- |
+| `minimal`   | ✓     |         |            |       |             | ✓       | ✓         | ✓    |
+| `standard`  | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |
+| `full`      | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |
+
+#### Enrichment Strategies
+
+| Category    | Strategies                              | What It Does                                                |
+| ----------- | --------------------------------------- | ----------------------------------------------------------- |
+| **CI/CD**   | GitHub Actions, GitLab CI, Release      | Enhanced workflows with caching, matrix testing, security   |
+| **Quality** | Linting, Environment Files              | ESLint/Ruff/clippy configs, `.env.example` generation       |
+| **Logic**   | API Routes, CLI Commands, Models, Middleware, Web Components | Real CRUD implementations, command logic, ORM models |
+| **Testing** | Unit Tests, Integration Tests, Test Config | Framework-specific test generation                        |
+| **DevOps**  | Docker Production, Docker Compose       | Multi-stage builds, health checks, production optimizations |
+| **Docs**    | README Enrichment                       | Setup instructions, API docs, project structure overview    |
 
 ## Supported Stacks
 
@@ -187,6 +249,19 @@ upg seed 12345 --output ./my-project --verbose
 - `--json` - Output machine-readable JSON
 - `--force` - Overwrite existing output directory
 
+**Enrichment Options:**
+
+- `--enrich` — Enable Pass 2 enrichment
+- `--enrich-depth <depth>` — Enrichment depth (minimal | standard | full, default: standard)
+- `--no-enrich-cicd` — Skip CI/CD enrichment
+- `--no-enrich-release` — Skip release automation
+- `--no-enrich-logic` — Skip logic fill enrichment
+- `--no-enrich-tests` — Skip test generation
+- `--no-enrich-docker-prod` — Skip Docker production optimizations
+- `--no-enrich-linting` — Skip linting config enrichment
+- `--no-enrich-env` — Skip environment file generation
+- `--no-enrich-docs` — Skip documentation enrichment
+
 ### `upg sweep`
 
 Generate multiple projects procedurally:
@@ -208,6 +283,11 @@ upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.
 - `--start-seed <number>` - Starting seed number
 - `--dry-run` - Preview stacks without generating files
 - `--only-valid` - Keep retrying until N valid projects are found
+
+**Enrichment Options:**
+
+- `--enrich` — Enable Pass 2 enrichment
+- `--enrich-depth <depth>` — Enrichment depth (minimal | standard | full)
 
 ### `upg validate <manifest>`
 
@@ -287,6 +367,9 @@ retro-vibecoder-upg/
 │   │   │   ├── library/  # Library/package strategies
 │   │   │   ├── cli/      # CLI tool strategies
 │   │   │   └── common/   # Git, Docker, CI strategies
+│   │   ├── enrichment/   # Pass 2 enrichment engine
+│   │   │   ├── engine/  # ProjectEnricher + ProjectIntrospector
+│   │   │   └── strategies/ # Enrichment strategies (CI/CD, quality, logic, testing, devops, docs)
 │   │   ├── matrices/     # Universal Matrix definitions
 │   │   └── sweeper/      # Validation pipeline
 │   └── shared/           # Shared types and utilities
