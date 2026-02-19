@@ -72,7 +72,8 @@ export class ProjectIntrospector implements FileIntrospector {
         .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
         .replace(/\*\*/g, '\u0000')
         .replace(/\*/g, '[^/]*')
-        .split('\u0000').join('.*') +
+        .split('\u0000')
+        .join('.*') +
       '$';
     const regex = new RegExp(regexStr);
     return Object.keys(this.files).filter(p => regex.test(p));
