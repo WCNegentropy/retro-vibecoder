@@ -43,6 +43,8 @@ interface SweepOptions {
   startSeed?: string;
   dryRun?: boolean;
   onlyValid?: boolean;
+  enrich?: boolean;
+  enrichDepth?: string;
 }
 
 /**
@@ -239,7 +241,22 @@ export async function sweepAction(options: SweepOptions): Promise<void> {
         const assembler = new ProjectAssembler(seed, assemblerOptions);
         assembler.registerStrategies(AllStrategies);
 
-        const project = await assembler.generate();
+        let project = await assembler.generate();
+
+        // Pass 2: Enrichment (if enabled)
+        if (options.enrich && !options.dryRun) {
+          const { ProjectEnricher, AllEnrichmentStrategies, DEFAULT_ENRICHMENT_FLAGS } =
+            await import('@wcnegentropy/procedural/enrichment');
+
+          const depth = (options.enrichDepth ?? 'standard') as 'minimal' | 'standard' | 'full';
+          const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
+          const enrichmentFlags = { ...depthFlags, enabled: true, depth };
+
+          const enricher = new ProjectEnricher(project, assembler.getRng(), { flags: enrichmentFlags });
+          enricher.registerStrategies(AllEnrichmentStrategies);
+
+          project = await enricher.enrich();
+        }
 
         const result = {
           seed,
@@ -774,6 +791,7 @@ export async function seedAction(
           stack: project.stack,
           files_generated: files,
           output_path: options.output ?? '',
+          ...('enrichment' in project ? { enrichment: (project as { enrichment: unknown }).enrichment } : {}),
         })
       );
       return;
@@ -809,6 +827,34 @@ export async function seedAction(
 
     for (const file of files) {
       console.log(pc.dim(`  ${file}`));
+    }
+
+    // Display enrichment metadata if enrichment was applied
+    if (options.enrich && 'enrichment' in project) {
+      const enrichment = (project as { enrichment: { strategiesApplied: string[]; filesAdded: string[]; filesModified: string[]; enrichmentDurationMs: number; flags: { depth?: string } } }).enrichment;
+      console.log();
+      console.log(pc.bold('Pass 2 Enrichment:'));
+      console.log(`  Depth: ${enrichment.flags.depth ?? 'standard'}`);
+      console.log(`  Strategies applied: ${enrichment.strategiesApplied.length > 0 ? enrichment.strategiesApplied.join(', ') : 'none'}`);
+      console.log(`  Files added: ${enrichment.filesAdded.length}`);
+      console.log(`  Files modified: ${enrichment.filesModified.length}`);
+      console.log(`  Duration: ${enrichment.enrichmentDurationMs}ms`);
+
+      if (options.verbose) {
+        if (enrichment.filesAdded.length > 0) {
+          console.log();
+          console.log(pc.dim('  Added:'));
+          for (const file of enrichment.filesAdded) {
+            console.log(pc.green(`    + ${file}`));
+          }
+        }
+        if (enrichment.filesModified.length > 0) {
+          console.log(pc.dim('  Modified:'));
+          for (const file of enrichment.filesModified) {
+            console.log(pc.yellow(`    ~ ${file}`));
+          }
+        }
+      }
     }
 
     // Write output if specified
