@@ -8,5 +8,5 @@ export default defineConfig({
   sourcemap: true,
   splitting: false,
   treeshake: true,
-  external: ['@wcnegentropy/core', '@wcnegentropy/shared'],
+  external: ['@wcnegentropy/core', '@wcnegentropy/procedural', '@wcnegentropy/shared'],
 });

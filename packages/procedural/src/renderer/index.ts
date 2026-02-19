@@ -29,28 +29,59 @@ export interface TemplateContext {
 }
 
 /**
- * Resolve the templates/procedural directory from the package location.
- * Walks up from the procedural package to find the monorepo root.
+ * Find the nearest ancestor directory containing a package.json.
+ */
+function findPackageRoot(startDir: string): string | null {
+  let dir = startDir;
+  let parent = dirname(dir);
+  while (dir !== parent) {
+    if (existsSync(join(dir, 'package.json'))) {
+      return dir;
+    }
+    dir = parent;
+    parent = dirname(dir);
+  }
+  return null;
+}
+
+/**
+ * Resolve the templates directory from the package location.
+ *
+ * When installed via npm, the prepack script copies templates into the
+ * package root at <package>/templates/. When running in the monorepo,
+ * templates live at <monorepo-root>/templates/procedural/.
+ *
+ * Instead of counting "../" levels (which breaks when the code is bundled
+ * into a different package), we walk up to the nearest package.json to
+ * find the package root, then search ancestors for the monorepo layout.
  */
 function resolveTemplatesDir(): string {
-  // Try to resolve from known locations
   const candidates: string[] = [];
 
-  // From CJS __dirname equivalent
   try {
     const currentFile = fileURLToPath(import.meta.url);
     const currentDir = dirname(currentFile);
-    // From npm-installed package: dist/renderer -> ../../templates
-    candidates.push(resolve(currentDir, '..', '..', 'templates'));
-    // From packages/procedural/src/renderer -> ../../../../templates/procedural
-    candidates.push(resolve(currentDir, '..', '..', '..', '..', 'templates', 'procedural'));
-    // From packages/procedural/dist/renderer -> ../../../../templates/procedural
-    candidates.push(resolve(currentDir, '..', '..', '..', '..', 'templates', 'procedural'));
+
+    // Find this package's root (nearest directory with package.json)
+    const packageRoot = findPackageRoot(currentDir);
+
+    if (packageRoot) {
+      // npm-installed package: prepack copies templates/ to the package root
+      candidates.push(join(packageRoot, 'templates'));
+
+      // Monorepo development: walk up from the package root to find
+      // a parent directory containing templates/procedural/
+      let dir = dirname(packageRoot);
+      while (dir !== dirname(dir)) {
+        candidates.push(join(dir, 'templates', 'procedural'));
+        dir = dirname(dir);
+      }
+    }
   } catch {
     // ESM resolution failed, try CWD-based paths
   }
 
-  // From CWD (monorepo root)
+  // Fallback: from CWD (e.g. when run from monorepo root)
   candidates.push(resolve(process.cwd(), 'templates', 'procedural'));
 
   for (const candidate of candidates) {
@@ -60,10 +91,9 @@ function resolveTemplatesDir(): string {
   }
 
   throw new Error(
-    'Could not find templates/procedural directory. Checked: ' +
-      candidates.join(', ') +
-      '. ' +
-      'Ensure you are running from the monorepo root or the templates are installed.'
+    'Could not find templates directory. Checked:\n' +
+      candidates.map(c => '  - ' + c).join('\n') +
+      '\nEnsure you are running from the monorepo root or the templates are installed.'
   );
 }
 
