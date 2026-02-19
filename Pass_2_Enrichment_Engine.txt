@@ -1,0 +1,1001 @@
+# Pass 2 Enrichment Engine — Comprehensive Implementation Plan
+
+## Architecture Overview: What We're Building On
+
+After thoroughly auditing the codebase, here's the exact surface area we're working with:
+
+| Layer | Key Files | What It Does Today |
+|-------|-----------|-------------------|
+| **Engine Core** | `packages/procedural/src/engine/assembler.ts` | `ProjectAssembler` → `resolveStack()` → `strategies[].apply()` → `GeneratedProject` |
+| **RNG** | `packages/procedural/src/engine/rng.ts` | `SeededRNG` (Mulberry32) with `fork()` for derived sub-sequences |
+| **Constraints** | `packages/procedural/src/engine/constraints.ts` | `validateStack()`, `validateConstraints()`, `applyDefaults()`, incompatibility/requirement rules |
+| **Types** | `packages/procedural/src/types.ts` | `TechStack`, `GeneratedProject`, `GenerationContext`, `GenerationStrategy`, `ProjectFiles` |
+| **Strategies** | `packages/procedural/src/strategies/` | 50+ strategies across 8 categories (common, api, web, cli, library, desktop, mobile, game) |
+| **Renderer** | `packages/procedural/src/renderer/index.ts` | Lightweight Jinja-compatible `renderTemplate()` with `TemplateContext` |
+| **CLI** | `packages/cli/src/bin/upg.ts` + `commands/` | `seed`, `sweep`, `preview`, `generate` commands (Commander.js) |
+| **Tauri Backend** | `packages/desktop/src-tauri/src/lib.rs` | `GenerationRequest` → `build_cli_args()` → `execute_cli_internal()` → `GenerationResult` |
+| **Desktop UI** | `packages/desktop/src/pages/` | `SeedGeneratorPage`, `StackComposerPage`, `TemplateSelectorPage` (5-step wizard) |
+| **Hooks** | `packages/desktop/src/hooks/useTauriGenerate.ts` | `generate()`, `preview()` wrapping Tauri `invoke()` calls |
+
+### The Critical Insight: `rng.fork()`
+
+You nailed it — the `SeededRNG` already has `fork()`:
+
+```typescript name=rng.ts url=https://github.com/WCNegentropy/retro-vibecoder/blob/2868a2806de4b24d5f420509b851d367b8a0bbcb/packages/procedural/src/engine/rng.ts#L218-L222
+  fork(): SeededRNG {
+    return new SeededRNG(this.next());
+  }
+```
+
+This is exactly what we need. After Pass 1 consumes N values from the Mulberry32 sequence, `fork()` derives a **new seed from the current state** — meaning the Pass 2 RNG is deterministically derived from the *same root seed* but with a completely independent sequence. Same seed → same Pass 1 → same fork point → same Pass 2. Always.
+
+---
+
+## Phase 1: Enricher Engine + Introspector + CI/CD Enrichment
+
+### 1.1 New Types (`packages/procedural/src/types.ts`)
+
+Add these alongside the existing types:
+
+```typescript name=enrichment-types.ts
+// ============================================================================
+// Enrichment Types (Pass 2)
+// ============================================================================
+
+/** Enrichment depth controls how much content is added */
+export type EnrichmentDepth = 'minimal' | 'standard' | 'full';
+
+/** Enrichment flags — each controls a category of enrichment */
+export interface EnrichmentFlags {
+  /** Enable enrichment (master switch) */
+  enabled: boolean;
+
+  /** Enrichment depth preset */
+  depth: EnrichmentDepth;
+
+  /** CI/CD workflow enrichment */
+  cicd: boolean;
+
+  /** Release automation workflows */
+  release: boolean;
+
+  /** Fill application logic beyond boilerplate */
+  fillLogic: boolean;
+
+  /** Generate real test cases */
+  tests: boolean;
+
+  /** Docker production optimizations (multi-stage, health checks) */
+  dockerProd: boolean;
+
+  /** Linting and formatting configurations */
+  linting: boolean;
+
+  /** Environment file generation (.env.example, etc.) */
+  envFiles: boolean;
+
+  /** README enrichment with real setup instructions */
+  docs: boolean;
+}
+
+/** Default enrichment flags by depth */
+export const DEFAULT_ENRICHMENT_FLAGS: Record<EnrichmentDepth, EnrichmentFlags> = {
+  minimal: {
+    enabled: true, depth: 'minimal',
+    cicd: true, release: false, fillLogic: false,
+    tests: false, dockerProd: false, linting: true,
+    envFiles: true, docs: true,
+  },
+  standard: {
+    enabled: true, depth: 'standard',
+    cicd: true, release: true, fillLogic: true,
+    tests: true, dockerProd: true, linting: true,
+    envFiles: true, docs: true,
+  },
+  full: {
+    enabled: true, depth: 'full',
+    cicd: true, release: true, fillLogic: true,
+    tests: true, dockerProd: true, linting: true,
+    envFiles: true, docs: true,
+  },
+};
+
+/** Context provided to enrichment strategies */
+export interface EnrichmentContext {
+  /** The original Pass 1 project — immutable reference */
+  readonly sourceProject: Readonly<GeneratedProject>;
+
+  /** Mutable files being enriched (starts as deep copy of Pass 1 files) */
+  files: ProjectFiles;
+
+  /** The resolved tech stack from Pass 1 */
+  readonly stack: Readonly<TechStack>;
+
+  /** Project name */
+  readonly projectName: string;
+
+  /** Pass 2 enrichment flags */
+  readonly flags: Readonly<EnrichmentFlags>;
+
+  /** File introspection utilities */
+  readonly introspect: FileIntrospector;
+
+  /** Deterministic RNG (forked from Pass 1) */
+  rng: {
+    pick<T>(items: readonly T[]): T;
+    pickWeighted<T>(items: readonly { value: T; weight: number }[]): T;
+    float(): number;
+    int(min: number, max: number): number;
+    bool(probability?: number): boolean;
+  };
+}
+
+/** Strategy interface for enrichment (Pass 2) */
+export interface EnrichmentStrategy {
+  /** Unique identifier */
+  id: string;
+
+  /** Human-readable name */
+  name: string;
+
+  /** Check if this enrichment applies given the stack AND flags */
+  matches(stack: TechStack, flags: EnrichmentFlags): boolean;
+
+  /** Apply enrichment to the files */
+  apply(context: EnrichmentContext): Promise<void>;
+
+  /** Priority (higher = applied later) */
+  priority?: number;
+}
+
+/** Parsed project manifest (package.json, Cargo.toml, etc.) */
+export interface ParsedManifest {
+  type: 'npm' | 'cargo' | 'pyproject' | 'gomod' | 'maven' | 'gradle' | 'dotnet' | 'cmake' | 'gemspec' | 'composer' | 'unknown';
+  name: string;
+  dependencies: string[];
+  devDependencies: string[];
+  scripts: Record<string, string>;
+  raw: unknown;
+}
+
+/** File introspection interface */
+export interface FileIntrospector {
+  /** Get parsed project manifest */
+  getManifest(): ParsedManifest;
+
+  /** Check if a file exists */
+  hasFile(path: string): boolean;
+
+  /** Get file content */
+  getContent(path: string): string | undefined;
+
+  /** Find files matching a glob-like pattern */
+  findFiles(pattern: string): string[];
+
+  /** Parse a JSON file */
+  parseJson<T = unknown>(path: string): T | undefined;
+
+  /** Get the entry point file path */
+  getEntryPoint(): string | undefined;
+
+  /** Get test command from manifest */
+  getTestCommand(): string | undefined;
+
+  /** Get build command from manifest */
+  getBuildCommand(): string | undefined;
+
+  /** Detect exposed ports from Dockerfile/source */
+  getExposedPorts(): number[];
+
+  /** Get all file paths */
+  getAllPaths(): string[];
+}
+
+/** Enriched project output (extends GeneratedProject) */
+export interface EnrichedProject extends GeneratedProject {
+  /** Enrichment metadata */
+  enrichment: EnrichmentMetadata;
+}
+
+/** Metadata about the enrichment process */
+export interface EnrichmentMetadata {
+  /** Whether enrichment was applied */
+  enriched: boolean;
+
+  /** Which enrichment strategies were applied */
+  strategiesApplied: string[];
+
+  /** The flags that were used */
+  flags: EnrichmentFlags;
+
+  /** Time taken for enrichment (ms) */
+  enrichmentDurationMs: number;
+
+  /** Files added in Pass 2 */
+  filesAdded: string[];
+
+  /** Files modified in Pass 2 */
+  filesModified: string[];
+}
+```
+
+### 1.2 File Introspector (`packages/procedural/src/enrichment/engine/introspector.ts`)
+
+```typescript name=introspector.ts
+import type { FileIntrospector, ParsedManifest, ProjectFiles, TechStack } from '../../types.js';
+
+export class ProjectIntrospector implements FileIntrospector {
+  constructor(
+    private readonly files: Readonly<ProjectFiles>,
+    private readonly stack: TechStack
+  ) {}
+
+  getManifest(): ParsedManifest {
+    // Try each manifest type based on stack language
+    if (this.hasFile('package.json')) {
+      return this.parseNpmManifest();
+    }
+    if (this.hasFile('Cargo.toml')) {
+      return this.parseCargoManifest();
+    }
+    if (this.hasFile('pyproject.toml') || this.hasFile('setup.py')) {
+      return this.parsePythonManifest();
+    }
+    if (this.hasFile('go.mod')) {
+      return this.parseGoManifest();
+    }
+    // ... maven, gradle, dotnet, cmake, gemspec, composer
+    return { type: 'unknown', name: '', dependencies: [], devDependencies: [], scripts: {}, raw: null };
+  }
+
+  hasFile(path: string): boolean {
+    return path in this.files;
+  }
+
+  getContent(path: string): string | undefined {
+    return this.files[path];
+  }
+
+  findFiles(pattern: string): string[] {
+    // Simple glob: supports * and **
+    const regex = new RegExp(
+      '^' + pattern.replace(/\*\*/g, '(.+)').replace(/\*/g, '([^/]+)') + '$'
+    );
+    return Object.keys(this.files).filter(p => regex.test(p));
+  }
+
+  parseJson<T = unknown>(path: string): T | undefined {
+    const content = this.getContent(path);
+    if (!content) return undefined;
+    try { return JSON.parse(content) as T; } catch { return undefined; }
+  }
+
+  getEntryPoint(): string | undefined {
+    // Language-specific entry point detection
+    const candidates: Record<string, string[]> = {
+      typescript: ['src/index.ts', 'src/main.ts', 'src/app.ts'],
+      javascript: ['src/index.js', 'src/index.mjs', 'src/main.js'],
+      python: ['src/main.py', 'main.py', 'app.py', 'src/app.py'],
+      rust: ['src/main.rs', 'src/lib.rs'],
+      go: ['main.go', 'cmd/main.go'],
+      // ... etc
+    };
+    for (const candidate of candidates[this.stack.language] ?? []) {
+      if (this.hasFile(candidate)) return candidate;
+    }
+    return undefined;
+  }
+
+  getTestCommand(): string | undefined {
+    const manifest = this.getManifest();
+    return manifest.scripts['test'] ?? undefined;
+  }
+
+  getBuildCommand(): string | undefined {
+    const manifest = this.getManifest();
+    return manifest.scripts['build'] ?? undefined;
+  }
+
+  getExposedPorts(): number[] {
+    const dockerfile = this.getContent('Dockerfile');
+    if (!dockerfile) return [];
+    const ports: number[] = [];
+    const exposeRegex = /EXPOSE\s+(\d+)/g;
+    let match;
+    while ((match = exposeRegex.exec(dockerfile))) {
+      ports.push(parseInt(match[1], 10));
+    }
+    return ports;
+  }
+
+  getAllPaths(): string[] {
+    return Object.keys(this.files);
+  }
+
+  // Private parsers
+  private parseNpmManifest(): ParsedManifest { /* ... */ }
+  private parseCargoManifest(): ParsedManifest { /* ... */ }
+  private parsePythonManifest(): ParsedManifest { /* ... */ }
+  private parseGoManifest(): ParsedManifest { /* ... */ }
+}
+```
+
+### 1.3 Enricher Engine (`packages/procedural/src/enrichment/engine/enricher.ts`)
+
+```typescript name=enricher.ts
+import type {
+  GeneratedProject, EnrichedProject, EnrichmentFlags, EnrichmentStrategy,
+  EnrichmentContext, EnrichmentMetadata, ProjectFiles,
+} from '../../types.js';
+import { SeededRNG } from '../../engine/rng.js';
+import { ProjectIntrospector } from './introspector.js';
+
+export interface EnricherOptions {
+  flags: EnrichmentFlags;
+}
+
+export class ProjectEnricher {
+  private strategies: EnrichmentStrategy[] = [];
+  private readonly rng: SeededRNG;
+  private readonly flags: EnrichmentFlags;
+  private readonly sourceProject: GeneratedProject;
+
+  constructor(sourceProject: GeneratedProject, rng: SeededRNG, options: EnricherOptions) {
+    this.sourceProject = sourceProject;
+    // Fork the RNG — Pass 2 gets a deterministic but independent sequence
+    this.rng = rng.fork();
+    this.flags = options.flags;
+  }
+
+  registerStrategy(strategy: EnrichmentStrategy): this {
+    this.strategies.push(strategy);
+    this.strategies.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+    return this;
+  }
+
+  registerStrategies(strategies: EnrichmentStrategy[]): this {
+    for (const strategy of strategies) {
+      this.registerStrategy(strategy);
+    }
+    return this;
+  }
+
+  async enrich(): Promise<EnrichedProject> {
+    const startTime = Date.now();
+
+    // Deep copy Pass 1 files — Pass 2 never mutates the original
+    const files: ProjectFiles = { ...this.sourceProject.files };
+    const originalPaths = new Set(Object.keys(files));
+
+    // Create introspector against the Pass 1 files (read-only view)
+    const introspect = new ProjectIntrospector(
+      this.sourceProject.files, // Read from originals
+      this.sourceProject.stack
+    );
+
+    // Build enrichment context
+    const context: EnrichmentContext = {
+      sourceProject: this.sourceProject,
+      files,
+      stack: this.sourceProject.stack,
+      projectName: this.sourceProject.name,
+      flags: this.flags,
+      introspect,
+      rng: {
+        pick: <T>(items: readonly T[]) => this.rng.pick(items),
+        pickWeighted: <T>(items: readonly { value: T; weight: number }[]) =>
+          this.rng.pickWeighted(items),
+        float: () => this.rng.float(),
+        int: (min: number, max: number) => this.rng.int(min, max),
+        bool: (probability?: number) => this.rng.bool(probability),
+      },
+    };
+
+    // Apply matching enrichment strategies in priority order
+    const appliedStrategies: string[] = [];
+    for (const strategy of this.strategies) {
+      if (strategy.matches(this.sourceProject.stack, this.flags)) {
+        await strategy.apply(context);
+        appliedStrategies.push(strategy.id);
+      }
+    }
+
+    // Calculate diff metadata
+    const currentPaths = new Set(Object.keys(files));
+    const filesAdded = [...currentPaths].filter(p => !originalPaths.has(p));
+    const filesModified = [...originalPaths].filter(
+      p => currentPaths.has(p) && files[p] !== this.sourceProject.files[p]
+    );
+
+    const enrichmentMeta: EnrichmentMetadata = {
+      enriched: true,
+      strategiesApplied: appliedStrategies,
+      flags: this.flags,
+      enrichmentDurationMs: Date.now() - startTime,
+      filesAdded,
+      filesModified,
+    };
+
+    return {
+      ...this.sourceProject,
+      files,
+      metadata: {
+        ...this.sourceProject.metadata,
+        durationMs: this.sourceProject.metadata.durationMs + enrichmentMeta.enrichmentDurationMs,
+        constraintsApplied: [
+          ...this.sourceProject.metadata.constraintsApplied,
+          ...appliedStrategies.map(s => `enrich:${s}`),
+        ],
+      },
+      enrichment: enrichmentMeta,
+    };
+  }
+}
+```
+
+### 1.4 Phase 1 Enrichment Strategies
+
+**Directory structure:**
+```
+packages/procedural/src/enrichment/
+├── index.ts                        # AllEnrichmentStrategies export
+├── engine/
+│   ├── enricher.ts                 # ProjectEnricher class
+│   └── introspector.ts             # ProjectIntrospector class
+└── strategies/
+    ├── cicd/
+    │   ├── github-actions-enrich.ts  # Enhanced CI workflows
+    │   ├── gitlab-ci-enrich.ts       # Enhanced GitLab CI
+    │   └── release.ts                # Release automation
+    ├── quality/
+    │   ├── linting.ts                # ESLint/Ruff/clippy enrichment
+    │   └── env-files.ts              # .env.example generation
+    └── docs/
+        └── readme-enrich.ts          # README enrichment
+```
+
+**Example: GitHub Actions Enrichment Strategy:**
+
+```typescript name=github-actions-enrich.ts
+import type { EnrichmentStrategy, TechStack, EnrichmentFlags } from '../../../types.js';
+
+export const GitHubActionsEnrichStrategy: EnrichmentStrategy = {
+  id: 'enrich-github-actions',
+  name: 'GitHub Actions CI/CD Enrichment',
+  priority: 10,
+
+  matches: (stack: TechStack, flags: EnrichmentFlags) =>
+    flags.cicd && stack.cicd === 'github-actions',
+
+  apply: async (context) => {
+    const { files, stack, introspect, flags } = context;
+    const existingCI = introspect.getContent('.github/workflows/ci.yml');
+
+    // Enhance existing CI or create comprehensive one
+    const manifest = introspect.getManifest();
+    const testCmd = introspect.getTestCommand();
+    const buildCmd = introspect.getBuildCommand();
+    const ports = introspect.getExposedPorts();
+    const hasDocker = introspect.hasFile('Dockerfile');
+    const hasCompose = introspect.hasFile('docker-compose.yml');
+
+    // Generate enhanced CI with matrix testing, caching, etc.
+    files['.github/workflows/ci.yml'] = generateEnhancedCI(stack, manifest, {
+      testCmd, buildCmd, hasDocker, hasCompose, ports,
+      depth: flags.depth,
+    });
+
+    // Add release workflow if flag is set
+    if (flags.release) {
+      files['.github/workflows/release.yml'] = generateReleaseWorkflow(stack, manifest);
+    }
+  },
+};
+```
+
+### 1.5 CLI Integration — Phase 1
+
+New flags on `seed`, `sweep`, and `preview` commands in `packages/cli/src/bin/upg.ts`:
+
+```typescript name=cli-enrichment-flags.ts
+// Added to seed command:
+.option('--enrich', 'Enable Pass 2 enrichment on generated project', false)
+.option('--enrich-depth <depth>', 'Enrichment depth (minimal|standard|full)', 'standard')
+.option('--enrich-cicd', 'Enrich CI/CD workflows', undefined)
+.option('--enrich-release', 'Add release automation workflows', undefined)
+.option('--enrich-logic', 'Fill application logic beyond boilerplate', undefined)
+.option('--enrich-tests', 'Generate real test cases', undefined)
+.option('--enrich-docker-prod', 'Docker production optimizations', undefined)
+.option('--enrich-linting', 'Add linting/formatting configs', undefined)
+.option('--enrich-env', 'Generate environment files', undefined)
+.option('--enrich-docs', 'Enrich documentation', undefined)
+.option('--no-enrich-cicd', 'Skip CI/CD enrichment')
+// ... same pattern for sweep and preview
+```
+
+In `seedAction` / `sweepAction` / `previewAction`, after Pass 1:
+
+```typescript name=seed-action-pass2.ts
+// After Pass 1 completes:
+const assembler = new ProjectAssembler(seed, assemblerOptions);
+assembler.registerStrategies(AllStrategies);
+const project = await assembler.generate();
+
+// Pass 2: Enrichment
+let finalProject: GeneratedProject | EnrichedProject = project;
+
+if (options.enrich) {
+  const enrichmentFlags = buildEnrichmentFlags(options);
+  
+  // Create enricher with forked RNG from assembler
+  const enricherRng = new SeededRNG(seed);
+  // Advance RNG to same state as assembler by replaying
+  // (or better: expose assembler's rng for forking)
+  const enricher = new ProjectEnricher(project, enricherRng, { flags: enrichmentFlags });
+  enricher.registerStrategies(AllEnrichmentStrategies);
+  
+  finalProject = await enricher.enrich();
+}
+```
+
+**RNG determinism strategy:** The enricher creates a `SeededRNG(seed)` and then calls `fork()` — but we need to ensure the fork point is consistent. The cleanest approach: the `ProjectAssembler` exposes its RNG after `generate()` completes, and the enricher forks from *that* state. This guarantees the same seed + same Pass 1 constraints = same fork point = same Pass 2 output. We'd add a small accessor:
+
+```typescript name=assembler-rng-accessor.ts
+// Add to ProjectAssembler:
+/** Get the RNG instance (for Pass 2 forking). Call after generate(). */
+getRng(): SeededRNG {
+  return this.rng;
+}
+```
+
+### 1.6 Tauri Integration — Phase 1
+
+Extend the Rust structs in `packages/desktop/src-tauri/src/lib.rs`:
+
+```rust name=lib-enrichment-structs.rs
+/// Enrichment configuration from frontend
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnrichmentConfig {
+    pub enabled: bool,
+    pub depth: Option<String>,   // "minimal" | "standard" | "full"
+    pub cicd: Option<bool>,
+    pub release: Option<bool>,
+    pub fill_logic: Option<bool>,
+    pub tests: Option<bool>,
+    pub docker_prod: Option<bool>,
+    pub linting: Option<bool>,
+    pub env_files: Option<bool>,
+    pub docs: Option<bool>,
+}
+
+// Extend GenerationRequest:
+pub struct GenerationRequest {
+    pub mode: GenerationMode,
+    pub seed: Option<u64>,
+    pub stack: Option<TechStackConfig>,
+    pub output_path: String,
+    pub enrichment: Option<EnrichmentConfig>,  // NEW
+}
+```
+
+Extend `build_cli_args` to append enrichment flags:
+
+```rust name=build-cli-args-enrichment.rs
+fn build_cli_args(
+    seed: u64,
+    output_path: &str,
+    stack: &Option<TechStackConfig>,
+    enrichment: &Option<EnrichmentConfig>,  // NEW param
+) -> Vec<String> {
+    let mut args = vec![/* existing args */];
+    
+    // Add enrichment flags
+    if let Some(ref config) = enrichment {
+        if config.enabled {
+            args.push("--enrich".to_string());
+        }
+        if let Some(ref depth) = config.depth {
+            args.push("--enrich-depth".to_string());
+            args.push(depth.clone());
+        }
+        if let Some(true) = config.release {
+            args.push("--enrich-release".to_string());
+        }
+        if let Some(true) = config.tests {
+            args.push("--enrich-tests".to_string());
+        }
+        // ... same pattern for all flags
+    }
+    
+    args
+}
+```
+
+### 1.7 Desktop Types — Phase 1
+
+Extend `packages/desktop/src/types/index.ts`:
+
+```typescript name=desktop-enrichment-types.ts
+/** Enrichment configuration for UI */
+export interface EnrichmentConfig {
+  enabled: boolean;
+  depth: 'minimal' | 'standard' | 'full';
+  cicd: boolean;
+  release: boolean;
+  fillLogic: boolean;
+  tests: boolean;
+  dockerProd: boolean;
+  linting: boolean;
+  envFiles: boolean;
+  docs: boolean;
+}
+
+// Extend GenerationRequest:
+export interface GenerationRequest {
+  mode: GenerationMode;
+  seed?: number;
+  stack?: Partial<TechStack>;
+  output_path: string;
+  enrichment?: EnrichmentConfig;  // NEW
+}
+```
+
+---
+
+## Phase 2: Logic Fill + Testing Enrichment Strategies
+
+### 2.1 New Strategy Directories
+
+```
+packages/procedural/src/enrichment/strategies/
+├── logic/                          
+│   ├── api-routes.ts          # CRUD route implementations
+│   ├── cli-commands.ts        # Real CLI command logic
+│   ├── models.ts              # ORM model fields & relations
+│   ├── middleware.ts           # Auth, logging, error handling
+│   └── web-components.ts      # React/Vue/Svelte component logic
+├── testing/
+│   ├── unit-tests.ts          # Unit test generation
+│   ├── integration-tests.ts   # API integration tests
+│   └── test-config.ts         # Test framework configuration enrichment
+└── devops/
+    ├── docker-prod.ts         # Multi-stage Dockerfile, healthchecks
+    ├── docker-compose-enrich.ts # Networks, healthchecks, restart policies
+    └── env-files.ts           # .env.example, .env.development, .env.test
+```
+
+### 2.2 Logic Fill Constraints
+
+This is where Pass 2 needs its **own constraint system**. The introspector reads Pass 1 files and derives what logic *should* exist:
+
+```typescript name=logic-constraints.ts
+/** Derived from introspecting Pass 1 files */
+export interface LogicConstraints {
+  /** Does the project have a database? → Generate model logic */
+  hasDatabase: boolean;
+  databaseType: 'sql' | 'nosql' | 'none';
+  
+  /** Does it have an ORM? → Generate model definitions with fields */
+  hasOrm: boolean;
+  ormType: string;
+  
+  /** Is it an API? → Generate CRUD routes */
+  isApi: boolean;
+  transportType: string; // rest, graphql, grpc
+  
+  /** Is it a CLI? → Generate real subcommand implementations */
+  isCli: boolean;
+  
+  /** Is it a web app? → Generate component logic */
+  isWeb: boolean;
+  
+  /** Does it have Docker? → Enhance Dockerfile */
+  hasDocker: boolean;
+  
+  /** Framework-specific entry point */
+  entryPoint: string | undefined;
+  
+  /** Port the app listens on */
+  port: number;
+}
+
+export function deriveLogicConstraints(
+  introspector: FileIntrospector,
+  stack: TechStack
+): LogicConstraints {
+  return {
+    hasDatabase: stack.database !== 'none',
+    databaseType: ['postgres', 'mysql', 'sqlite'].includes(stack.database) ? 'sql' : 
+                  stack.database === 'mongodb' ? 'nosql' : 'none',
+    hasOrm: stack.orm !== 'none',
+    ormType: stack.orm,
+    isApi: stack.archetype === 'backend',
+    transportType: stack.transport,
+    isCli: stack.archetype === 'cli',
+    isWeb: stack.archetype === 'web',
+    hasDocker: introspector.hasFile('Dockerfile'),
+    entryPoint: introspector.getEntryPoint(),
+    port: introspector.getExposedPorts()[0] ?? 3000,
+  };
+}
+```
+
+### 2.3 Example: API Routes Enrichment
+
+```typescript name=api-routes-enrich.ts
+export const ApiRoutesEnrichStrategy: EnrichmentStrategy = {
+  id: 'enrich-api-routes',
+  name: 'API Route Logic Fill',
+  priority: 20,
+
+  matches: (stack, flags) => flags.fillLogic && stack.archetype === 'backend',
+
+  apply: async (context) => {
+    const { files, stack, introspect, rng } = context;
+    const constraints = deriveLogicConstraints(introspect, stack);
+    
+    // Pick a domain model name deterministically
+    const modelNames = ['User', 'Item', 'Post', 'Task', 'Product', 'Order'];
+    const modelName = rng.pick(modelNames);
+    const modelLower = modelName.toLowerCase();
+    
+    // Generate real CRUD routes based on framework
+    switch (stack.framework) {
+      case 'express':
+      case 'fastify':
+        enrichTypescriptApiRoutes(files, stack, modelName, constraints);
+        break;
+      case 'fastapi':
+      case 'flask':
+      case 'django':
+        enrichPythonApiRoutes(files, stack, modelName, constraints);
+        break;
+      case 'axum':
+      case 'actix':
+        enrichRustApiRoutes(files, stack, modelName, constraints);
+        break;
+      case 'gin':
+      case 'echo':
+        enrichGoApiRoutes(files, stack, modelName, constraints);
+        break;
+      // ... etc
+    }
+  },
+};
+```
+
+### 2.4 Testing Strategy Pattern
+
+Test enrichment reads the source code and generates matching tests:
+
+```typescript name=unit-tests-enrich.ts
+export const UnitTestEnrichStrategy: EnrichmentStrategy = {
+  id: 'enrich-unit-tests',
+  name: 'Unit Test Generation',
+  priority: 30,
+
+  matches: (stack, flags) => flags.tests,
+
+  apply: async (context) => {
+    const { files, stack, introspect } = context;
+    const entryPoint = introspect.getEntryPoint();
+    const manifest = introspect.getManifest();
+    
+    // Check if test files already exist and enhance them
+    const existingTests = introspect.findFiles('**/*.test.*');
+    const existingSpecs = introspect.findFiles('**/*.spec.*');
+    
+    // Generate tests based on what exists
+    switch (stack.language) {
+      case 'typescript':
+      case 'javascript':
+        generateTypescriptTests(files, stack, introspect, existingTests);
+        break;
+      case 'python':
+        generatePythonTests(files, stack, introspect, existingTests);
+        break;
+      case 'rust':
+        generateRustTests(files, stack, introspect);
+        break;
+      case 'go':
+        generateGoTests(files, stack, introspect);
+        break;
+      // ... etc
+    }
+  },
+};
+```
+
+---
+
+## Phase 3: Desktop UI Integration
+
+### 3.1 Enrichment Panel Component
+
+New component: `packages/desktop/src/components/EnrichmentPanel.tsx`
+
+This is a collapsible Win95-styled panel that appears on:
+- `SeedGeneratorPage` — below seed input
+- `StackComposerPage` — as step 5 in the wizard (before Review becomes step 6)
+
+```typescript name=enrichment-panel-concept.tsx
+// Collapsible enrichment options panel
+// - Master toggle: "Enable Pass 2 Enrichment"
+// - Depth selector: minimal / standard / full (radio buttons)
+// - Individual toggles: CI/CD, Release, Logic Fill, Tests, Docker Prod, Linting, Env Files, Docs
+// - "Apply Preset" buttons for common configurations
+// - Styled in Win95 aesthetic with checkboxes and bevel borders
+```
+
+### 3.2 Updated Wizard Steps
+
+`StackComposerPage.tsx` wizard becomes 6 steps:
+
+```typescript name=wizard-steps-updated.ts
+const WIZARD_STEPS: WizardStep[] = [
+  { id: 'archetype', title: 'Archetype', description: 'What type of project?' },
+  { id: 'language', title: 'Language', description: 'Choose your language' },
+  { id: 'framework', title: 'Framework', description: 'Select a framework' },
+  { id: 'extras', title: 'Extras', description: 'Database, CI/CD, packaging' },
+  { id: 'enrichment', title: 'Enrich', description: 'Pass 2 enrichment options' },  // NEW
+  { id: 'review', title: 'Review', description: 'Review and generate' },
+];
+```
+
+### 3.3 Settings Integration
+
+Add default enrichment preferences to `SettingsPage.tsx`:
+
+```typescript name=settings-enrichment.ts
+// In useSettings hook / settings store:
+interface AppSettings {
+  // ... existing
+  defaultEnrichEnabled: boolean;
+  defaultEnrichDepth: 'minimal' | 'standard' | 'full';
+  // Individual defaults follow the depth preset but can be overridden
+}
+```
+
+### 3.4 Preview Enhancement
+
+The preview result should show enrichment diff:
+- Pass 1 files: shown normally
+- Pass 2 additions: highlighted with a green indicator
+- Pass 2 modifications: highlighted with a yellow indicator
+
+This uses the `EnrichmentMetadata.filesAdded` and `filesModified` arrays.
+
+### 3.5 CLI Commands Page Update
+
+Update `CLICommandsPage.tsx` to include the new `--enrich-*` flags in the command reference and the interactive command builder.
+
+---
+
+## Phase 4: Template Pathway Integration
+
+### 4.1 Manifest-Declared Enrichment
+
+Extend the manifest spec to support enrichment preferences:
+
+```yaml name=upg-enrichment-manifest.yaml
+apiVersion: upg/v1
+metadata:
+  name: express-api-starter
+  version: 1.0.0
+
+# NEW: Enrichment preferences for procedural generation
+enrichment:
+  enabled: true
+  depth: standard
+  cicd: true
+  release: true
+  tests: true
+
+prompts:
+  - id: project_name
+    # ...
+```
+
+### 4.2 Reverse Manifest Generation
+
+An ambitious but natural extension: after enrichment, offer to export a `upg.yaml` manifest that would reproduce the enriched project:
+
+```typescript name=manifest-export.ts
+export function exportManifest(project: EnrichedProject): string {
+  // Generate a upg.yaml that captures:
+  // - The stack as metadata
+  // - Template variables from the project
+  // - The enrichment flags used
+  // This lets users re-generate the same project via `upg generate`
+}
+```
+
+### 4.3 Template → Enrich Pipeline
+
+`upg generate` could optionally run enrichment on template output:
+
+```bash
+upg generate my-template --enrich --enrich-depth full
+```
+
+This would:
+1. Render the template as normal
+2. Introspect the rendered files
+3. Run enrichment strategies
+
+---
+
+## File Manifest — Complete Touchpoint Summary
+
+### New Files (to create)
+
+| File | Phase | Purpose |
+|------|-------|---------|
+| `packages/procedural/src/enrichment/index.ts` | 1 | `AllEnrichmentStrategies` barrel export |
+| `packages/procedural/src/enrichment/engine/enricher.ts` | 1 | `ProjectEnricher` class |
+| `packages/procedural/src/enrichment/engine/introspector.ts` | 1 | `ProjectIntrospector` class |
+| `packages/procedural/src/enrichment/strategies/cicd/github-actions-enrich.ts` | 1 | Enhanced GitHub Actions CI |
+| `packages/procedural/src/enrichment/strategies/cicd/gitlab-ci-enrich.ts` | 1 | Enhanced GitLab CI |
+| `packages/procedural/src/enrichment/strategies/cicd/release.ts` | 1 | Release automation workflows |
+| `packages/procedural/src/enrichment/strategies/quality/linting.ts` | 1 | Linting config enrichment |
+| `packages/procedural/src/enrichment/strategies/quality/env-files.ts` | 1 | Environment file generation |
+| `packages/procedural/src/enrichment/strategies/docs/readme-enrich.ts` | 1 | README enrichment |
+| `packages/procedural/src/enrichment/strategies/logic/api-routes.ts` | 2 | CRUD route implementations |
+| `packages/procedural/src/enrichment/strategies/logic/cli-commands.ts` | 2 | CLI command logic |
+| `packages/procedural/src/enrichment/strategies/logic/models.ts` | 2 | ORM model definitions |
+| `packages/procedural/src/enrichment/strategies/logic/middleware.ts` | 2 | Middleware enrichment |
+| `packages/procedural/src/enrichment/strategies/logic/web-components.ts` | 2 | Web component logic |
+| `packages/procedural/src/enrichment/strategies/testing/unit-tests.ts` | 2 | Unit test generation |
+| `packages/procedural/src/enrichment/strategies/testing/integration-tests.ts` | 2 | Integration test generation |
+| `packages/procedural/src/enrichment/strategies/testing/test-config.ts` | 2 | Test config enrichment |
+| `packages/procedural/src/enrichment/strategies/devops/docker-prod.ts` | 2 | Docker production optimizations |
+| `packages/procedural/src/enrichment/strategies/devops/docker-compose-enrich.ts` | 2 | Compose enrichment |
+| `packages/desktop/src/components/EnrichmentPanel.tsx` | 3 | Enrichment options UI |
+| `tests/unit/procedural/enricher.test.ts` | 1 | Enricher engine tests |
+| `tests/unit/procedural/introspector.test.ts` | 1 | Introspector tests |
+| `tests/unit/procedural/enrichment-strategies.test.ts` | 1-2 | Strategy tests |
+| `tests/e2e/enrichment.test.ts` | 2 | E2E enrichment tests |
+
+### Modified Files (to update)
+
+| File | Phase | Changes |
+|------|-------|---------|
+| `packages/procedural/src/types.ts` | 1 | Add enrichment types, interfaces, flags |
+| `packages/procedural/src/index.ts` | 1 | Export enrichment module |
+| `packages/procedural/src/engine/assembler.ts` | 1 | Add `getRng()` accessor |
+| `packages/procedural/package.json` | 1 | Add `enrichment` subpath export |
+| `packages/cli/src/bin/upg.ts` | 1 | Add `--enrich-*` flags to seed/sweep/preview |
+| `packages/cli/src/commands/sweep.ts` (`seedAction`) | 1 | Run enricher after assembler |
+| `packages/cli/src/commands/preview.ts` | 1 | Enrichment in preview output |
+| `packages/desktop/src-tauri/src/lib.rs` | 1 | `EnrichmentConfig` struct, `build_cli_args` extension |
+| `packages/desktop/src/types/index.ts` | 1 | `EnrichmentConfig`, extended `GenerationRequest` |
+| `packages/desktop/src/hooks/useTauriGenerate.ts` | 3 | Pass enrichment config through |
+| `packages/desktop/src/pages/SeedGeneratorPage.tsx` | 3 | Add `EnrichmentPanel`, enrichment state |
+| `packages/desktop/src/pages/StackComposerPage.tsx` | 3 | Add enrichment wizard step |
+| `packages/desktop/src/pages/CLICommandsPage.tsx` | 3 | Add enrichment flags to command reference |
+| `packages/desktop/src/pages/SettingsPage.tsx` | 3 | Default enrichment preferences |
+| `packages/desktop/src/components/Preview.tsx` | 3 | Pass 2 diff highlighting |
+| `packages/shared/src/types/manifest.ts` | 4 | Enrichment section in manifest type |
+
+---
+
+## Determinism Guarantee
+
+The complete determinism chain:
+
+```
+Seed 82910
+  → Pass 1: SeededRNG(82910) consumes N values → resolveStack() → strategies.apply()
+    → RNG state is now at position N
+  → Pass 2: assembler.getRng().fork() → SeededRNG(rng.next()) 
+    → Fork consumes value N+1, derives new seed M
+    → enrichment strategies use SeededRNG(M)
+    → Same seed + same Pass 1 constraints + same Pass 2 flags 
+      = ALWAYS same enriched output
+```
+
+Enrichment flags are **not** RNG-dependent — they're explicit user choices. So the constraint is simple: **same seed + same constraints + same enrichment flags = identical output**. The RNG is only used when enrichment strategies need to make a choice (e.g., picking a model name, choosing between alternative implementations).
+
+---
+
+This plan gives you a clear, file-by-file implementation path across all four phases, with every touchpoint in every layer (procedural engine → CLI → Tauri Rust → Desktop React UI) accounted for. The architecture is a clean, parallel extension of what already exists — same strategy pattern, same RNG discipline, same CLI-flags-through-Tauri-args bridge.
