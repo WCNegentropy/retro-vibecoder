@@ -428,3 +428,183 @@ export interface DatabaseEntry {
   defaultPort: number;
   compatibleOrms: ORM[];
 }
+
+// ============================================================================
+// Enrichment Types (Pass 2)
+// ============================================================================
+
+/** Enrichment depth controls how much content is added */
+export type EnrichmentDepth = 'minimal' | 'standard' | 'full';
+
+/** Enrichment flags — each controls a category of enrichment */
+export interface EnrichmentFlags {
+  /** Enable enrichment (master switch) */
+  enabled: boolean;
+
+  /** Enrichment depth preset */
+  depth: EnrichmentDepth;
+
+  /** CI/CD workflow enrichment */
+  cicd: boolean;
+
+  /** Release automation workflows */
+  release: boolean;
+
+  /** Fill application logic beyond boilerplate */
+  fillLogic: boolean;
+
+  /** Generate real test cases */
+  tests: boolean;
+
+  /** Docker production optimizations (multi-stage, health checks) */
+  dockerProd: boolean;
+
+  /** Linting and formatting configurations */
+  linting: boolean;
+
+  /** Environment file generation (.env.example, etc.) */
+  envFiles: boolean;
+
+  /** README enrichment with real setup instructions */
+  docs: boolean;
+}
+
+/** Default enrichment flags by depth */
+export const DEFAULT_ENRICHMENT_FLAGS: Record<EnrichmentDepth, EnrichmentFlags> = {
+  minimal: {
+    enabled: true, depth: 'minimal',
+    cicd: true, release: false, fillLogic: false,
+    tests: false, dockerProd: false, linting: true,
+    envFiles: true, docs: true,
+  },
+  standard: {
+    enabled: true, depth: 'standard',
+    cicd: true, release: true, fillLogic: true,
+    tests: true, dockerProd: true, linting: true,
+    envFiles: true, docs: true,
+  },
+  full: {
+    enabled: true, depth: 'full',
+    cicd: true, release: true, fillLogic: true,
+    tests: true, dockerProd: true, linting: true,
+    envFiles: true, docs: true,
+  },
+};
+
+/** Context provided to enrichment strategies */
+export interface EnrichmentContext {
+  /** The original Pass 1 project — immutable reference */
+  readonly sourceProject: Readonly<GeneratedProject>;
+
+  /** Mutable files being enriched (starts as deep copy of Pass 1 files) */
+  files: ProjectFiles;
+
+  /** The resolved tech stack from Pass 1 */
+  readonly stack: Readonly<TechStack>;
+
+  /** Project name */
+  readonly projectName: string;
+
+  /** Pass 2 enrichment flags */
+  readonly flags: Readonly<EnrichmentFlags>;
+
+  /** File introspection utilities */
+  readonly introspect: FileIntrospector;
+
+  /** Deterministic RNG (forked from Pass 1) */
+  rng: {
+    pick<T>(items: readonly T[]): T;
+    pickWeighted<T>(items: readonly { value: T; weight: number }[]): T;
+    float(): number;
+    int(min: number, max: number): number;
+    bool(probability?: number): boolean;
+  };
+}
+
+/** Strategy interface for enrichment (Pass 2) */
+export interface EnrichmentStrategy {
+  /** Unique identifier */
+  id: string;
+
+  /** Human-readable name */
+  name: string;
+
+  /** Check if this enrichment applies given the stack AND flags */
+  matches(stack: TechStack, flags: EnrichmentFlags): boolean;
+
+  /** Apply enrichment to the files */
+  apply(context: EnrichmentContext): Promise<void>;
+
+  /** Priority (higher = applied later) */
+  priority?: number;
+}
+
+/** Parsed project manifest (package.json, Cargo.toml, etc.) */
+export interface ParsedManifest {
+  type: 'npm' | 'cargo' | 'pyproject' | 'gomod' | 'maven' | 'gradle' | 'dotnet' | 'cmake' | 'gemspec' | 'composer' | 'unknown';
+  name: string;
+  dependencies: string[];
+  devDependencies: string[];
+  scripts: Record<string, string>;
+  raw: unknown;
+}
+
+/** File introspection interface */
+export interface FileIntrospector {
+  /** Get parsed project manifest */
+  getManifest(): ParsedManifest;
+
+  /** Check if a file exists */
+  hasFile(path: string): boolean;
+
+  /** Get file content */
+  getContent(path: string): string | undefined;
+
+  /** Find files matching a glob-like pattern */
+  findFiles(pattern: string): string[];
+
+  /** Parse a JSON file */
+  parseJson<T = unknown>(path: string): T | undefined;
+
+  /** Get the entry point file path */
+  getEntryPoint(): string | undefined;
+
+  /** Get test command from manifest */
+  getTestCommand(): string | undefined;
+
+  /** Get build command from manifest */
+  getBuildCommand(): string | undefined;
+
+  /** Detect exposed ports from Dockerfile/source */
+  getExposedPorts(): number[];
+
+  /** Get all file paths */
+  getAllPaths(): string[];
+}
+
+/** Enriched project output (extends GeneratedProject) */
+export interface EnrichedProject extends GeneratedProject {
+  /** Enrichment metadata */
+  enrichment: EnrichmentMetadata;
+}
+
+/** Metadata about the enrichment process */
+export interface EnrichmentMetadata {
+  /** Whether enrichment was applied */
+  enriched: boolean;
+
+  /** Which enrichment strategies were applied */
+  strategiesApplied: string[];
+
+  /** The flags that were used */
+  flags: EnrichmentFlags;
+
+  /** Time taken for enrichment (ms) */
+  enrichmentDurationMs: number;
+
+  /** Files added in Pass 2 */
+  filesAdded: string[];
+
+  /** Files modified in Pass 2 */
+  filesModified: string[];
+}

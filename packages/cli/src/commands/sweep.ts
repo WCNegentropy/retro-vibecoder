@@ -555,6 +555,16 @@ export async function seedAction(
     json?: boolean;
     name?: string;
     force?: boolean;
+    enrich?: boolean;
+    enrichDepth?: string;
+    enrichCicd?: boolean;
+    enrichRelease?: boolean;
+    enrichLogic?: boolean;
+    enrichTests?: boolean;
+    enrichDockerProd?: boolean;
+    enrichLinting?: boolean;
+    enrichEnv?: boolean;
+    enrichDocs?: boolean;
   }
 ): Promise<void> {
   const parsed = parseSeed(seedStr);
@@ -702,7 +712,43 @@ export async function seedAction(
     const assembler = new ProjectAssembler(seed, assemblerOptions);
     assembler.registerStrategies(AllStrategies);
 
-    const project = await assembler.generate();
+    let project = await assembler.generate();
+
+    // Pass 2: Enrichment (if enabled)
+    if (options.enrich) {
+      if (spinner) {
+        spinner.text = 'Enriching project (Pass 2)...';
+      }
+
+      const {
+        ProjectEnricher,
+        AllEnrichmentStrategies,
+        DEFAULT_ENRICHMENT_FLAGS,
+      } = await import('@wcnegentropy/procedural/enrichment');
+
+      const depth = (options.enrichDepth ?? 'standard') as 'minimal' | 'standard' | 'full';
+      const depthFlags = DEFAULT_ENRICHMENT_FLAGS[depth];
+
+      const enrichmentFlags = {
+        ...depthFlags,
+        enabled: true,
+        depth,
+        // Commander's --no-X flags set the property to false when negated
+        cicd: options.enrichCicd !== false ? depthFlags.cicd : false,
+        release: options.enrichRelease !== false ? depthFlags.release : false,
+        fillLogic: options.enrichLogic !== false ? depthFlags.fillLogic : false,
+        tests: options.enrichTests !== false ? depthFlags.tests : false,
+        dockerProd: options.enrichDockerProd !== false ? depthFlags.dockerProd : false,
+        linting: options.enrichLinting !== false ? depthFlags.linting : false,
+        envFiles: options.enrichEnv !== false ? depthFlags.envFiles : false,
+        docs: options.enrichDocs !== false ? depthFlags.docs : false,
+      };
+
+      const enricher = new ProjectEnricher(project, assembler.getRng(), { flags: enrichmentFlags });
+      enricher.registerStrategies(AllEnrichmentStrategies);
+
+      project = await enricher.enrich();
+    }
 
     if (spinner) {
       spinner.stop();

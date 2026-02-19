@@ -112,6 +112,15 @@ export class ProjectAssembler {
   }
 
   /**
+   * Get the RNG instance (for Pass 2 forking). Call after generate().
+   * The RNG state after generate() is deterministic given the same seed
+   * and constraints, so forking from it gives a deterministic Pass 2.
+   */
+  getRng(): SeededRNG {
+    return this.rng;
+  }
+
+  /**
    * Register a generation strategy.
    */
   registerStrategy(strategy: GenerationStrategy): this {

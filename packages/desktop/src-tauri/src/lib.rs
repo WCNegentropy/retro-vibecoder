@@ -34,6 +34,38 @@ pub struct TechStackConfig {
     pub cicd: Option<String>,
 }
 
+/// Enrichment configuration for Pass 2
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnrichmentConfig {
+    /// Whether enrichment is enabled
+    #[serde(default)]
+    pub enabled: bool,
+    /// Enrichment depth: minimal, standard, full
+    #[serde(default = "default_enrichment_depth")]
+    pub depth: String,
+    /// Individual flag overrides (None = use depth default)
+    #[serde(default)]
+    pub cicd: Option<bool>,
+    #[serde(default)]
+    pub release: Option<bool>,
+    #[serde(default)]
+    pub fill_logic: Option<bool>,
+    #[serde(default)]
+    pub tests: Option<bool>,
+    #[serde(default)]
+    pub docker_prod: Option<bool>,
+    #[serde(default)]
+    pub linting: Option<bool>,
+    #[serde(default)]
+    pub env_files: Option<bool>,
+    #[serde(default)]
+    pub docs: Option<bool>,
+}
+
+fn default_enrichment_depth() -> String {
+    "standard".to_string()
+}
+
 /// Generation request from frontend
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationRequest {
@@ -44,6 +76,9 @@ pub struct GenerationRequest {
     pub stack: Option<TechStackConfig>,
     /// Output directory
     pub output_path: String,
+    /// Enrichment configuration (Pass 2)
+    #[serde(default)]
+    pub enrichment: Option<EnrichmentConfig>,
 }
 
 /// Generation result
@@ -133,6 +168,7 @@ fn build_cli_args(
     seed: u64,
     output_path: &str,
     stack: &Option<TechStackConfig>,
+    enrichment: &Option<EnrichmentConfig>,
 ) -> Vec<String> {
     let mut args = vec![
         "seed".to_string(),
@@ -167,6 +203,41 @@ fn build_cli_args(
         if let Some(ref cicd) = config.cicd {
             args.push("--cicd".to_string());
             args.push(cicd.clone());
+        }
+    }
+
+    // Add enrichment flags if enabled
+    if let Some(ref enrich) = enrichment {
+        if enrich.enabled {
+            args.push("--enrich".to_string());
+            args.push("--enrich-depth".to_string());
+            args.push(enrich.depth.clone());
+
+            // Individual flag overrides (--no-enrich-X when explicitly disabled)
+            if enrich.cicd == Some(false) {
+                args.push("--no-enrich-cicd".to_string());
+            }
+            if enrich.release == Some(false) {
+                args.push("--no-enrich-release".to_string());
+            }
+            if enrich.fill_logic == Some(false) {
+                args.push("--no-enrich-logic".to_string());
+            }
+            if enrich.tests == Some(false) {
+                args.push("--no-enrich-tests".to_string());
+            }
+            if enrich.docker_prod == Some(false) {
+                args.push("--no-enrich-docker-prod".to_string());
+            }
+            if enrich.linting == Some(false) {
+                args.push("--no-enrich-linting".to_string());
+            }
+            if enrich.env_files == Some(false) {
+                args.push("--no-enrich-env".to_string());
+            }
+            if enrich.docs == Some(false) {
+                args.push("--no-enrich-docs".to_string());
+            }
         }
     }
 
@@ -270,7 +341,7 @@ async fn generate_project(
             let (cmd, base_args) = get_cli_command(&app)?;
 
             // Build CLI arguments for seed command
-            let cli_args = build_cli_args(seed, &resolved_output_str, &request.stack);
+            let cli_args = build_cli_args(seed, &resolved_output_str, &request.stack, &request.enrichment);
 
             // Combine base args and CLI args
             let mut all_args = base_args;
@@ -730,6 +801,15 @@ async fn preview_generation(
                 if let Some(ref framework) = config.framework {
                     cli_args.push("--framework".to_string());
                     cli_args.push(framework.clone());
+                }
+            }
+
+            // Add enrichment flags if enabled
+            if let Some(ref enrich) = request.enrichment {
+                if enrich.enabled {
+                    cli_args.push("--enrich".to_string());
+                    cli_args.push("--enrich-depth".to_string());
+                    cli_args.push(enrich.depth.clone());
                 }
             }
 
