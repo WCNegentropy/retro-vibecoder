@@ -29,21 +29,27 @@ upg sweep --count 10 --validate
 
 # Validate a manifest
 upg validate ./upg.yaml
+
+# Generate with Pass 2 enrichment
+upg seed 42 --enrich --output ./my-project
+
+# Full enrichment depth
+upg seed 42 --enrich --enrich-depth full --output ./my-project
 ```
 
 ## Commands
 
 | Command                    | Description                              |
 | -------------------------- | ---------------------------------------- |
-| `upg seed <number>`        | Generate a project from a seed number    |
-| `upg sweep`                | Batch generate and validate projects     |
+| `upg seed <number>`        | Generate a project from a seed number (supports `--enrich`) |
+| `upg sweep`                | Batch generate and validate projects (supports `--enrich`)  |
 | `upg generate [template]`  | Generate a project from a manifest template |
 | `upg validate <manifest>`  | Validate a UPG manifest file             |
 | `upg init`                 | Initialize a new UPG manifest            |
 | `upg search <query>`       | Search the project registry              |
 | `upg docs <manifest>`      | Generate documentation from a manifest   |
 | `upg test <manifest>`      | Test a manifest configuration            |
-| `upg preview <seed>`       | JSON preview of a seed (for integrations) |
+| `upg preview <seed>`       | JSON preview of a seed (supports `--enrich`) |
 
 ### `upg seed <number>`
 
@@ -63,6 +69,19 @@ upg seed 12345 --output ./my-project --verbose
 - `--framework <fw>` — Force framework
 - `--json` — Output machine-readable JSON
 - `--force` — Overwrite existing output directory
+
+**Enrichment Options:**
+
+- `--enrich` — Enable Pass 2 enrichment
+- `--enrich-depth <depth>` — Enrichment depth (minimal | standard | full, default: standard)
+- `--no-enrich-cicd` — Skip CI/CD enrichment
+- `--no-enrich-release` — Skip release automation
+- `--no-enrich-logic` — Skip logic fill enrichment
+- `--no-enrich-tests` — Skip test generation
+- `--no-enrich-docker-prod` — Skip Docker production optimizations
+- `--no-enrich-linting` — Skip linting config enrichment
+- `--no-enrich-env` — Skip environment file generation
+- `--no-enrich-docs` — Skip documentation enrichment
 
 ### `upg sweep`
 
@@ -85,6 +104,11 @@ upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.
 - `--start-seed <number>` — Starting seed number
 - `--dry-run` — Preview stacks without generating files
 - `--only-valid` — Keep retrying until N valid projects are found
+
+**Enrichment Options:**
+
+- `--enrich` — Enable Pass 2 enrichment on generated projects
+- `--enrich-depth <depth>` — Enrichment depth (minimal | standard | full)
 
 ### `upg validate <manifest>`
 
@@ -142,6 +166,18 @@ upg init --name my-template --json
 - `-n, --name <name>` — Template name
 - `-f, --force` — Overwrite existing manifest
 - `--json` — Output machine-readable JSON
+
+### Enrichment Depth Presets
+
+The `--enrich-depth` flag controls which enrichment strategies are applied:
+
+| Preset      | CI/CD | Release | Logic Fill | Tests | Docker Prod | Linting | Env Files | Docs |
+| ----------- | ----- | ------- | ---------- | ----- | ----------- | ------- | --------- | ---- |
+| `minimal`   | ✓     |         |            |       |             | ✓       | ✓         | ✓    |
+| `standard`  | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |
+| `full`      | ✓     | ✓       | ✓          | ✓     | ✓           | ✓       | ✓         | ✓    |
+
+Individual strategies can be toggled off using `--no-enrich-*` flags regardless of depth.
 
 ## Programmatic Usage
 

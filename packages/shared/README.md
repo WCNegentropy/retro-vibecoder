@@ -20,6 +20,9 @@ import type { UpgManifest, ValidationError } from '@wcnegentropy/shared';
 // Import utilities
 import { parseYaml, parseSeed } from '@wcnegentropy/shared';
 
+// Import enrichment types
+import type { ManifestEnrichment } from '@wcnegentropy/shared';
+
 // Import constants
 import { BINARY_EXTENSIONS, DEFAULT_OUTPUT_DIR } from '@wcnegentropy/shared';
 ```
@@ -38,7 +41,7 @@ This package provides granular subpath exports:
 ### Types
 
 ```typescript
-import type { UpgManifest, RegistryEntry, SidecarConfig } from '@wcnegentropy/shared/types';
+import type { UpgManifest, ManifestEnrichment, RegistryEntry, SidecarConfig } from '@wcnegentropy/shared/types';
 ```
 
 ### Constants
@@ -60,6 +63,27 @@ This package is primarily consumed as an internal dependency by other packages i
 - [`@wcnegentropy/core`](https://www.npmjs.com/package/@wcnegentropy/core)
 - [`@wcnegentropy/procedural`](https://www.npmjs.com/package/@wcnegentropy/procedural)
 - [`@wcnegentropy/cli`](https://www.npmjs.com/package/@wcnegentropy/cli)
+
+## Enrichment Types
+
+The `ManifestEnrichment` type defines enrichment preferences for procedural generation manifests:
+
+```typescript
+interface ManifestEnrichment {
+  enabled?: boolean;
+  depth?: 'minimal' | 'standard' | 'full';
+  cicd?: boolean;
+  release?: boolean;
+  fillLogic?: boolean;
+  tests?: boolean;
+  dockerProd?: boolean;
+  linting?: boolean;
+  envFiles?: boolean;
+  docs?: boolean;
+}
+```
+
+This type is used in the `UpgManifest.enrichment` field to declare enrichment preferences for template-based generation.
 
 ## Part of the Retro Vibecoder UPG Monorepo
 

@@ -109,6 +109,46 @@ Built on first try with `npx tsup`. All commands worked perfectly. The scaffold'
 
 ---
 
+## Pass 2 Enrichment Engine
+
+### Overview
+
+The Pass 2 Enrichment Engine is a second-pass enhancement pipeline that runs after initial project generation. It uses the same deterministic RNG (forked via `rng.fork()`) to enhance projects with production-ready features.
+
+### Enrichment Categories
+
+| Category    | Strategies                              | Purpose                                                     |
+|-------------|----------------------------------------|-------------------------------------------------------------|
+| **CI/CD**   | GitHub Actions, GitLab CI, Release      | Enhanced workflows with caching, matrix testing, security   |
+| **Quality** | Linting, Environment Files              | ESLint/Ruff/clippy configs, `.env.example`, `.editorconfig` |
+| **Logic**   | API Routes, CLI Commands, Models, Middleware, Web Components | Real CRUD implementations, ORM models |
+| **Testing** | Unit Tests, Integration Tests, Test Config | Framework-specific test generation                       |
+| **DevOps**  | Docker Production, Docker Compose       | Multi-stage builds, health checks, compose enrichment       |
+| **Docs**    | README Enrichment                       | Setup instructions, badges, project structure overview      |
+
+### CLI Integration
+
+```bash
+# Standard enrichment
+upg seed 42 --enrich --archetype backend --language typescript -o ./my-app
+
+# Full enrichment depth
+upg seed 42 --enrich --enrich-depth full -o ./my-app
+
+# Selective enrichment (disable specific strategies)
+upg seed 42 --enrich --no-enrich-tests --no-enrich-docker-prod -o ./my-app
+```
+
+### Desktop UI Integration
+
+- **EnrichmentPanel** component with master toggle, depth presets, and individual strategy toggles
+- Integrated into SeedGeneratorPage and StackComposerPage (as wizard step 5 of 6)
+- **Preview.tsx** shows Pass 2 diff highlighting (green for added files, yellow for modified)
+- **SettingsPage** includes default enrichment preferences
+- **CLICommandsPage** documents all enrichment flags
+
+---
+
 ## Code Quality of Generated Output
 
 ### Strengths
@@ -150,7 +190,7 @@ Built on first try with `npx tsup`. All commands worked perfectly. The scaffold'
 | **Token Savings for AI** | 8 | ~67% reduction for typical scaffolding tasks |
 | **Architecture** | 9 | Clean separation, constraint solver, seeded RNG, manifest system |
 | **Documentation** | 8 | Good docs, JSDoc enriched, package READMEs present |
-| **Testing** | 6 | 30 tests across shared, procedural, and cli packages |
+| **Testing** | 7 | 389 tests across shared, procedural, cli, and enrichment packages |
 
 **Overall: 8/10** — A well-architected tool with genuine utility for AI-assisted development. Recent CLI improvements (Phase 1–5) added JSON output flags, contextual error guidance, language-aware "Next steps", improved help text, and better output formatting. The main remaining gaps are in generated code completeness (DB/ORM file generation) and broader test coverage.
 
@@ -168,6 +208,7 @@ Built on first try with `npx tsup`. All commands worked perfectly. The scaffold'
 5. **Add unit tests for core package** — Currently has no test files
 6. **Fix env variable leak in `generate --use-defaults`** — Filter out `process.env` from template variables or at least from output
 7. **Generate ESLint config** for projects that have a `lint` script
+   ✅ **Pass 2 Enrichment Engine** — 16 enrichment strategies across 6 categories implemented with CLI flags, desktop UI, and deterministic RNG forking
 8. **Add `--eslint`, `--prettier`, `--testing` flags** to `seed` command for more control
 
 ### Low Priority
