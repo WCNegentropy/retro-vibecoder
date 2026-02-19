@@ -69,6 +69,26 @@ pnpm --filter @wcnegentropy/cli sweep --count 10 --output ./generated-projects
 pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json --verbose
 ```
 
+### Option 2.5: Enriched Generation
+
+Enable Pass 2 enrichment to enhance generated projects with production-ready features:
+
+```bash
+# Generate with standard enrichment (CI/CD, tests, logic fill, Docker, linting, docs)
+upg seed 12345 --enrich --archetype backend --language typescript --output ./my-enriched-api
+
+# Minimal enrichment (CI/CD, linting, env files, docs only)
+upg seed 12345 --enrich --enrich-depth minimal --output ./my-project
+
+# Full enrichment with selective disabling
+upg seed 12345 --enrich --enrich-depth full --no-enrich-tests --output ./my-project
+
+# Enriched sweep
+upg sweep --count 10 --enrich --enrich-depth standard --validate
+```
+
+Enrichment adds files like enhanced CI workflows, `.editorconfig`, `.env.example`, expanded README with real setup instructions, and framework-specific test files — all deterministically derived from the same seed.
+
 ### Option 3: Manifest-Based Generation
 
 ```bash
@@ -169,3 +189,4 @@ upg test .
 - Read the [Manifest Specification](./template-author/manifest-spec.md)
 - Explore [Example Templates](./template-author/examples.md)
 - Learn about [Publishing](./template-author/publishing-guide.md)
+- Learn about [Pass 2 Enrichment](../Pass_2_Enrichment_Engine.txt) for production-ready project generation
