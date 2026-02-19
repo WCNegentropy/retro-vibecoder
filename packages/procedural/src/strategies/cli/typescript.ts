@@ -46,7 +46,7 @@ export const CommanderStrategy: GenerationStrategy = {
               }),
           test: 'vitest run',
           'test:watch': 'vitest',
-          lint: `eslint src/`,
+          lint: 'eslint src/',
           format: `prettier --write "src/**/*.${ext}"`,
         },
         dependencies: {
@@ -278,7 +278,7 @@ export const YargsStrategy: GenerationStrategy = {
               }),
           test: 'vitest run',
           'test:watch': 'vitest',
-          lint: `eslint src/`,
+          lint: 'eslint src/',
           format: `prettier --write "src/**/*.${ext}"`,
         },
         dependencies: {
