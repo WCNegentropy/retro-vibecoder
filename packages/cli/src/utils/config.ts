@@ -10,8 +10,6 @@ import { getConfigPath, parseYaml, stringifyYaml } from '@wcnegentropy/shared';
  * CLI configuration structure
  */
 export interface CliConfig {
-  /** Registry sources */
-  registries?: RegistryConfig[];
   /** Default generation options */
   defaults?: {
     /** Default output directory */
@@ -27,34 +25,9 @@ export interface CliConfig {
 }
 
 /**
- * Registry configuration
- */
-interface RegistryConfig {
-  /** Registry name */
-  name: string;
-  /** Git URL */
-  url: string;
-  /** Branch */
-  branch?: string;
-  /** Priority (lower = higher priority) */
-  priority?: number;
-  /** Whether enabled */
-  enabled?: boolean;
-}
-
-/**
  * Default configuration
  */
 const DEFAULT_CONFIG: CliConfig = {
-  registries: [
-    {
-      name: 'official',
-      url: 'https://github.com/retro-vibecoder/upg-registry',
-      branch: 'main',
-      priority: 0,
-      enabled: true,
-    },
-  ],
   defaults: {
     useDefaults: false,
   },

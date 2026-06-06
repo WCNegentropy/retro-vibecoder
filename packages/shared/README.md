@@ -34,14 +34,14 @@ This package provides granular subpath exports:
 | Export Path                    | Description                                    |
 | ------------------------------ | ---------------------------------------------- |
 | `@wcnegentropy/shared`         | All types, constants, and utilities re-exported |
-| `@wcnegentropy/shared/types`   | TypeScript types (manifest, registry, answers, sidecar) |
+| `@wcnegentropy/shared/types`   | TypeScript types (manifest, answers, sidecar) |
 | `@wcnegentropy/shared/constants` | Defaults, paths, and error codes               |
 | `@wcnegentropy/shared/utils`   | YAML parser, schema validator, path helpers, seed parser |
 
 ### Types
 
 ```typescript
-import type { UpgManifest, ManifestEnrichment, RegistryEntry, SidecarConfig } from '@wcnegentropy/shared/types';
+import type { UpgManifest, ManifestEnrichment, SidecarConfig } from '@wcnegentropy/shared/types';
 ```
 
 ### Constants

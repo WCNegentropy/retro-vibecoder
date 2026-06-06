@@ -33,7 +33,7 @@ export interface TemplateInfo {
   name: string;
   /** Template version used */
   version: string;
-  /** Source URL (registry or local path) */
+  /** Source URL or local path */
   source: string;
   /** Commit hash (if from git) */
   commit?: string;

@@ -191,11 +191,6 @@ const CLI_COMMANDS: CLICommand[] = [
         default: false,
       },
       {
-        flag: '--save-registry',
-        description: 'Save valid seeds to registry JSON file',
-        type: 'string',
-      },
-      {
         flag: '--dry-run',
         description: 'Preview stacks without generating files',
         type: 'boolean',
@@ -307,27 +302,8 @@ const CLI_COMMANDS: CLICommand[] = [
     ],
   },
   {
-    id: 'search',
-    name: 'Registry Search',
-    description: 'Search the template registry for templates',
-    usage: 'upg search <query> [options]',
-    options: [
-      {
-        flag: '--tags',
-        description: 'Filter by tags (comma-separated)',
-        type: 'string',
-      },
-      {
-        flag: '--limit',
-        description: 'Maximum number of results',
-        type: 'number',
-        default: 20,
-      },
-    ],
-  },
-  {
-    id: 'docs',
-    name: 'Generate Docs',
+    id: 'init',
+    name: 'Initialize Manifest',
     description: 'Generate documentation from a manifest',
     usage: 'upg docs <manifest> [options]',
     options: [

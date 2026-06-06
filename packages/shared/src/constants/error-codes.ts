@@ -2,7 +2,7 @@
  * Error codes for the UPG system
  *
  * Error codes follow the format: UPG-XXX-YYY
- * - XXX: Category (100 = validation, 200 = generation, 300 = registry, etc.)
+ * - XXX: Category (100 = validation, 200 = generation, 400 = update, 500 = configuration)
  * - YYY: Specific error
  */
 
@@ -69,28 +69,6 @@ export const GENERATION_ERRORS = {
 } as const;
 
 /**
- * Registry error codes (UPG-3XX)
- */
-export const REGISTRY_ERRORS = {
-  /** Registry not found */
-  REGISTRY_NOT_FOUND: 'UPG-300-001',
-  /** Template not found in registry */
-  TEMPLATE_NOT_IN_REGISTRY: 'UPG-300-002',
-  /** Version not found */
-  VERSION_NOT_FOUND: 'UPG-300-003',
-  /** Registry sync failed */
-  SYNC_FAILED: 'UPG-300-004',
-  /** Network error */
-  NETWORK_ERROR: 'UPG-300-005',
-  /** Invalid registry format */
-  INVALID_REGISTRY: 'UPG-300-006',
-  /** Authentication required */
-  AUTH_REQUIRED: 'UPG-300-007',
-  /** Rate limit exceeded */
-  RATE_LIMITED: 'UPG-300-008',
-} as const;
-
-/**
  * Update error codes (UPG-4XX)
  */
 export const UPDATE_ERRORS = {
@@ -128,7 +106,6 @@ export const CONFIG_ERRORS = {
 export const ERROR_CODES = {
   ...VALIDATION_ERRORS,
   ...GENERATION_ERRORS,
-  ...REGISTRY_ERRORS,
   ...UPDATE_ERRORS,
   ...CONFIG_ERRORS,
 } as const;
@@ -148,8 +125,6 @@ export function getErrorCategory(code: ErrorCode): string {
       return 'Validation';
     case '200':
       return 'Generation';
-    case '300':
-      return 'Registry';
     case '400':
       return 'Update';
     case '500':

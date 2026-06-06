@@ -124,7 +124,7 @@ export interface GeneratedProject {
   };
 }
 
-/** Template entry from registry */
+/** Template entry */
 export interface TemplateEntry {
   name: string;
   version: string;

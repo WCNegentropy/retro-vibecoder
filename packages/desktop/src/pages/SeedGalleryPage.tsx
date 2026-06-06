@@ -73,7 +73,7 @@ function SeedGalleryPage() {
   const [isRunningSweeper, setIsRunningSweeper] = useState(false);
   const [sweeperCount, setSweeperCount] = useState(10);
 
-  // Load seeds from registry
+  // Load seeds
   const fetchSeeds = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -217,7 +217,7 @@ function SeedGalleryPage() {
           {isRunningSweeper ? 'Running Sweeper...' : 'Run Sweeper'}
         </button>
         <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>
-          {seeds.length} seeds in registry
+          {seeds.length} seeds
         </span>
       </div>
 
@@ -266,7 +266,7 @@ function SeedGalleryPage() {
             >
               {seeds.length === 0 ? (
                 <>
-                  <p style={{ marginBottom: '12px' }}>No seeds in registry yet.</p>
+                  <p style={{ marginBottom: '12px' }}>No seeds yet.</p>
                   <p style={{ fontSize: '11px', color: 'var(--bevel-dark)' }}>
                     Click "Run Sweeper" above to discover valid seed configurations.
                   </p>

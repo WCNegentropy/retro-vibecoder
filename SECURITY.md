@@ -46,14 +46,6 @@ All manifests are validated against a JSON Schema before execution:
 - Pattern validation for names and versions
 - Size limits to prevent DoS
 
-### Registry Security
-
-When using third-party registries:
-
-- Verify the registry source
-- Review templates before use
-- Keep registries updated
-
 ## Best Practices
 
 ### For Users

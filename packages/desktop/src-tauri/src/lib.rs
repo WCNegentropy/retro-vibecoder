@@ -514,26 +514,6 @@ fn get_templates_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     }
 }
 
-/// Get the registry directory path
-fn get_registry_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    #[cfg(debug_assertions)]
-    {
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let project_root = PathBuf::from(manifest_dir)
-            .parent()
-            .and_then(|p| p.parent())
-            .and_then(|p| p.parent())
-            .and_then(|p| p.parent())
-            .ok_or("Failed to find project root")?;
-        Ok(project_root.join("registry"))
-    }
-    #[cfg(not(debug_assertions))]
-    {
-        let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
-        Ok(resource_dir.join("registry"))
-    }
-}
-
 /// Get available templates from the templates directory
 #[tauri::command]
 async fn get_templates(app: tauri::AppHandle) -> Result<Vec<TemplateEntry>, String> {
@@ -720,27 +700,6 @@ pub struct PreviewResult {
     pub seed: Option<u64>,
 }
 
-/// Seed entry from registry
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SeedEntry {
-    pub seed: u64,
-    pub stack: serde_json::Value,
-    pub files: Vec<String>,
-    pub validated_at: String,
-    pub tags: Vec<String>,
-}
-
-/// Registry data structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RegistryData {
-    pub version: String,
-    pub generated_at: String,
-    pub total_entries: u32,
-    pub entries: Vec<SeedEntry>,
-}
-
 /// CLI execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CLIResult {
@@ -871,26 +830,6 @@ async fn preview_generation(
             }
         }
     }
-}
-
-/// Get validated seeds from the registry
-#[tauri::command]
-async fn get_seeds(app: tauri::AppHandle) -> Result<Vec<SeedEntry>, String> {
-    let registry_dir = get_registry_dir(&app)?;
-    let registry_path = registry_dir.join("manifests/generated.json");
-
-    if !registry_path.exists() {
-        // Return empty list if registry doesn't exist yet
-        return Ok(vec![]);
-    }
-
-    let content = fs::read_to_string(&registry_path)
-        .map_err(|e| format!("Failed to read registry: {}", e))?;
-
-    let registry: RegistryData =
-        serde_json::from_str(&content).map_err(|e| format!("Failed to parse registry: {}", e))?;
-
-    Ok(registry.entries)
 }
 
 /// Read manifest file content
@@ -1108,112 +1047,6 @@ async fn generate_from_template(
     }
 }
 
-/// Generate seeds using the CLI preview command and save to registry
-#[tauri::command]
-async fn run_sweeper(
-    app: tauri::AppHandle,
-    count: u32,
-    start_seed: Option<u64>,
-    _validate: bool,
-) -> Result<Vec<SeedEntry>, String> {
-    let registry_dir = get_registry_dir(&app)?;
-    let (cmd, base_args) = get_cli_command(&app)?;
-    let working_dir = app.path().home_dir().map_err(|e| e.to_string())?;
-
-    let mut entries = Vec::new();
-    let start = start_seed.unwrap_or(1);
-
-    for i in 0..count {
-        let seed = start + i as u64;
-
-        // Build CLI preview args
-        let mut args = base_args.clone();
-        args.push("preview".to_string());
-        args.push(seed.to_string());
-
-        // Execute CLI preview command
-        let (success, stdout, _stderr, _exit_code) =
-            execute_cli_internal(&cmd, args, &working_dir)?;
-
-        if success {
-            // Parse JSON output
-            if let Ok(response) = serde_json::from_str::<CLIPreviewResponse>(&stdout) {
-                if response.success {
-                    if let Some(data) = response.data {
-                        let stack = data.stack.clone();
-                        let files: Vec<String> = data.files.keys().cloned().collect();
-
-                        // Extract tags from stack
-                        let mut tags = Vec::new();
-                        if let Some(lang) = stack.get("language").and_then(|v| v.as_str()) {
-                            tags.push(lang.to_string());
-                        }
-                        if let Some(fw) = stack.get("framework").and_then(|v| v.as_str()) {
-                            tags.push(fw.to_string());
-                        }
-                        if let Some(arch) = stack.get("archetype").and_then(|v| v.as_str()) {
-                            tags.push(arch.to_string());
-                        }
-
-                        entries.push(SeedEntry {
-                            seed,
-                            stack,
-                            files,
-                            validated_at: chrono::Utc::now().to_rfc3339(),
-                            tags,
-                        });
-                    }
-                }
-            }
-        }
-    }
-
-    // Save to registry
-    let registry_path = registry_dir.join("manifests/generated.json");
-    if let Some(parent) = registry_path.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("Failed to create registry directory: {}", e))?;
-    }
-
-    // Load existing registry or create new
-    let mut registry = if registry_path.exists() {
-        let content = fs::read_to_string(&registry_path)
-            .map_err(|e| format!("Failed to read registry: {}", e))?;
-        serde_json::from_str::<RegistryData>(&content).unwrap_or(RegistryData {
-            version: "1.0.0".to_string(),
-            generated_at: chrono::Utc::now().to_rfc3339(),
-            total_entries: 0,
-            entries: vec![],
-        })
-    } else {
-        RegistryData {
-            version: "1.0.0".to_string(),
-            generated_at: chrono::Utc::now().to_rfc3339(),
-            total_entries: 0,
-            entries: vec![],
-        }
-    };
-
-    // Add new entries (avoid duplicates by seed)
-    let existing_seeds: std::collections::HashSet<u64> =
-        registry.entries.iter().map(|e| e.seed).collect();
-    for entry in &entries {
-        if !existing_seeds.contains(&entry.seed) {
-            registry.entries.push(entry.clone());
-        }
-    }
-
-    registry.total_entries = registry.entries.len() as u32;
-    registry.generated_at = chrono::Utc::now().to_rfc3339();
-
-    // Write updated registry
-    let json = serde_json::to_string_pretty(&registry)
-        .map_err(|e| format!("Failed to serialize registry: {}", e))?;
-    fs::write(&registry_path, json).map_err(|e| format!("Failed to write registry: {}", e))?;
-
-    Ok(entries)
-}
-
 /// Get a setting from the persistent store
 #[tauri::command]
 async fn get_setting(app: tauri::AppHandle, key: String) -> Result<serde_json::Value, String> {
@@ -1262,11 +1095,9 @@ pub fn run() {
             get_templates,
             validate_manifest,
             preview_generation,
-            get_seeds,
             read_manifest,
             execute_cli,
             execute_upg_cli,
-            run_sweeper,
             get_setting,
             set_setting,
             get_all_settings

@@ -28,13 +28,6 @@ export function getConfigPath(): string {
 }
 
 /**
- * Get the registry cache directory
- */
-export function getRegistryCacheDir(): string {
-  return join(getCacheDir(), 'registries');
-}
-
-/**
  * Get the templates cache directory
  */
 export function getTemplatesCacheDir(): string {

@@ -14,7 +14,6 @@ import SettingsPage from './pages/SettingsPage';
  * - Seed Generator: Enter a seed number to generate a deterministic project
  * - Stack Composer: Compose a custom tech stack interactively
  * - Template Selector: Generate projects from UPG manifest templates (Nunjucks)
- * - Seed Gallery: Browse pre-validated seeds from the registry
  * - CLI Commands: Execute UPG CLI commands directly
  * - Settings: Configure appearance and generation defaults
  *

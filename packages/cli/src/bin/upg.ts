@@ -14,7 +14,6 @@ import { version } from '../../package.json';
 import { validateAction } from '../commands/validate.js';
 import { generateAction } from '../commands/generate.js';
 import { testAction } from '../commands/test.js';
-import { searchAction } from '../commands/search.js';
 import { initAction } from '../commands/init.js';
 import { sweepAction, seedAction } from '../commands/sweep.js';
 import { previewAction } from '../commands/preview.js';
@@ -38,7 +37,6 @@ Examples:
   $ upg init                          Create a new manifest in the current directory
   $ upg seed 42 -o ./my-app           Generate a project from seed 42
   $ upg generate ./my-template        Generate a project from a manifest template
-  $ upg search "backend typescript"   Search the registry for projects
   $ upg sweep --count 10              Procedurally generate 10 projects`
     )
     .hook('preAction', (_thisCommand, actionCommand) => {
@@ -87,19 +85,6 @@ Examples:
     .option('-f, --format <format>', 'Output format (text|json)', 'text')
     .option('-v, --verbose', 'Verbose output', false)
     .action(testAction);
-
-  // Search command
-  program
-    .command('search <query>')
-    .description(
-      'Search for projects in the registry by keyword, archetype, language, or framework'
-    )
-    .option('-t, --tags <tags>', 'Filter by tags (comma-separated)')
-    .option('-l, --limit <number>', 'Maximum results', '10')
-    .option('--local', 'Use local registry only (skip remote fetch)')
-    .option('--remote', 'Use remote registry only (fail if unavailable)')
-    .option('-f, --format <format>', 'Output format (text|json)', 'text')
-    .action(searchAction);
 
   // Init command
   program
@@ -163,7 +148,6 @@ Examples:
       '--orm <orm>',
       'Force specific ORM (prisma|drizzle|typeorm|sequelize|sqlalchemy|gorm|diesel|none)'
     )
-    .option('--save-registry <path>', 'Save validated projects to registry manifest')
     .option('--start-seed <number>', 'Starting seed number (default: 1)')
     .option('--dry-run', 'Preview stacks without generating files', false)
     .option('--only-valid', 'Keep retrying until N valid projects are found', false)

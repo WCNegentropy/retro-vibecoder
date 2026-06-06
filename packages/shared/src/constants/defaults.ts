@@ -50,11 +50,6 @@ export const CONFIG_DIR_NAME = '.upg';
 export const CACHE_DIR_NAME = 'cache';
 
 /**
- * Registry cache subdirectory
- */
-export const REGISTRY_CACHE_DIR = 'registries';
-
-/**
  * Templates cache subdirectory
  */
 export const TEMPLATES_CACHE_DIR = 'templates';
@@ -63,16 +58,6 @@ export const TEMPLATES_CACHE_DIR = 'templates';
  * Default config filename
  */
 export const CONFIG_FILENAME = 'config.yaml';
-
-/**
- * Default registry URL
- */
-export const DEFAULT_REGISTRY_URL = 'https://github.com/retro-vibecoder/upg-registry';
-
-/**
- * Default registry branch
- */
-export const DEFAULT_REGISTRY_BRANCH = 'main';
 
 /**
  * Maximum manifest file size (in bytes)

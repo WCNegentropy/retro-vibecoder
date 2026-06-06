@@ -46,7 +46,6 @@ upg seed 42 --enrich --enrich-depth full --output ./my-project
 | `upg generate [template]`  | Generate a project from a manifest template |
 | `upg validate <manifest>`  | Validate a UPG manifest file             |
 | `upg init`                 | Initialize a new UPG manifest            |
-| `upg search <query>`       | Search the project registry              |
 | `upg docs <manifest>`      | Generate documentation from a manifest   |
 | `upg test <manifest>`      | Test a manifest configuration            |
 | `upg preview <seed>`       | JSON preview of a seed (supports `--enrich`) |
@@ -88,7 +87,7 @@ upg seed 12345 --output ./my-project --verbose
 Batch generate multiple projects:
 
 ```bash
-upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+upg sweep --count 100 --validate
 ```
 
 **Options:**
@@ -96,7 +95,6 @@ upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.
 - `-c, --count <n>` — Number of projects (default: 5)
 - `--validate` — Validate generated projects
 - `-o, --output <path>` — Output directory
-- `--save-registry <path>` — Save valid projects to registry
 - `-f, --format <fmt>` — Output format (text | json)
 - `-v, --verbose` — Verbose output
 - `--archetype <type>` — Force archetype (web|backend|cli|mobile|desktop|game|library)
@@ -135,23 +133,6 @@ upg generate my-template --dest ./output --json
 - `--dry-run` — Show what would be generated without creating files
 - `-f, --force` — Overwrite existing files
 - `--json` — Output machine-readable JSON
-
-### `upg search <query>`
-
-Search the project registry:
-
-```bash
-upg search "backend typescript"
-upg search "rust" --format json
-```
-
-**Options:**
-
-- `-t, --tags <tags>` — Filter by tags (comma-separated)
-- `-l, --limit <number>` — Maximum results (default: 10)
-- `-f, --format <format>` — Output format (text | json)
-- `--local` — Use local registry only
-- `--remote` — Use remote registry only
 
 ### `upg init`
 

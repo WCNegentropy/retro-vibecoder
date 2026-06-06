@@ -12,7 +12,6 @@ The Universal Project Generator (UPG) is a dual-mode project generation platform
 - **Deterministic Reproducibility** - Same seed always produces the same project
 - **Pass 2 Enrichment** - Enhance generated projects with CI/CD, testing, logic fill, and production-ready features
 - **Template Marketplace** - Share and discover both hand-crafted templates and procedural configurations
-- **Smart Updates** - Keep projects in sync with template updates via 3-way merge (Phase 3)
 
 ## Quick Start
 
@@ -31,8 +30,8 @@ pnpm --filter @wcnegentropy/cli seed 82910 --output ./my-project
 # Run a procedural sweep (discover multiple projects)
 pnpm --filter @wcnegentropy/cli sweep --count 10 --verbose
 
-# Sweep with validation and registry persistence
-pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+# Sweep with validation
+pnpm --filter @wcnegentropy/cli sweep --count 100 --validate
 
 # Generate with Pass 2 enrichment
 pnpm --filter @wcnegentropy/cli seed 82910 --enrich --output ./my-project
@@ -60,7 +59,6 @@ upg generate react-starter --dest ./output
 
 - [Getting Started](./getting-started.md)
 - [CLI Commands](./user-guide/cli-commands.md)
-- [Marketplace](./user-guide/marketplace.md)
 
 ### Template Authors
 
@@ -74,7 +72,6 @@ upg generate react-starter --dest ./output
 - [Overview](./architecture/overview.md)
 - [Phase 1: Universal Spec](./architecture/phase-1-spec.md)
 - [Phase 2: Generic Engine](./architecture/phase-2-engine.md)
-- [Phase 3: Registry](./architecture/phase-3-registry.md)
 
 ### Contributing
 
@@ -172,7 +169,6 @@ External tools (Copier, Yeoman) are bundled as sidecars:
   - Procedural Mode: Seed Generator + Stack Composer UI
   - Integrated validation and preview
 - **Phase 3** (Future - Q3 2026): Marketplace with Hybrid Content
-  - Git-based Registry (manifest templates + procedural configs)
   - Smart Update mechanism (3-way merge)
   - Seed sharing and discovery
 

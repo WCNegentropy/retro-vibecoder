@@ -65,8 +65,8 @@ Run a procedural sweep to generate and optionally validate multiple projects:
 # Generate 10 random projects
 pnpm --filter @wcnegentropy/cli sweep --count 10 --output ./generated-projects
 
-# Generate and validate 100 projects, save successful ones to registry
-pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json --verbose
+# Generate and validate 100 projects
+pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --verbose
 ```
 
 ### Option 2.5: Enriched Generation

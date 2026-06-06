@@ -38,7 +38,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["../../../registry", "../../../templates", "binaries/upg-*"]
+    "resources": ["../../../templates", "binaries/upg-*"]
   },
   "plugins": {}
 }

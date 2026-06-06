@@ -57,8 +57,8 @@ pnpm --filter @wcnegentropy/cli seed 82910 --output ./my-project
 # Run a procedural sweep
 pnpm --filter @wcnegentropy/cli sweep --count 10 --verbose
 
-# Sweep with validation and registry persistence
-pnpm --filter @wcnegentropy/cli sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+# Sweep with validation
+pnpm --filter @wcnegentropy/cli sweep --count 100 --validate
 
 # Generate with Pass 2 enrichment
 pnpm --filter @wcnegentropy/cli seed 82910 --enrich --output ./my-project
@@ -267,15 +267,14 @@ upg seed 12345 --output ./my-project --verbose
 Generate multiple projects procedurally:
 
 ```bash
-upg sweep --count 100 --validate --save-registry ./registry/manifests/generated.json
+upg sweep --count 100 --validate
 ```
 
 **Options:**
 
 - `-c, --count <n>` - Number of projects (default: 5)
-- `--validate` - Validate generated projects
 - `-o, --output <path>` - Output directory
-- `--save-registry <path>` - Save valid projects to registry
+- `--validate` - Validate generated projects
 - `-f, --format <fmt>` - Output format (text|json)
 - `-v, --verbose` - Verbose output
 - `--archetype <type>` - Force archetype (web|backend|cli|mobile|desktop|game|library)
@@ -315,22 +314,31 @@ upg generate my-template --dest ./output --json
 - `-f, --force` - Overwrite existing files
 - `--json` - Output machine-readable JSON
 
-### `upg search <query>`
+### `upg validate <manifest>`
 
-Search the project registry:
+Validate a UPG manifest file:
 
 ```bash
-upg search "backend typescript"
-upg search "rust" --format json
+upg validate ./templates/my-template/upg.yaml
+```
+
+### `upg generate [template]`
+
+Generate a project from a template:
+
+```bash
+upg generate my-template --dest ./output
+upg generate my-template --dest ./output --json
 ```
 
 **Options:**
 
-- `-t, --tags <tags>` - Filter by tags (comma-separated)
-- `-l, --limit <number>` - Maximum results (default: 10)
-- `-f, --format <format>` - Output format (text|json)
-- `--local` - Use local registry only
-- `--remote` - Use remote registry only
+- `-d, --dest <path>` - Destination directory
+- `--data <json>` - JSON data for prompts (non-interactive)
+- `--use-defaults` - Use default values for all prompts
+- `--dry-run` - Show what would be generated without creating files
+- `-f, --force` - Overwrite existing files
+- `--json` - Output machine-readable JSON
 
 ### `upg init`
 
@@ -373,8 +381,6 @@ retro-vibecoder-upg/
 │   │   ├── matrices/     # Universal Matrix definitions
 │   │   └── sweeper/      # Validation pipeline
 │   └── shared/           # Shared types and utilities
-├── registry/             # Validated project registry
-│   └── manifests/        # Registry JSON files
 ├── templates/            # Template examples
 ├── tests/                # Test framework
 └── docs/                 # Documentation
@@ -425,23 +431,7 @@ retro-vibecoder-upg/
 
 3. Add to `AllStrategies` in the main index.
 
-## The Registry
-
-The registry stores validated project configurations discovered through sweeps:
-
-```bash
-# Run a large sweep and populate the registry
-upg sweep --count 1000 --validate --save-registry ./registry/manifests/generated.json
-```
-
-Registry entries include:
-
-- Seed number for reproducibility
-- Complete tech stack configuration
-- List of generated files
-- Validation timestamp
-
-## Philosophy
+## Project Structure
 
 > "We have built a machine that turns integers into software."
 
@@ -458,10 +448,6 @@ Every valid software project exists as a point in the Universal Matrix. This too
 ### The Tool (Retro Vibecoder UPG)
 
 The Universal Project Generator source code is copyright **WCNEGENTROPY HOLDINGS LLC** and licensed under the **MIT License**. You are free to fork, modify, and distribute the tool itself.
-
-### The Registry (Universal Matrix)
-
-All seed configurations and templates hosted in the Official Registry are dedicated to the public domain or licensed under **MIT** to ensure the ecosystem remains free and open for everyone.
 
 ### Generated Code & Liability
 

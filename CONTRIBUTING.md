@@ -193,7 +193,6 @@ packages/
 ├── cli/         # Command-line interface
 └── desktop/     # Tauri desktop app
 
-registry/        # Validated project registry
 templates/       # Example templates
 tests/           # Test suites and fixtures
 docs/            # Documentation
