@@ -216,9 +216,7 @@ function SeedGalleryPage() {
         >
           {isRunningSweeper ? 'Running Sweeper...' : 'Run Sweeper'}
         </button>
-        <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>
-          {seeds.length} seeds
-        </span>
+        <span style={{ fontSize: '10px', color: 'var(--bevel-dark)' }}>{seeds.length} seeds</span>
       </div>
 
       <div className="gallery-controls">

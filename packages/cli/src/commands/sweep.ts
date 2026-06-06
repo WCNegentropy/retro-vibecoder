@@ -15,7 +15,7 @@
 
 import pc from 'picocolors';
 import ora from 'ora';
-import { writeFile, readFile, mkdir, readdir, rm } from 'node:fs/promises';
+import { writeFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 import type {
   Archetype,
