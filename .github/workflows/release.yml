@@ -264,7 +264,7 @@ jobs:
                 -annotate 0 'UPG' \
                 "$ICONS_DIR/app-icon.png"
             else
-              magick -size 1024x1024 gradient:'#4F46E5-#7C3AED' \
+              convert -size 1024x1024 gradient:'#4F46E5-#7C3AED' \
                 -gravity center -fill white -pointsize 300 \
                 -annotate 0 'UPG' \
                 "$ICONS_DIR/app-icon.png"
